@@ -1,22 +1,27 @@
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box; /* Ensures elements stay within their bounds */
+    box-sizing: border-box;
 }
 
 html, body {
     width: 100%;
     height: 100%;
-    overflow: hidden; /* Completely disables scrolling */
+    overflow: hidden; /* Disable all scrolling */
+    position: relative;
 }
 
-#root, #graph-container {
+#root {
     width: 100vw;
     height: 100vh;
+    overflow: hidden;
+}
+
+#graph-container {
+    width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    position: fixed; /* Ensures it stays full screen */
-    top: 0;
-    left: 0;
+    background-color: #000;
 }

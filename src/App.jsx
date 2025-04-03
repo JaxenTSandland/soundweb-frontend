@@ -1,98 +1,68 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { ForceGraph2D } from "react-force-graph";
-import generateArtistId from './utils.jsx';
+import artists from "./data/artistData.jsx";
 
-// Mock import of artist and connection data
-import artistsData from './data/artistsData';
-import connectionsData from './data/connectionsData';
+// Dummy links (in a real case, you'd generate based on similarity)
+const links = [
+    { source: "1", target: "2" },
+    { source: "2", target: "4" },
+    { source: "3", target: "5" },
+    { source: "6", target: "4" },
+    { source: "7", target: "5" },
+    { source: "8", target: "7" },
+    { source: "9", target: "10" },
+    { source: "10", target: "3" },
+    { source: "2", target: "10" }
+];
 
-
-const App = () => {
-    const [graphData, setGraphData] = useState({ nodes: [], links: [] });
-
-    useEffect(() => {
-        const artistsMap = new Map();
-
-        // Process artist data into nodes
-        const nodes = artistsData.map((artist) => {
-            const artistId = generateArtistId(artist.name);
-            artistsMap.set(artistId, artist);
-            return {
-                id: artistId,
-                name: artist.name,
-                genre: artist.genre,
-                popularity: artist.popularity,
-                spotify_url: artist.spotify_url,
-                size: artist.popularity / 10,
-                color: artist.genre === "Rock" ? "red" : artist.genre === "Pop" ? "blue" : "green",
-                position: artist.position,
-            };
-        });
-
-        // Process connection data into links
-        const links = connectionsData.map((connection) => ({
-            source: artistsMap.get(generateArtistId(connection.source)),
-            target: artistsMap.get(generateArtistId(connection.target)),
-            weight: connection.weight || 2, // Default weight if not provided
-            relationship: connection.relationship,
-        }));
-
-        setGraphData({ nodes, links });
-    }, []);
-
-    return (
-        <div
-            id="graph-container"
-            style={{
-                width: "100vw",
-                height: "100vh",
-                overflow: "hidden", // Prevent scrolling
-                position: "fixed", // Locks it to the viewport
-                top: 0,
-                left: 0,
-            }}
-        >
-            <ForceGraph2D
-                graphData={graphData}
-                nodeAutoColorBy="group"
-                nodeLabel="name"
-                enableNodeDrag={false} // Disable dragging
-                nodeCanvasObject={(node, ctx, globalScale) => {
-                    const radius = node.size || 8;
-                    ctx.beginPath();
-                    ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
-                    ctx.fillStyle = node.color || "gray";
-                    ctx.fill();
-                    ctx.strokeStyle = "black";
-                    ctx.lineWidth = 0.5;
-                    ctx.stroke();
-
-                    const label = node.name;
-                    const fontSize = globalScale > 2 ? 4 : 0;
-                    ctx.font = `${fontSize}px Sans-Serif`;
-                    ctx.fillStyle = "black";
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText(label, node.x, node.y);
-                }}
-                linkCanvasObject={(link, ctx) => {
-                    const start = link.source;
-                    const end = link.target;
-
-                    if (!start || !end) return;
-
-                    const thickness = link.weight || 2;
-
-                    ctx.beginPath();
-                    ctx.moveTo(start.x, start.y);
-                    ctx.lineTo(end.x, end.y);
-                    ctx.strokeStyle = "rgba(0, 0, 0, 0.2)";
-                    ctx.lineWidth = thickness;
-                    ctx.stroke();
-                }}
-            />
-        </div>
-    );
+const graphData = {
+    nodes: artists.map(artist => ({
+        id: artist.id,
+        name: artist.name,
+        val: artist.popularity / 10, // scale popularity
+        genres: artist.genres,
+        spotifyUrl: artist.spotifyUrl,
+        color: artist.color // use provided color
+    })),
+    links
 };
 
-export default App;
+export default function ArtistGraph() {
+    return (
+        <div id="graph-container">
+            <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+                <ForceGraph2D
+                    graphData={graphData}
+                    nodeLabel={node => `{${node.id}} ${node.name} (${node.genres.join(", ")})`}
+                    enableNodeDrag={false}
+                    nodeCanvasObject={(node, ctx, globalScale) => {
+                        const label = node.name;
+                        const fontSize = 12 / globalScale;
+                        ctx.font = `${fontSize}px Sans-Serif`;
+
+                        // Draw border circle
+                        ctx.beginPath();
+                        ctx.arc(node.x, node.y, node.val * 2 + 1, 0, 2 * Math.PI, false);
+                        ctx.fillStyle = "#FFF"; // border color
+                        ctx.fill();
+
+                        // Draw node with custom color
+                        ctx.beginPath();
+                        ctx.arc(node.x, node.y, node.val * 2, 0, 2 * Math.PI, false);
+                        ctx.fillStyle = node.color || "#FFF";
+                        ctx.fill();
+
+                        // Only draw text if zoomed in close enough
+                        if (globalScale > 1.3) {
+                            ctx.fillStyle = "#000";
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+                            ctx.fillText(label, node.x, node.y);
+                        }
+                    }}
+                    onNodeClick={node => window.open(node.spotifyUrl, '_blank')}
+                />
+            </div>
+        </div>
+    );
+}
