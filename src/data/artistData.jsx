@@ -105,7 +105,7 @@ export default [
       "pop",
       "rap"
     ],
-    "popularity": 86,
+    "popularity": 30,
     "spotifyUrl": "https://open.spotify.com/artist/10",
     "color": "#40cbdd"
   }

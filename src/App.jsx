@@ -19,10 +19,10 @@ const graphData = {
     nodes: artists.map(artist => ({
         id: artist.id,
         name: artist.name,
-        val: artist.popularity / 10, // scale popularity
+        pop: artist.popularity / 10,
         genres: artist.genres,
         spotifyUrl: artist.spotifyUrl,
-        color: artist.color // use provided color
+        color: artist.color
     })),
     links
 };
@@ -30,30 +30,37 @@ const graphData = {
 export default function ArtistGraph() {
     return (
         <div id="graph-container">
-            <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+            <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: 'black' }}>
                 <ForceGraph2D
                     graphData={graphData}
                     nodeLabel={node => `{${node.id}} ${node.name} (${node.genres.join(", ")})`}
+                    nodePointerAreaPaint={(node, color, ctx) => {
+                        const radius = node.pop * 2;
+                        ctx.fillStyle = color;
+                        ctx.beginPath();
+                        ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+                        ctx.fill();
+                    }}
                     enableNodeDrag={false}
                     nodeCanvasObject={(node, ctx, globalScale) => {
                         const label = node.name;
-                        const fontSize = 12 / globalScale;
+                        const fontSize = 5 * (node.pop / 10);
                         ctx.font = `${fontSize}px Sans-Serif`;
 
                         // Draw border circle
                         ctx.beginPath();
-                        ctx.arc(node.x, node.y, node.val * 2 + 1, 0, 2 * Math.PI, false);
+                        ctx.arc(node.x, node.y, node.pop * 2 + 1, 0, 2 * Math.PI, false);
                         ctx.fillStyle = "#FFF"; // border color
                         ctx.fill();
 
                         // Draw node with custom color
                         ctx.beginPath();
-                        ctx.arc(node.x, node.y, node.val * 2, 0, 2 * Math.PI, false);
+                        ctx.arc(node.x, node.y, node.pop * 2, 0, 2 * Math.PI, false);
                         ctx.fillStyle = node.color || "#FFF";
                         ctx.fill();
 
                         // Only draw text if zoomed in close enough
-                        if (globalScale > 1.3) {
+                        if (globalScale > 1.5) {
                             ctx.fillStyle = "#000";
                             ctx.textAlign = "center";
                             ctx.textBaseline = "middle";
