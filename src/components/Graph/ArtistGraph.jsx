@@ -1,27 +1,34 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ForceGraph2D } from "react-force-graph";
-import artists from "../../data/artistData.json";
 import useTooltip from "./useTooltip.jsx";
 import wrapText from "./wrapText.jsx";
 
-const graphData = {
-    nodes: artists.map(artist => ({
-        id: artist.id,
-        name: artist.name,
-        radius: Math.pow(artist.popularity / 100, 2.5) * 40 + 5,
-        genres: artist.genres,
-        spotifyUrl: artist.spotifyId ? `https://open.spotify.com/artist/${artist.spotifyId}` : '',
-        color: artist.color,
-        x: artist.x,
-        y: artist.y,
-        label: `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`
-
-    })),
-    links: []
-};
-
 export default function ArtistGraph() {
     const { showTooltip, hideTooltip } = useTooltip();
+    const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+
+    useEffect(() => {
+        fetch("http://localhost:3000/api/artists/all")
+            .then(res => res.json())
+            .then(artists => {
+                const nodes = artists.map(artist => ({
+                    id: artist.id,
+                    name: artist.name,
+                    radius: Math.pow(artist.popularity / 100, 2.5) * 40 + 5,
+                    genres: artist.genres,
+                    spotifyUrl: artist.spotifyId
+                        ? `https://open.spotify.com/artist/${artist.spotifyId}`
+                        : artist.spotifyUrl || "",
+                    color: artist.color,
+                    x: artist.x,
+                    y: artist.y,
+                    label: `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`
+                }));
+
+                setGraphData({ nodes, links: [] });
+            })
+            .catch(err => console.error("Failed to load artist data:", err));
+    }, []);
 
     return (
         <div id="graph-container">
@@ -36,27 +43,30 @@ export default function ArtistGraph() {
                 display: "none",
                 zIndex: 10
             }} />
-
-            <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: 'black' }}>
+            <div
+                style={{
+                    width: "100vw",
+                    height: "100vh",
+                    overflow: "hidden",
+                    background: "black"
+                }}
+            >
                 <ForceGraph2D
                     graphData={graphData}
                     nodeLabel={() => ""} // disable default tooltip
                     enableNodeDrag={false}
                     linkColor={() => "white"}
                     linkWidth={() => 10}
-
                     onNodeHover={(node) => {
                         if (node) showTooltip(node);
                         else hideTooltip();
                     }}
-
                     nodePointerAreaPaint={(node, color, ctx) => {
                         ctx.fillStyle = color;
                         ctx.beginPath();
                         ctx.arc(node.x, node.y, node.radius, 0, 2 * Math.PI, false);
                         ctx.fill();
                     }}
-
                     nodeCanvasObject={(node, ctx, globalScale) => {
                         const label = node.name;
                         const radius = node.radius;
@@ -92,8 +102,9 @@ export default function ArtistGraph() {
                             });
                         }
                     }}
-
-                    onNodeClick={node => window.open(node.spotifyUrl, '_blank')}
+                    onNodeClick={(node) =>
+                        node.spotifyUrl && window.open(node.spotifyUrl, "_blank")
+                    }
                 />
             </div>
         </div>
