@@ -10,11 +10,11 @@ const graphData = {
         name: artist.name,
         radius: Math.pow(artist.popularity / 100, 2.5) * 40 + 5,
         genres: artist.genres,
-        spotifyUrl: artist.spotifyUrl,
+        spotifyUrl: artist.spotifyId ? `https://open.spotify.com/artist/${artist.spotifyId}` : '',
         color: artist.color,
         x: artist.x,
         y: artist.y,
-        label: `${artist.name}\n${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`
+        label: `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`
 
     })),
     links: []

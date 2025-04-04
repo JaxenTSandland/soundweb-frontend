@@ -19,11 +19,7 @@ export default function useTooltip() {
         const tooltip = document.getElementById("tooltip");
         if (node) {
             tooltip.style.display = "block";
-            tooltip.innerHTML = `
-                <strong>${node.name}</strong><br />
-                Genres: ${node.genres.join(", ")}<br />
-                Popularity: ${node.popularity}/100
-            `;
+            tooltip.innerHTML = node.label.replaceAll("\n", "<br>");
         }
     };
 

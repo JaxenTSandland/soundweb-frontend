@@ -46,7 +46,7 @@
       "country"
     ],
     "popularity": 95,
-    "spotifyUrl": "https://open.spotify.com/artist/4",
+    "spotifyId": "06HL4z0CvFAxyc27GXpf02",
     "color": "#40cbdd",
     "x": 504.0,
     "y": 407.5227272727273
@@ -1266,6 +1266,7 @@
       "folk pop",
       "indie folk"
     ],
+    "spotifyId": "2RQXRUsr4IW1f3mKyKsy4B",
     "popularity": 88,
     "color": "#cccccc",
     "x": 395.3333333333333,
