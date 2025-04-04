@@ -14,7 +14,7 @@ export default function ArtistGraph() {
                 const nodes = artists.map(artist => ({
                     id: artist.id,
                     name: artist.name,
-                    radius: Math.pow(artist.popularity / 100, 2.5) * 40 + 5,
+                    radius: Math.pow(artist.popularity / 100, 4.5) * 70 + 5,
                     genres: artist.genres,
                     spotifyUrl: artist.spotifyId
                         ? `https://open.spotify.com/artist/${artist.spotifyId}`
@@ -89,7 +89,7 @@ export default function ArtistGraph() {
                         ctx.fillStyle = node.color || "#FFF";
                         ctx.fill();
 
-                        if (globalScale > 1.5 / (radius / 13)) {
+                        if (globalScale > 1.1 / (radius / 13)) {
                             ctx.fillStyle = "#000";
 
                             const lines = wrapText(ctx, label, maxTextWidth);
