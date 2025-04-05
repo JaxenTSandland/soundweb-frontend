@@ -5,7 +5,7 @@ export default function useTooltip() {
         const tooltip = document.getElementById("tooltip");
 
         const handleMouseMove = (e) => {
-            if (tooltip && tooltip.style.display === "block") {
+            if (tooltip) {
                 tooltip.style.left = `${e.clientX + 10}px`;
                 tooltip.style.top = `${e.clientY + 10}px`;
             }

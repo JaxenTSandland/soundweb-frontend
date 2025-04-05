@@ -25,7 +25,23 @@ export default function ArtistGraph() {
                     label: `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`
                 }));
 
-                setGraphData({ nodes, links: [] });
+                const nameToId = new Map();
+                nodes.forEach(n => nameToId.set(n.name.toLowerCase(), n.id));
+
+                const links = [];
+
+                // artists.forEach(artist => {
+                //     const sourceId = nameToId.get(artist.name.toLowerCase());
+                //     (artist.relatedArtists).forEach(relatedName => {
+                //         const targetId = nameToId.get(relatedName.toLowerCase());
+                //         if (sourceId && targetId && sourceId !== targetId) {
+                //             links.push({ source: sourceId, target: targetId });
+                //         }
+                //     });
+                // });
+
+                setGraphData({ nodes, links });
+
             })
             .catch(err => console.error("Failed to load artist data:", err));
     }, []);
@@ -53,10 +69,13 @@ export default function ArtistGraph() {
             >
                 <ForceGraph2D
                     graphData={graphData}
-                    nodeLabel={() => ""} // disable default tooltip
+                    nodeLabel={() => ""}
                     enableNodeDrag={false}
                     linkColor={() => "white"}
-                    linkWidth={() => 10}
+                    linkWidth={() => 1}
+                    d3Force={(fg) => {
+                        fg.d3Force("link").strength(0); // <== make links visually show but not pull
+                    }}
                     onNodeHover={(node) => {
                         if (node) showTooltip(node);
                         else hideTooltip();
