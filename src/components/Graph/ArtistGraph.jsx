@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ForceGraph2D } from "react-force-graph";
 import useTooltip from "./useTooltip.jsx";
 import wrapText from "./wrapText.jsx";
@@ -14,6 +14,7 @@ export default function ArtistGraph() {
     const { showTooltip, hideTooltip } = useTooltip();
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
     const [genreLabels, setGenreLabels] = useState([]);
+    const graphRef = useRef(null);
 
     useEffect(() => {
         fetch("http://localhost:3000/api/genres/top")
@@ -54,34 +55,8 @@ export default function ArtistGraph() {
                 }));
 
                 const allNodes = [...artistNodes, ...labelNodes];
-                setGraphData({ nodes: allNodes, links: [] });
-            })
-            .catch(err => console.error("Failed to load artist data:", err));
-    }, [genreLabels]);
 
-
-    useEffect(() => {
-        fetch("http://localhost:3000/api/artists/all")
-            .then(res => res.json())
-            .then(artists => {
-                const nodes = artists.map(artist => ({
-                    id: artist.id,
-                    name: artist.name,
-                    radius: Math.pow(artist.popularity / 100, 4.5) * 70 + 5,
-                    genres: artist.genres,
-                    spotifyUrl: artist.spotifyId
-                        ? `https://open.spotify.com/artist/${artist.spotifyId}`
-                        : artist.spotifyUrl || "",
-                    color: artist.color,
-                    x: artist.x,
-                    y: artist.y,
-                    label: `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`,
-                }));
-
-                const nameToId = new Map();
-                nodes.forEach(n => nameToId.set(n.name.toLowerCase(), n.id));
-
-                const links = [];
+                //const links = [];
 
                 // artists.forEach(artist => {
                 //     const sourceId = nameToId.get(artist.name.toLowerCase());
@@ -93,11 +68,29 @@ export default function ArtistGraph() {
                 //     });
                 // });
 
-                setGraphData({ nodes, links });
+                setGraphData({
+                    nodes: [...artistNodes, ...labelNodes],
+                    links: []
+                });
+
+                setTimeout(() => {
+                    if (graphRef.current) {
+                        const allNodes = [...artistNodes, ...labelNodes];
+                        const avgX = allNodes.reduce((sum, n) => sum + n.x, 0) / allNodes.length;
+
+                        const yValues = allNodes.map(n => n.y);
+                        const minY = Math.min(...yValues);
+                        const maxY = Math.max(...yValues);
+                        const centerY = (minY + maxY) / 2;
+
+                        graphRef.current.centerAt(avgX, centerY, 0); // center on X + vertical midpoint
+                        graphRef.current.zoom(0.04, 1000);
+                    }
+                }, 100);
 
             })
             .catch(err => console.error("Failed to load artist data:", err));
-    }, []);
+    }, [genreLabels]);
 
     return (
         <div id="graph-container">
@@ -121,6 +114,7 @@ export default function ArtistGraph() {
                 }}
             >
                 <ForceGraph2D
+                    ref={graphRef}
                     minZoom={0.03}
                     maxZoom={2.5}
                     graphData={graphData}
