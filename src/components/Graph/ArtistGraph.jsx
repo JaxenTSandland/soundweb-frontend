@@ -68,6 +68,8 @@ export default function ArtistGraph() {
                 }}
             >
                 <ForceGraph2D
+                    minZoom={0.03}
+                    maxZoom={2.5}
                     graphData={graphData}
                     nodeLabel={() => ""}
                     enableNodeDrag={false}

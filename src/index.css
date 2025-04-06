@@ -1,0 +1,44 @@
+/* Reset styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Ensure full-screen layout */
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: sans-serif;
+}
+
+/* Prevent scrollbars on the root div */
+#root {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Optional: smooth font rendering & prevent selection */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: none;
+}
+
+/* Optional: add overflow guards for common problematic elements */
+canvas, svg {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+/* Debug: visualize boxes to see what's leaking (remove later) */
+/*
+* {
+  outline: 1px solid red;
+}
+*/
