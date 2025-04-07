@@ -17,7 +17,7 @@ export default function ArtistGraph() {
     const graphRef = useRef(null);
 
     useEffect(() => {
-        fetch("http://localhost:3000/api/genres/top")
+        fetch("http://localhost:3000/api/genres/top?count=10")
             .then(res => res.json())
             .then(setGenreLabels)
             .catch(err => console.error("Failed to load genre labels:", err));
@@ -43,6 +43,7 @@ export default function ArtistGraph() {
                     label: `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`,
                     labelNode: false
                 }));
+                console.log(artistNodes);
 
                 const labelNodes = genreLabels.map((genre, i) => ({
                     id: `genre-${i}`,
@@ -51,7 +52,8 @@ export default function ArtistGraph() {
                     y: genre.y,
                     radius: 1,
                     color: "transparent",
-                    labelNode: true
+                    labelNode: true,
+                    count: genre.count
                 }));
 
                 const allNodes = [...artistNodes, ...labelNodes];
@@ -115,7 +117,7 @@ export default function ArtistGraph() {
             >
                 <ForceGraph2D
                     ref={graphRef}
-                    minZoom={0.03}
+                    minZoom={0.04}
                     maxZoom={2.5}
                     graphData={graphData}
                     nodeLabel={() => ""}
@@ -136,6 +138,10 @@ export default function ArtistGraph() {
                         ctx.fill();
                     }}
                     nodeCanvasObject={(node, ctx, globalScale) => {
+                        const labelNodesOnly = graphData.nodes.filter(n => n.labelNode);
+                        const counts = labelNodesOnly.map(n => n.count || 0);
+                        const maxCount = Math.max(...counts);
+                        const minCount = Math.min(...counts);
                         const label = node.name;
 
                         // Genre label rendering
@@ -150,9 +156,17 @@ export default function ArtistGraph() {
                                 alpha = Math.max(0, 1 - (globalScale - fadeStart) / (fadeEnd - fadeStart));
                             }
 
+                            const maxFontSize = 600;
+                            const minFontSize = maxFontSize * 0.4;
+
+                            const popularityScale = maxCount !== minCount
+                                ? (node.count - minCount) / (maxCount - minCount)
+                                : 1;
+
+                            const fontSize = minFontSize + (maxFontSize - minFontSize) * popularityScale;
+
                             ctx.save();
                             ctx.globalAlpha = alpha;
-                            const fontSize = 500;
                             ctx.font = `${fontSize}px Sans-Serif`;
                             ctx.fillStyle = "#fff";
                             ctx.textAlign = "center";
