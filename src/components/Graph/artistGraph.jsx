@@ -5,14 +5,19 @@ import {toTitleCase} from "../../utils/textUtils.js";
 import {renderNode} from "./artistNodeRenderer.js";
 import ArtistPopup from "./artistPopup.jsx";
 
+const MAX_LINKS_PER_ARTIST = 3;
+
 
 
 export default function ArtistGraph() {
     const { showTooltip, hideTooltip } = useTooltip();
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
     const [genreLabels, setGenreLabels] = useState([]);
+    const [hoverNode, setHoverNode] = useState(null);
     const graphRef = useRef(null);
+    const canvasRef = useRef(null);
     const [popupData, setPopupData] = useState(null);
+    const [allLinks, setAllLinks] = useState([]);
 
     function openPopupForNode(node) {
         if (!node || node.labelNode) return;
@@ -26,12 +31,43 @@ export default function ArtistGraph() {
         });
     }
 
+    function drawLinks(nodes, links) {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.strokeStyle = "#FFF";
+        ctx.lineWidth = 1;
+
+        links.forEach(link => {
+            const source = nodes.find(n => n.id === link.source);
+            const target = nodes.find(n => n.id === link.target);
+            if (!source || !target) {
+                console.error("No node with id " + link.id + " found.");
+                return;
+            }
+            ctx.beginPath();
+            const screenSource = graphRef.current.graph2ScreenCoords(source.x, source.y);
+            const screenTarget = graphRef.current.graph2ScreenCoords(target.x, target.y);
+            console.log("Source:", screenSource.x, ",", screenSource.y + "/ Target:" + screenTarget.x, ",", screenTarget.y);
+            ctx.strokeStyle = "#FFF";
+            ctx.lineWidth = 1;
+            ctx.moveTo(screenSource.x, screenSource.y);
+            ctx.lineTo(screenTarget.x, screenTarget.y);
+            ctx.stroke();
+        });
+        console.log(links[0]);
+
+    }
+
     useEffect(() => {
         fetch("http://localhost:3000/api/genres/top?count=10")
             .then(res => res.json())
             .then(setGenreLabels)
             .catch(err => console.error("Failed to load genre labels:", err));
     }, []);
+
 
     useEffect(() => {
         if (genreLabels.length === 0) return;
@@ -68,30 +104,41 @@ export default function ArtistGraph() {
 
                 const allNodes = [...artistNodes, ...labelNodes];
 
-                const links = [];
                 const nameToId = new Map();
                 artistNodes.forEach(n => nameToId.set(n.name.toLowerCase(), n.id));
 
                 const linkSet = new Set();
+                const links = [];
 
                 artists.forEach(artist => {
                     const sourceId = nameToId.get(artist.name.toLowerCase());
-                    (artist.relatedArtists).forEach(relatedName => {
+                    if (!sourceId) return;
+
+                    let addedLinks = 0;
+
+                    for (const relatedName of artist.relatedArtists) {
+                        if (addedLinks >= MAX_LINKS_PER_ARTIST) break;
+
                         const targetId = nameToId.get(relatedName.toLowerCase());
-                        if (sourceId && targetId && sourceId !== targetId) {
-                            const key = [sourceId, targetId].sort().join("-");
-                            if (!linkSet.has(key)) {
-                                linkSet.add(key);
-                                links.push({ source: sourceId, target: targetId });
-                            }
+                        if (!targetId || targetId === sourceId) continue;
+
+                        const key = [sourceId, targetId].sort().join("-");
+                        if (!linkSet.has(key)) {
+                            linkSet.add(key);
+                            links.push({ source: sourceId, target: targetId });
+                            addedLinks++;
                         }
-                    });
+                    }
                 });
+
 
                 setGraphData({
                     nodes: [...artistNodes, ...labelNodes],
-                    links: links
+                    links: []
                 });
+                setAllLinks(links);
+
+                drawLinks([...artistNodes, ...labelNodes], links);
 
                 setTimeout(() => {
                     if (graphRef.current) {
@@ -136,28 +183,47 @@ export default function ArtistGraph() {
                 style={{
                     width: "100vw",
                     height: "100vh",
-                    overflow: "hidden",
+                    position: "relative",
                     background: "black"
-                }}
-            >
+                }}>
+                <canvas
+                    ref={canvasRef}
+                    width={window.innerWidth}
+                    height={window.innerHeight}
+                    style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        zIndex: 0.5
+                    }}
+                />
                 <ForceGraph2D
+                    d3Force="none"
                     ref={graphRef}
                     minZoom={0.04}
                     maxZoom={2.5}
                     graphData={graphData}
                     nodeLabel={() => ""}
                     enableNodeDrag={false}
-                    linkColor={() => "white"}
-                    linkWidth={() => 1}
-                    d3Force={(fg) => {
-                        fg.d3Force("link").strength(0);
-                    }}
+
+                    // linkColor={(link) =>
+                    //     hoverNode &&
+                    //     (link.source.id === hoverNode.id || link.target.id === hoverNode.id)
+                    //         ? "#00f"
+                    //         : "white"
+                    // }
+                    // linkWidth={(link) =>
+                    //     hoverNode &&
+                    //     (link.source.id === hoverNode.id || link.target.id === hoverNode.id)
+                    //         ? 2.5
+                    //         : 0.5
+                    // }
                     onNodeHover={(node) => {
+                        setHoverNode(node && !node.labelNode ? node : null);
                         if (node) showTooltip(node);
                         else hideTooltip();
                     }}
                     nodePointerAreaPaint={(node, color, ctx) => {
-                        const zoom = graphRef.current ? graphRef.current.zoom() : 1;
                         const adjustedRadius = node.radius / 1;
                         ctx.fillStyle = color;
                         ctx.beginPath();
@@ -166,9 +232,12 @@ export default function ArtistGraph() {
                     }}
                     nodeCanvasObject={(node, ctx, globalScale) =>
                         renderNode(node, ctx, globalScale, graphData)
+
                     }
 
                     onNodeClick={openPopupForNode}
+                    onZoom={() => drawLinks(graphData.nodes, allLinks)}
+                    onPan={() => drawLinks(graphData.nodes, allLinks)}
                 />
             </div>
         </div>
