@@ -1,5 +1,5 @@
 import React from "react";
-import ArtistGraph from "./components/Graph/ArtistGraph.jsx";
+import ArtistGraph from "./components/Graph/artistGraph.jsx";
 
 function App() {
     return (
