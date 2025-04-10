@@ -12,6 +12,8 @@ export default function ArtistGraph() {
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
     const [genreLabels, setGenreLabels] = useState([]);
     const [hoverNode, setHoverNode] = useState(null);
+    const [selectedNode, setSelectedNode] = useState(null);
+
     const graphRef = useRef(null);
     const canvasRef = useRef(null);
     const [popupData, setPopupData] = useState(null);
@@ -25,7 +27,7 @@ export default function ArtistGraph() {
 
     function openPopupForNode(node) {
         if (!node || node.labelNode) return;
-
+        setSelectedNode(node);
         setPopupData({
             x: 0,
             y: 0,
@@ -59,9 +61,10 @@ export default function ArtistGraph() {
 
     useEffect(() => {
         if (graphData.nodes.length > 0 && allLinks.length > 0) {
-            drawLinks(canvasRef.current, graphData.nodes, allLinks, graphRef.current, hoverNode);
+            drawLinks(canvasRef.current, graphData.nodes, allLinks, graphRef.current, hoverNode, selectedNode);
+
         }
-    }, [hoverNode]);
+    }, [hoverNode, selectedNode]);
 
     return (
         <div id="graph-container" style={{ position: "relative", width: "100vw", height: "100vh" }}>
@@ -110,9 +113,13 @@ export default function ArtistGraph() {
                     nodeLabel={() => ""}
                     enableNodeDrag={false}
                     onNodeHover={(node) => {
-                        setHoverNode(node && !node.labelNode ? node : null);
-                        if (node) showTooltip(node);
-                        else hideTooltip();
+                        if (node && !node.labelNode) {
+                            setHoverNode(node);
+                            showTooltip(node);
+                        } else {
+                            setHoverNode(null);
+                            hideTooltip();
+                        }
                     }}
                     nodePointerAreaPaint={(node, color, ctx) => {
                         const adjustedRadius = node.radius / 1;
@@ -131,13 +138,22 @@ export default function ArtistGraph() {
                             graphData,
                             minCount,
                             maxCount,
-                            hoverNode
+                            hoverNode,
+                            selectedNode
                         )
                     }
 
                     onNodeClick={openPopupForNode}
-                    onZoom={() => drawLinks(canvasRef.current, graphData.nodes, allLinks, graphRef.current, hoverNode)}
-                    onPan={() => drawLinks(canvasRef.current, graphData.nodes, allLinks, graphRef.current, hoverNode)}
+                    onBackgroundClick={() => {
+                        setSelectedNode(null);
+                        setPopupData(null);
+                    }}
+                    onZoom={() =>
+                        drawLinks(canvasRef.current, graphData.nodes, allLinks, graphRef.current, hoverNode, selectedNode)
+                    }
+                    onPan={() =>
+                        drawLinks(canvasRef.current, graphData.nodes, allLinks, graphRef.current, hoverNode, selectedNode)
+                    }
                 />
             </div>
         </div>

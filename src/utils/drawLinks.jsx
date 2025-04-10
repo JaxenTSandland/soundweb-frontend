@@ -1,4 +1,4 @@
-export default function drawLinks(canvas, nodes, links, graph, hoverNode) {
+export default function drawLinks(canvas, nodes, links, graph, hoverNode, selectedNode) {
     if (!canvas || !graph) return;
 
     const ctx = canvas.getContext("2d");
@@ -12,32 +12,32 @@ export default function drawLinks(canvas, nodes, links, graph, hoverNode) {
         const screenSource = graph.graph2ScreenCoords(source.x, source.y);
         const screenTarget = graph.graph2ScreenCoords(target.x, target.y);
 
-        const isConnected = hoverNode &&
-            (link.source === hoverNode.id || link.target === hoverNode.id);
+        const isConnected = selectedNode &&
+            (link.source === selectedNode.id || link.target === selectedNode.id);
         const directlyConnectedIds = new Set();
-        if (hoverNode) {
+
+        if (selectedNode) {
             links.forEach(link => {
-                if (link.source === hoverNode.id) directlyConnectedIds.add(link.target);
-                if (link.target === hoverNode.id) directlyConnectedIds.add(link.source);
+                if (link.source === selectedNode.id) directlyConnectedIds.add(link.target);
+                if (link.target === selectedNode.id) directlyConnectedIds.add(link.source);
             });
         }
 
-        const isSecondaryConnection = hoverNode && !isConnected && (
+        const isSecondaryConnection = selectedNode && !isConnected && (
             directlyConnectedIds.has(link.source) || directlyConnectedIds.has(link.target)
         );
         const zoom = graph.zoom?.() || 1;
 
         ctx.globalAlpha = 1;
-        if (hoverNode) {
-            if (isConnected) {
-                ctx.globalAlpha = 1;
-                ctx.strokeStyle = hoverNode.color;
+        if (selectedNode) {
+            if (isConnected) { // Connected to the hovered artist
+                ctx.strokeStyle = selectedNode.color;
                 ctx.lineWidth = 3;
-            } else if (isSecondaryConnection) {
-                ctx.globalAlpha = 0.75;
-                ctx.strokeStyle = hoverNode.color;
+            } else if (isSecondaryConnection) { // Connected to artists that are connected to the hovered artist
+                ctx.globalAlpha = 0.6;
+                ctx.strokeStyle = selectedNode.color;
                 ctx.lineWidth = 1;
-            } else {
+            } else { // Lines that have nothing to do with the hovered artist
                 ctx.globalAlpha = 0;
             }
         } else {

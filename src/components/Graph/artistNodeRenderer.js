@@ -1,18 +1,21 @@
 import wrapText from "../../utils/wrapText.jsx";
 
-export function renderNode(node, ctx, globalScale, graphData, minCount, maxCount, hoverNode) {
+export function renderNode(node, ctx, globalScale, graphData, minCount, maxCount, hoverNode, selectedNode) {
 
+    const isSelected = selectedNode && node.id === selectedNode.id;
     const isHovered = hoverNode && node.id === hoverNode.id;
 
-    const isConnectedToHovered = Boolean(
-        hoverNode &&
-        Array.isArray(hoverNode.relatedArtists) &&
-        (hoverNode.relatedArtists.includes(node.name) || node.relatedArtists?.includes(hoverNode.name))
+    const isConnectedToSelectedNode = Boolean(
+        selectedNode &&
+        Array.isArray(selectedNode.relatedArtists) &&
+        (selectedNode.relatedArtists.includes(node.name) || node.relatedArtists?.includes(selectedNode.name))
     );
 
-    if (hoverNode) {
-        if (isHovered || isConnectedToHovered) {
+    if (selectedNode) {
+        if (isSelected || isConnectedToSelectedNode) {
             ctx.globalAlpha = 1;
+        } else if (isHovered) {
+            ctx.globalAlpha = 0.5;
         } else {
             ctx.globalAlpha = 0.2;
         }
@@ -64,8 +67,12 @@ export function renderNode(node, ctx, globalScale, graphData, minCount, maxCount
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
 
-    ctx.shadowColor = isHovered ? "#FFF" : "transparent";
-    ctx.shadowBlur = 10;
+    if (isSelected || isHovered) {
+        ctx.shadowColor = "#FFF";
+        ctx.shadowBlur = 10;
+    } else {
+        ctx.shadowColor = "transparent";
+    }
 
 
     // Border
