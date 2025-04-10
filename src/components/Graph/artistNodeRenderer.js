@@ -1,10 +1,6 @@
 import wrapText from "../../utils/wrapText.jsx";
 
-export function renderNode(node, ctx, globalScale, graphData) {
-    const labelNodesOnly = graphData.nodes.filter(n => n.labelNode);
-    const counts = labelNodesOnly.map(n => n.count || 0);
-    const maxCount = Math.max(...counts);
-    const minCount = Math.min(...counts);
+export function renderNode(node, ctx, globalScale, graphData, minCount, maxCount, isHovered) {
     const label = node.name;
 
     if (node.labelNode) {
@@ -32,7 +28,7 @@ export function renderNode(node, ctx, globalScale, graphData) {
         ctx.fillStyle = "#fff";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.strokeStyle = "#000";
+        ctx.strokeStyle = "#FFF";
         ctx.lineWidth = 3;
 
         ctx.strokeText(label, node.x, node.y);
@@ -49,10 +45,14 @@ export function renderNode(node, ctx, globalScale, graphData) {
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
 
+    ctx.shadowColor = isHovered ? "#FFF" : "transparent";
+    ctx.shadowBlur = 10;
+
+
     // Border
     ctx.beginPath();
     ctx.arc(node.x, node.y, radius + 1, 0, 2 * Math.PI);
-    ctx.fillStyle = "#FFF";
+    ctx.fillStyle = "#FFF"; // Border color
     ctx.fill();
 
     // Node fill
