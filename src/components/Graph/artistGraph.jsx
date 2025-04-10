@@ -7,10 +7,6 @@ import drawLinks from "../../utils/drawLinks.jsx";
 import {fetchArtistAndGenreData} from "../../utils/fetchGraphData.jsx";
 import {useGraphInit} from "../../utils/graphInit.jsx";
 
-const MAX_LINKS_PER_ARTIST = 10;
-
-
-
 export default function ArtistGraph() {
     const { showTooltip, hideTooltip } = useTooltip();
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });

@@ -9,9 +9,6 @@ export function renderNode(node, ctx, globalScale, graphData, minCount, maxCount
         Array.isArray(hoverNode.relatedArtists) &&
         (hoverNode.relatedArtists.includes(node.name) || node.relatedArtists?.includes(hoverNode.name))
     );
-    if (hoverNode && hoverNode.relatedArtists?.includes(node.name)) {
-        console.log(`${node.name} is directly connected to ${hoverNode.name}`);
-    }
 
     if (hoverNode) {
         if (isHovered || isConnectedToHovered) {
