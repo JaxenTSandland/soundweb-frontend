@@ -26,6 +26,7 @@ export default function ArtistGraph() {
     const maxCount = Math.max(...counts);
     const minCount = Math.min(...counts);
 
+
     function openPopupForNode(node) {
         if (!node || node.labelNode) return;
 
@@ -127,7 +128,15 @@ export default function ArtistGraph() {
 
 
                     nodeCanvasObject={(node, ctx, globalScale) =>
-                        renderNode(node, ctx, globalScale, minCount, maxCount, graphData, hoverNode && node.id === hoverNode.id)
+                        renderNode(
+                            node,
+                            ctx,
+                            globalScale,
+                            graphData,
+                            minCount,
+                            maxCount,
+                            hoverNode
+                        )
                     }
 
                     onNodeClick={openPopupForNode}

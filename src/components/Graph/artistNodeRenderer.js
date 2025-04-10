@@ -1,6 +1,28 @@
 import wrapText from "../../utils/wrapText.jsx";
 
-export function renderNode(node, ctx, globalScale, graphData, minCount, maxCount, isHovered) {
+export function renderNode(node, ctx, globalScale, graphData, minCount, maxCount, hoverNode) {
+
+    const isHovered = hoverNode && node.id === hoverNode.id;
+
+    const isConnectedToHovered = Boolean(
+        hoverNode &&
+        Array.isArray(hoverNode.relatedArtists) &&
+        (hoverNode.relatedArtists.includes(node.name) || node.relatedArtists?.includes(hoverNode.name))
+    );
+    if (hoverNode && hoverNode.relatedArtists?.includes(node.name)) {
+        console.log(`${node.name} is directly connected to ${hoverNode.name}`);
+    }
+
+    if (hoverNode) {
+        if (isHovered || isConnectedToHovered) {
+            ctx.globalAlpha = 1;
+        } else {
+            ctx.globalAlpha = 0.2;
+        }
+    } else {
+        ctx.globalAlpha = 1;
+    }
+
     const label = node.name;
 
     if (node.labelNode) {
@@ -72,4 +94,5 @@ export function renderNode(node, ctx, globalScale, graphData, minCount, maxCount
             ctx.fillText(line, node.x, startY + i * lineHeight);
         });
     }
+    ctx.globalAlpha = 1;
 }

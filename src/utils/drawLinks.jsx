@@ -14,9 +14,41 @@ export default function drawLinks(canvas, nodes, links, graph, hoverNode) {
 
         const isConnected = hoverNode &&
             (link.source === hoverNode.id || link.target === hoverNode.id);
+        const directlyConnectedIds = new Set();
+        if (hoverNode) {
+            links.forEach(link => {
+                if (link.source === hoverNode.id) directlyConnectedIds.add(link.target);
+                if (link.target === hoverNode.id) directlyConnectedIds.add(link.source);
+            });
+        }
 
-        ctx.strokeStyle = isConnected ? "#0f0" : "#fff";
-        ctx.lineWidth = isConnected ? 3 : 1 * graph.zoom();
+        const isSecondaryConnection = hoverNode && !isConnected && (
+            directlyConnectedIds.has(link.source) || directlyConnectedIds.has(link.target)
+        );
+        const zoom = graph.zoom?.() || 1;
+
+        ctx.globalAlpha = 1;
+        if (hoverNode) {
+            if (isConnected) {
+                ctx.globalAlpha = 1;
+                ctx.strokeStyle = hoverNode.color;
+                ctx.lineWidth = 3;
+            } else if (isSecondaryConnection) {
+                ctx.globalAlpha = 0.75;
+                ctx.strokeStyle = hoverNode.color;
+                ctx.lineWidth = 1;
+            } else {
+                ctx.globalAlpha = 0.2;
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 1 * zoom;
+            }
+        } else {
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 1 * zoom;
+        }
+
+
+
 
         ctx.beginPath();
         ctx.moveTo(screenSource.x, screenSource.y);

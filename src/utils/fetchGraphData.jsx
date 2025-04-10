@@ -18,6 +18,7 @@ export async function fetchArtistAndGenreData(setGraphData, setAllLinks, setGenr
                 ? `https://open.spotify.com/artist/${artist.spotifyId}`
                 : artist.spotifyUrl || "",
             color: artist.color,
+            relatedArtists: artist.relatedArtists,
             x: artist.x,
             y: artist.y,
             label: `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`,
