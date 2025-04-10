@@ -38,9 +38,7 @@ export default function drawLinks(canvas, nodes, links, graph, hoverNode) {
                 ctx.strokeStyle = hoverNode.color;
                 ctx.lineWidth = 1;
             } else {
-                ctx.globalAlpha = 0.2;
-                ctx.strokeStyle = "#fff";
-                ctx.lineWidth = 1 * zoom;
+                ctx.globalAlpha = 0;
             }
         } else {
             ctx.strokeStyle = "#fff";
