@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { ForceGraph2D } from "react-force-graph";
 import useTooltip from "./useTooltip.jsx";
 import {renderNode} from "./artistNodeRenderer.js";
-import ArtistPopup from "./artistPopup.jsx";
 import drawLinks from "../../utils/drawLinks.jsx";
 import {fetchArtistAndGenreData} from "../../utils/fetchGraphData.jsx";
 import {useGraphInit} from "../../utils/graphInit.jsx";
+import drawNodePopup from "../../utils/drawNodePopup.jsx";
 
 export default function ArtistGraph() {
     const { showTooltip, hideTooltip } = useTooltip();
@@ -28,10 +28,12 @@ export default function ArtistGraph() {
     function openPopupForNode(node) {
         if (!node || node.labelNode) return;
         setSelectedNode(node);
+        console.log(node);
         setPopupData({
             x: 0,
             y: 0,
             name: node.name,
+            image: node.imageUrl,
             label: node.genres.join(", "),
             node
         });
@@ -68,10 +70,6 @@ export default function ArtistGraph() {
 
     return (
         <div id="graph-container" style={{ position: "relative", width: "100vw", height: "100vh" }}>
-            {popupData && (
-                <ArtistPopup {...popupData} />
-            )}
-
             <div
                 id="tooltip"
                 style={{
@@ -130,7 +128,7 @@ export default function ArtistGraph() {
                     }}
 
 
-                    nodeCanvasObject={(node, ctx, globalScale) =>
+                    nodeCanvasObject={(node, ctx, globalScale) => {
                         renderNode(
                             node,
                             ctx,
@@ -140,8 +138,12 @@ export default function ArtistGraph() {
                             maxCount,
                             hoverNode,
                             selectedNode
-                        )
-                    }
+                        );
+
+                        if (popupData && popupData.node === node) {
+                            drawNodePopup(ctx, node, popupData, globalScale);
+                        }
+                    }}
 
                     onNodeClick={openPopupForNode}
                     onBackgroundClick={() => {

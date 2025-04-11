@@ -17,6 +17,7 @@ export async function fetchArtistAndGenreData(setGraphData, setAllLinks, setGenr
             spotifyUrl: artist.spotifyId
                 ? `https://open.spotify.com/artist/${artist.spotifyId}`
                 : artist.spotifyUrl || "",
+            imageUrl: artist.imageUrl,
             color: artist.color,
             relatedArtists: artist.relatedArtists,
             x: artist.x,

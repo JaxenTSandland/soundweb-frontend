@@ -42,7 +42,7 @@ export default function drawLinks(canvas, nodes, links, graph, hoverNode, select
             }
         } else {
             ctx.strokeStyle = "#fff";
-            ctx.lineWidth = 1 * zoom;
+            ctx.lineWidth = 1.5 * zoom;
         }
 
 
