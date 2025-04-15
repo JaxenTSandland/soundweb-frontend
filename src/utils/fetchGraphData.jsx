@@ -2,14 +2,19 @@ import { toTitleCase } from "./textUtils.js";
 
 export async function fetchArtistAndGenreData(setGraphData, setAllLinks, setGenreLabels) {
     try {
-        const genresRes = await fetch("http://localhost:3000/api/genres/top?count=10");
+        const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
+        // Fetch genre labels
+        const genresRes = await fetch(`${baseUrl}/api/genres/top?count=10`);
         const genreLabels = await genresRes.json();
         setGenreLabels(genreLabels);
 
-        const artistsRes = await fetch("http://localhost:3000/api/artists/all");
-        const artists = await artistsRes.json();
+        // Fetch artist nodes and links from backend
+        const res = await fetch(`${baseUrl}/api/artists/graph`);
+        const { nodes: artistNodesRaw, links } = await res.json();
 
-        const artistNodes = artists.map(artist => ({
+        // Build artist nodes
+        const artistNodes = artistNodesRaw.map(artist => ({
             id: artist.id,
             name: artist.name,
             radius: Math.pow(artist.popularity / 100, 4.5) * 70 + 5,
@@ -19,13 +24,13 @@ export async function fetchArtistAndGenreData(setGraphData, setAllLinks, setGenr
                 : artist.spotifyUrl || "",
             imageUrl: artist.imageUrl,
             color: artist.color,
-            relatedArtists: artist.relatedArtists,
             x: artist.x,
             y: artist.y,
             label: `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`,
             labelNode: false
         }));
 
+        // Build genre label nodes
         const labelNodes = genreLabels.map((genre, i) => ({
             id: `genre-${i}`,
             name: toTitleCase(genre.name),
@@ -37,35 +42,12 @@ export async function fetchArtistAndGenreData(setGraphData, setAllLinks, setGenr
             count: genre.count
         }));
 
-        const nameToId = new Map();
-        artistNodes.forEach(n => nameToId.set(n.name.toLowerCase(), n.id));
-
-        const linkSet = new Set();
-        const links = [];
-
-        const MAX_LINKS_PER_ARTIST = 10;
-        artists.forEach(artist => {
-            const sourceId = nameToId.get(artist.name.toLowerCase());
-            if (!sourceId) return;
-
-            let addedLinks = 0;
-
-            for (const relatedName of artist.relatedArtists) {
-                if (addedLinks >= MAX_LINKS_PER_ARTIST) break;
-
-                const targetId = nameToId.get(relatedName.toLowerCase());
-                if (!targetId || targetId === sourceId) continue;
-
-                const key = [sourceId, targetId].sort().join("-");
-                if (!linkSet.has(key)) {
-                    linkSet.add(key);
-                    links.push({ source: sourceId, target: targetId });
-                    addedLinks++;
-                }
-            }
+        // Set graph data
+        setGraphData({
+            nodes: [...artistNodes, ...labelNodes],
+            links: [] // No links in graphData directly
         });
 
-        setGraphData({ nodes: [...artistNodes, ...labelNodes], links: [] });
         setAllLinks(links);
 
         return [...artistNodes, ...labelNodes];

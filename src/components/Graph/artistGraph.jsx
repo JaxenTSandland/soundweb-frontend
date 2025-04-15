@@ -7,12 +7,20 @@ import {fetchArtistAndGenreData} from "../../utils/fetchGraphData.jsx";
 import {useGraphInit} from "../../utils/graphInit.jsx";
 import drawNodePopup from "../../utils/drawNodePopup.jsx";
 
+
+
 export default function ArtistGraph() {
     const { showTooltip, hideTooltip } = useTooltip();
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
     const [genreLabels, setGenreLabels] = useState([]);
     const [hoverNode, setHoverNode] = useState(null);
     const [selectedNode, setSelectedNode] = useState(null);
+
+    // Search bar states
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filteredResults, setFilteredResults] = useState([]);
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+
 
     const graphRef = useRef(null);
     const canvasRef = useRef(null);
@@ -23,6 +31,33 @@ export default function ArtistGraph() {
     const counts = labelNodesOnly.map(n => n.count || 0);
     const maxCount = Math.max(...counts);
     const minCount = Math.min(...counts);
+
+
+    // region Search bar functions
+
+    function handleResultClick(node) {
+        if (!node || !graphRef.current) return;
+        graphRef.current.centerAt(node.x, node.y, 1000);
+        graphRef.current.zoom(1.5, 1000);
+        setSearchTerm("");
+        setFilteredResults([]);
+        setSelectedNode(null);
+        setTimeout(() => setSelectedNode(node), 750);
+    }
+
+    useEffect(() => {
+        if (!searchTerm.trim()) {
+            setFilteredResults([]);
+            return;
+        }
+
+        const results = graphData.nodes
+            .filter(n => !n.labelNode && n.name.toLowerCase().includes(searchTerm.toLowerCase()))
+            .slice(0, 3);
+
+        setFilteredResults(results);
+    }, [searchTerm, graphData.nodes]);
+    // endregion
 
 
     function openPopupForNode(node) {
@@ -38,13 +73,6 @@ export default function ArtistGraph() {
             node
         });
     }
-
-    useEffect(() => {
-        fetch("http://localhost:3000/api/genres/top?count=10")
-            .then(res => res.json())
-            .then(setGenreLabels)
-            .catch(err => console.error("Failed to load genre labels:", err));
-    }, []);
 
 
     useEffect(() => {
@@ -70,6 +98,61 @@ export default function ArtistGraph() {
 
     return (
         <div id="graph-container" style={{ position: "relative", width: "100vw", height: "100vh" }}>
+            {/* Search bar */}
+            <div style={{ position: "absolute", top: 10, right: 10, zIndex: 20, width: "250px" }}>
+                <form style={{ marginBottom: "4px" }}>
+                    <input
+                        type="text"
+                        placeholder="Search artist..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onFocus={() => setIsSearchFocused(true)}
+                        onBlur={() => {
+                            setTimeout(() => setIsSearchFocused(false), 100);
+                        }}
+                        style={{
+                            width: "100%",
+                            padding: "6px 10px",
+                            fontSize: "14px",
+                            borderRadius: "6px",
+                            border: "1px solid #ccc",
+                            outline: "none",
+                            background: "#1a1a1a",
+                            color: "#fff"
+                        }}
+                    />
+                </form>
+
+                {searchTerm && isSearchFocused && filteredResults.length > 0 && (
+                    <div
+                        style={{
+                            background: "#222",
+                            borderRadius: "6px",
+                            border: "1px solid #444",
+                            overflow: "hidden",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.4)"
+                        }}
+                    >
+                        {filteredResults.map((node) => (
+                            <div
+                                key={node.id}
+                                onClick={() => handleResultClick(node)}
+                                style={{
+                                    padding: "6px 10px",
+                                    cursor: "pointer",
+                                    color: "white",
+                                    fontSize: "14px",
+                                    borderBottom: "1px solid #333"
+                                }}
+                            >
+                                {node.name}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Tooltip */}
             <div
                 id="tooltip"
                 style={{
@@ -84,13 +167,15 @@ export default function ArtistGraph() {
                     zIndex: 10
                 }}
             />
+
             <div
                 style={{
                     width: "100vw",
                     height: "100vh",
                     position: "relative",
                     background: "black"
-                }}>
+                }}
+            >
                 <canvas
                     ref={canvasRef}
                     width={window.innerWidth}
@@ -126,8 +211,6 @@ export default function ArtistGraph() {
                         ctx.arc(node.x, node.y, adjustedRadius, 0, 2 * Math.PI, false);
                         ctx.fill();
                     }}
-
-
                     nodeCanvasObject={(node, ctx, globalScale) => {
                         renderNode(
                             node,
@@ -144,7 +227,6 @@ export default function ArtistGraph() {
                             drawNodePopup(ctx, node, popupData, globalScale);
                         }
                     }}
-
                     onNodeClick={openPopupForNode}
                     onBackgroundClick={() => {
                         setSelectedNode(null);
@@ -160,4 +242,5 @@ export default function ArtistGraph() {
             </div>
         </div>
     );
+
 }
