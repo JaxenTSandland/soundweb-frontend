@@ -6,6 +6,7 @@ import drawLinks from "../../utils/drawLinks.jsx";
 import {fetchArtistAndGenreData} from "../../utils/fetchGraphData.jsx";
 import {useGraphInit} from "../../utils/graphInit.jsx";
 import drawNodePopup from "../../utils/drawNodePopup.jsx";
+import {toTitleCase} from "../../utils/textUtils.js";
 
 
 
@@ -42,7 +43,7 @@ export default function ArtistGraph() {
         setSearchTerm("");
         setFilteredResults([]);
         setSelectedNode(null);
-        setTimeout(() => setSelectedNode(node), 750);
+        setTimeout(() => setSelectedNode(node), 900);
     }
 
     useEffect(() => {
@@ -53,7 +54,7 @@ export default function ArtistGraph() {
 
         const results = graphData.nodes
             .filter(n => !n.labelNode && n.name.toLowerCase().includes(searchTerm.toLowerCase()))
-            .slice(0, 3);
+            .slice(0, 5);
 
         setFilteredResults(results);
     }, [searchTerm, graphData.nodes]);
@@ -77,14 +78,43 @@ export default function ArtistGraph() {
 
     useEffect(() => {
         async function loadGraph() {
-            const allNodes = await fetchArtistAndGenreData(setGraphData, setAllLinks, setGenreLabels);
-            if (allNodes && graphRef.current) {
-                drawLinks(canvasRef.current, graphData.nodes, allLinks, graphRef.current, hoverNode);
-            }
+            const { artistNodesRaw, genreLabels, links } = await fetchArtistAndGenreData();
+
+            const artistNodes = artistNodesRaw.map(artist => ({
+                id: artist.id,
+                name: artist.name,
+                radius: Math.pow(artist.popularity / 100, 4.5) * 70 + 5,
+                genres: artist.genres,
+                spotifyUrl: artist.spotifyId
+                    ? `https://open.spotify.com/artist/${artist.spotifyId}`
+                    : artist.spotifyUrl || "",
+                imageUrl: artist.imageUrl,
+                color: artist.color,
+                x: artist.x,
+                y: artist.y,
+                label: `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`,
+                labelNode: false
+            }));
+
+            const labelNodes = genreLabels.map((genre, i) => ({
+                id: `genre-${i}`,
+                name: toTitleCase(genre.name),
+                x: genre.x,
+                y: genre.y,
+                radius: 1,
+                color: "transparent",
+                labelNode: true,
+                count: genre.count
+            }));
+
+            setGraphData({ nodes: [...artistNodes, ...labelNodes], links: [] });
+            setAllLinks(links);
+            setGenreLabels(genreLabels);
         }
 
         loadGraph();
     }, []);
+
 
     useGraphInit(graphRef, graphData.nodes);
 
