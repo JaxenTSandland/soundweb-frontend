@@ -1,4 +1,4 @@
-export default function drawLinks(canvas, nodes, links, graph, hoverNode, selectedNode) {
+export default function drawLinks(canvas, nodes, links, graph, hoverNode, selectedNode, shouldFadeNode) {
     if (!canvas || !graph) return;
 
     const ctx = canvas.getContext("2d");
@@ -28,7 +28,19 @@ export default function drawLinks(canvas, nodes, links, graph, hoverNode, select
         );
         const zoom = graph.zoom?.() || 1;
 
-        ctx.globalAlpha = 1;
+        const targetFade = shouldFadeNode(target);
+        const sourceFade = shouldFadeNode(source);
+        if (shouldFadeNode) {
+            if (targetFade || sourceFade) {
+                return;
+            } else {
+                ctx.globalAlpha = 1;
+            }
+        } else {
+            ctx.globalAlpha = 1;
+        }
+
+
         if (selectedNode) {
             if (isConnected) { // Connected to the hovered artist
                 ctx.strokeStyle = selectedNode.color;
