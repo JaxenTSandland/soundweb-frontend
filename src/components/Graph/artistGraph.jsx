@@ -63,8 +63,9 @@ export default function ArtistGraph() {
     }, [searchTerm, graphData.nodes]);
     // endregion
 
-    // region genre filtering methods
+    // region genre filtering functions
     function toggleGenre(genreName) {
+        setSelectedNode(null);
         setAllGenres(prev =>
             prev.map(g =>
                 g.genre === genreName ? { ...g, toggled: !g.toggled } : g
@@ -132,6 +133,18 @@ export default function ArtistGraph() {
         async function loadGraph() {
             const { artistNodesRaw, genreLabels, links } = await fetchArtistAndGenreData();
 
+            // Build artist map by ID for fast lookup
+            const artistIdSet = new Set(artistNodesRaw.map(a => a.id));
+            const relatedMap = {};
+
+            // Initialize related artist mapping
+            links.forEach(link => {
+                if (!relatedMap[link.source]) relatedMap[link.source] = new Set();
+                if (!relatedMap[link.target]) relatedMap[link.target] = new Set();
+                relatedMap[link.source].add(link.target);
+                relatedMap[link.target].add(link.source);
+            });
+
             const artistNodes = artistNodesRaw.map(artist => ({
                 id: artist.id,
                 name: artist.name,
@@ -145,7 +158,8 @@ export default function ArtistGraph() {
                 x: artist.x,
                 y: artist.y,
                 label: `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`,
-                labelNode: false
+                labelNode: false,
+                relatedArtists: Array.from(relatedMap[artist.id] || [])
             }));
 
             const labelNodes = genreLabels.map((genre, i) => ({
@@ -160,12 +174,12 @@ export default function ArtistGraph() {
             }));
 
             const genreUsageMap = {};
-
             artistNodes.forEach(artist => {
                 artist.genres.forEach(genre => {
                     genreUsageMap[genre] = (genreUsageMap[genre] || 0) + 1;
                 });
             });
+
             const sortedGenres = Object.entries(genreUsageMap)
                 .sort((a, b) => b[1] - a[1])
                 .map(([genre, count]) => ({
@@ -175,7 +189,6 @@ export default function ArtistGraph() {
                 }));
 
             setAllGenres(sortedGenres);
-
             setGraphData({ nodes: [...artistNodes, ...labelNodes], links: [] });
             setAllLinks(links);
             setGenreLabels(genreLabels);

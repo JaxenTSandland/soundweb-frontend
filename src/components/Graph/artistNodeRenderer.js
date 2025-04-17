@@ -8,11 +8,12 @@ export function renderNode(node, ctx, globalScale, graphData, minCount, maxCount
     const isConnectedToSelectedNode = Boolean(
         selectedNode &&
         Array.isArray(selectedNode.relatedArtists) &&
-        (selectedNode.relatedArtists.includes(node.name) || node.relatedArtists?.includes(selectedNode.name))
+        (selectedNode.relatedArtists.includes(node.id) || node.relatedArtists?.includes(selectedNode.id))
     );
 
     if (selectedNode) {
         if (isSelected || isConnectedToSelectedNode) {
+            console.log(selectedNode);
             ctx.globalAlpha = 1;
         } else if (isHovered) {
             ctx.globalAlpha = 0.5;
