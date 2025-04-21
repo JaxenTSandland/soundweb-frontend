@@ -1,5 +1,5 @@
 import React from "react";
-import ArtistSidebar from "./ArtistSidebar.jsx";
+import ArtistSidebar from "./artistSidebar.jsx";
 
 export default function RightSidebar({
                                          popupData,
