@@ -19,10 +19,10 @@ html, body {
 
 
 #graph-container {
-    width: 100%;
     height: 100%;
     overflow: hidden;
     position: relative;
+    display: flex;
 }
 
 svg, canvas {
