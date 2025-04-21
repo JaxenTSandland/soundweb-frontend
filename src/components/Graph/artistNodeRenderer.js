@@ -13,7 +13,6 @@ export function renderNode(node, ctx, globalScale, graphData, minCount, maxCount
 
     if (selectedNode) {
         if (isSelected || isConnectedToSelectedNode) {
-            console.log(selectedNode);
             ctx.globalAlpha = 1;
         } else if (isHovered) {
             ctx.globalAlpha = 0.5;

@@ -3,10 +3,11 @@ import { ForceGraph2D } from "react-force-graph";
 import useTooltip from "./useTooltip.jsx";
 import {renderNode} from "./artistNodeRenderer.js";
 import drawLinks from "../../utils/drawLinks.jsx";
-import {fetchArtistAndGenreData} from "../../utils/fetchGraphData.jsx";
+import DataFetcher from "../../utils/dataFetcher.js";
 import {useGraphInit} from "../../utils/graphInit.jsx";
 import drawNodePopup from "../../utils/drawNodePopup.jsx";
 import {toTitleCase} from "../../utils/textUtils.js";
+
 
 
 
@@ -16,6 +17,9 @@ export default function ArtistGraph() {
     const [genreLabels, setGenreLabels] = useState([]);
     const [hoverNode, setHoverNode] = useState(null);
     const [selectedNode, setSelectedNode] = useState(null);
+
+    const dataFetcher = new DataFetcher();
+    const [lastSyncTime, setLastSyncTime] = useState("Loading...");
 
     const [allGenres, setAllGenres] = useState([]);
     const [genreFilterMode, setGenreFilterMode] = useState("exclude");
@@ -72,6 +76,26 @@ export default function ArtistGraph() {
             )
         );
     }
+
+    function parseLastSync(lastSync) {
+        if (!lastSync || !lastSync.year) return "Unknown";
+
+        const {
+            year, month, day, hour, minute, second
+        } = lastSync;
+
+        const date = new Date(
+            year.low,
+            month.low - 1,
+            day.low,
+            hour.low,
+            minute.low,
+            second.low
+        );
+
+        return date.toLocaleString();
+    }
+
 
     function cycleSortMethod() {
         setSortMethod(prev => {
@@ -131,7 +155,7 @@ export default function ArtistGraph() {
 
     useEffect(() => {
         async function loadGraph() {
-            const { artistNodesRaw, genreLabels, links } = await fetchArtistAndGenreData();
+            const { artistNodesRaw, genreLabels, links } = await dataFetcher.fetchArtistAndGenreData();
 
             // Build artist map by ID for fast lookup
             const artistIdSet = new Set(artistNodesRaw.map(a => a.id));
@@ -195,6 +219,15 @@ export default function ArtistGraph() {
         }
 
         loadGraph();
+    }, []);
+
+    useEffect(() => {
+        async function fetchSyncTime() {
+            const lastSync = await dataFetcher.fetchLastSync();
+            setLastSyncTime(parseLastSync(lastSync));
+        }
+
+        fetchSyncTime();
     }, []);
 
 
@@ -480,6 +513,24 @@ export default function ArtistGraph() {
                     </ul>
                 </div>
             </div>
+            {lastSyncTime && (
+                <div
+                    style={{
+                        position: "absolute",
+                        top: 10,
+                        left: 10,
+                        background: "#1a1a1a",
+                        color: "white",
+                        padding: "6px 12px",
+                        fontSize: "13px",
+                        borderRadius: "6px",
+                        border: "1px solid #444",
+                        zIndex: 25
+                    }}
+                >
+                    Last updated: {new Date(lastSyncTime).toLocaleString()}
+                </div>
+            )}
         </div>
     );
 
