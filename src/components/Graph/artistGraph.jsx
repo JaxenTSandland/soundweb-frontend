@@ -15,7 +15,6 @@ import RightSidebar from "./rightSidebar.jsx";
 export default function ArtistGraph() {
     const { showTooltip, hideTooltip } = useTooltip();
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
-    const [genreLabels, setGenreLabels] = useState([]);
     const [hoverNode, setHoverNode] = useState(null);
     const [selectedNode, setSelectedNode] = useState(null);
 
@@ -139,12 +138,10 @@ export default function ArtistGraph() {
 
     useEffect(() => {
         async function loadGraph() {
-            const { artistNodesRaw, genreLabels, links } = await dataFetcher.fetchArtistAndGenreData();
+            const { artistNodesRaw, genreLabels, allGenres, links } = await dataFetcher.fetchArtistAndGenreData();
 
             // Build artist map by ID for fast lookup
             const relatedMap = {};
-
-            // Initialize related artist mapping
             links.forEach(link => {
                 if (!relatedMap[link.source]) relatedMap[link.source] = new Set();
                 if (!relatedMap[link.target]) relatedMap[link.target] = new Set();
@@ -180,6 +177,13 @@ export default function ArtistGraph() {
                 count: genre.count
             }));
 
+            // Build a map of genreName -> color
+            const genreColorMap = {};
+            allGenres.forEach(g => {
+                genreColorMap[g.name] = g.color;
+            });
+
+            // Count genre usage and add toggled + color
             const genreUsageMap = {};
             artistNodes.forEach(artist => {
                 artist.genres.forEach(genre => {
@@ -192,17 +196,18 @@ export default function ArtistGraph() {
                 .map(([genre, count]) => ({
                     genre,
                     count,
+                    color: genreColorMap[genre] || "#888",
                     toggled: true
                 }));
 
             setAllGenres(sortedGenres);
             setGraphData({ nodes: [...artistNodes, ...labelNodes], links: [] });
             setAllLinks(links);
-            setGenreLabels(genreLabels);
         }
 
         loadGraph();
     }, []);
+
 
     useEffect(() => {
         async function fetchSyncTime() {
@@ -321,11 +326,25 @@ export default function ArtistGraph() {
                         }
                     />
                 </div>
+                <div
+                    style={{
+                        position: "absolute",
+                        top: 10,
+                        left: 15,
+                        color: "white",
+                        fontSize: "18px",
+                        fontWeight: "bold",
+                        letterSpacing: "1px",
+                        zIndex: 25
+                    }}
+                >
+                    Soundweb
+                </div>
                 {lastSyncTime && (
                     <div
                         style={{
                             position: "absolute",
-                            top: 10,
+                            top: 35,
                             left: 10,
                             background: "#1a1a1a",
                             color: "white",
@@ -342,7 +361,7 @@ export default function ArtistGraph() {
             </div>
 
             <RightSidebar
-                popupData={popupData}
+                selectedNode={selectedNode}
                 allGenres={allGenres}
                 toggleGenre={toggleGenre}
                 setAllGenres={setAllGenres}

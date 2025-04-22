@@ -2,7 +2,7 @@ import React from "react";
 import ArtistSidebar from "./artistSidebar.jsx";
 
 export default function RightSidebar({
-                                         popupData,
+                                         selectedNode,
                                          allGenres,
                                          toggleGenre,
                                          setAllGenres,
@@ -22,8 +22,8 @@ export default function RightSidebar({
 
     return (
         <div style={styles.container}>
-            {popupData && popupData.node ? (
-                <ArtistSidebar popupData={popupData} />
+            {selectedNode ? (
+                <ArtistSidebar selectedNode={selectedNode} allGenres={allGenres} />
             ) : (
                 <>
                     {/* Top: Search section (fixed height) */}
