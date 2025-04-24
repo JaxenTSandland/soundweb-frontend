@@ -1,5 +1,5 @@
 import React from "react";
-import ArtistSidebar from "./artistSidebar.jsx";
+import ArtistSidebar from "../ArtistSidebar/artistSidebar.jsx";
 
 export default function RightSidebar({
                                          selectedNode,
