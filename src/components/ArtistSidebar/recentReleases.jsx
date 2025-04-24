@@ -20,9 +20,21 @@ export default function RecentReleases({ releases }) {
                     {releases.map(rel => (
                         <div key={rel.id} style={{ minWidth: "100px", maxWidth: "100px", textAlign: "center", flexShrink: 0 }}>
                             <div style={{ fontSize: "12px", color: "#ccc", marginBottom: "4px", height: "30px", lineHeight: "14px", overflow: "hidden" }}>{rel.name}</div>
-                            <a href={rel.spotifyUrl} target="_blank" rel="noreferrer">
-                                <img src={rel.imageUrl} alt={rel.name} style={imageStyle} />
-                            </a>
+                            <div style={{ position: "relative", width: "100px", height: "100px" }}>
+                                <a href={rel.spotifyUrl} target="_blank" rel="noreferrer">
+                                    <img src={rel.imageUrl} alt={rel.name} style={imageStyle} />
+                                </a>
+                                <div style={dateOverlayStyle}>
+                                    <div style={{ opacity: 0.8 }}>
+                                        {rel.type.charAt(0).toUpperCase() + rel.type.slice(1)}
+                                    </div>
+                                    <div>{new Date(rel.release_date).toLocaleDateString(undefined, {
+                                        month: "numeric",
+                                        day: "numeric",
+                                        year: "numeric"
+                                    })}</div>
+                                </div>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -52,6 +64,20 @@ const imageStyle = {
     borderRadius: "6px",
     objectFit: "cover",
     border: "1px solid #444"
+};
+
+const dateOverlayStyle = {
+    position: "absolute",
+    bottom: "0px",
+    left: "0px",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    color: "white",
+    fontSize: "10px",
+    lineHeight: "1.2",
+    padding: "4px 6px",
+    borderRadius: "0px 6px 0px 6px",
+    textAlign: "left",
+    whiteSpace: "nowrap"
 };
 
 const fadeArrowStyle = side => ({

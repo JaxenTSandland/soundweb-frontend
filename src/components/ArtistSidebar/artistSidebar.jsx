@@ -202,10 +202,13 @@ const styles = {
         position: "absolute",
         top: "10px",
         left: "10px",
-        background: "transparent",
-        color: "#fff",
+        background: "#fff",
+        opacity: "0.75",
+        color: "#000",
         border: "none",
-        fontSize: "20px",
+        borderRadius: "4px",
+        padding: "2px 6px",
+        fontSize: "14px",
         cursor: "pointer",
         zIndex: 40
     }
