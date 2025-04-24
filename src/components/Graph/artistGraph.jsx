@@ -111,7 +111,7 @@ export default function ArtistGraph() {
             second.low
         );
 
-        return date.toLocaleString();
+        return date;
     }
 
     useEffect(() => {
@@ -130,7 +130,7 @@ export default function ArtistGraph() {
         });
     }, [selectedNode]);
 
-    function openPopupForNode(node) {
+    function openSidebarForArtist(node) {
         if (!node || node.labelNode) return;
         setSelectedNode(node);
     }
@@ -152,8 +152,10 @@ export default function ArtistGraph() {
             const artistNodes = artistNodesRaw.map(artist => ({
                 id: artist.id,
                 name: artist.name,
+                lastfmMBID: artist.lastfmMBID,
                 radius: Math.pow(artist.popularity / 100, 4.5) * 70 + 5,
                 genres: artist.genres,
+                spotifyId: artist.spotifyId,
                 spotifyUrl: artist.spotifyId
                     ? `https://open.spotify.com/artist/${artist.spotifyId}`
                     : artist.spotifyUrl || "",
@@ -313,7 +315,7 @@ export default function ArtistGraph() {
                             }
 
                         }}
-                        onNodeClick={openPopupForNode}
+                        onNodeClick={openSidebarForArtist}
                         onBackgroundClick={() => {
                             setSelectedNode(null);
                             setPopupData(undefined);

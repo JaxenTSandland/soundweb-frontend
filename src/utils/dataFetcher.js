@@ -1,5 +1,7 @@
+import {getBaseUrl} from "./apiBase.js";
+
 export default class DataFetcher {
-    constructor(baseUrl = import.meta.env.VITE_BACKEND_URL) {
+    constructor(baseUrl = getBaseUrl()) {
         this.baseUrl = baseUrl;
     }
 
@@ -14,7 +16,7 @@ export default class DataFetcher {
             const topGenres = await topGenresRes.json();
             const allGenres = await allGenresRes.json();
             const artistData = await artistsRes.json();
-
+            console.log(artistData);
             return {
                 artistNodesRaw: artistData.nodes || [],
                 genreLabels: Array.isArray(topGenres) ? topGenres : [],
