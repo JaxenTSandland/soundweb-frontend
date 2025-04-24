@@ -364,6 +364,7 @@ export default function ArtistGraph() {
 
             <RightSidebar
                 selectedNode={selectedNode}
+                setSelectedNode={setSelectedNode}
                 allGenres={allGenres}
                 toggleGenre={toggleGenre}
                 setAllGenres={setAllGenres}

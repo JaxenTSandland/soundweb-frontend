@@ -3,17 +3,18 @@ import ArtistSidebar from "../ArtistSidebar/artistSidebar.jsx";
 
 export default function RightSidebar({
                                          selectedNode,
-                                         allGenres,
-                                         toggleGenre,
-                                         setAllGenres,
-                                         sortMethod,
-                                         cycleSortMethod,
-                                         searchTerm,
-                                         setSearchTerm,
-                                         filteredResults,
-                                         isSearchFocused,
-                                         setIsSearchFocused,
-                                         handleResultClick
+                                        setSelectedNode,
+                                        allGenres,
+                                        toggleGenre,
+                                        setAllGenres,
+                                        sortMethod,
+                                        cycleSortMethod,
+                                        searchTerm,
+                                        setSearchTerm,
+                                        filteredResults,
+                                        isSearchFocused,
+                                        setIsSearchFocused,
+                                        handleResultClick
                                      }) {
 
     const sortedGenres = [...allGenres].sort((a, b) =>
@@ -23,7 +24,7 @@ export default function RightSidebar({
     return (
         <div style={styles.container}>
             {selectedNode ? (
-                <ArtistSidebar selectedNode={selectedNode} allGenres={allGenres} />
+                <ArtistSidebar setSelectedNode={setSelectedNode} selectedNode={selectedNode} allGenres={allGenres} />
             ) : (
                 <>
                     {/* Top: Search section (fixed height) */}

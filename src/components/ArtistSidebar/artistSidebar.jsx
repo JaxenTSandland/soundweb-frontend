@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { getBaseUrl } from "../../utils/apiBase.js";
-import GenreTags from "./GenreTags.jsx";
-import TopTracks from "./TopTracks.jsx";
-import RecentReleases from "./RecentReleases.jsx";
-import BioSection from "./BioSection.jsx";
+import GenreTags from "./genreTags.jsx";
+import TopTracks from "./topTracks.jsx";
+import RecentReleases from "./recentReleases.jsx";
+import BioSection from "./bioSection.jsx";
 
-export default function ArtistSidebar({ selectedNode, allGenres }) {
+export default function ArtistSidebar({ selectedNode, setSelectedNode, allGenres }) {
     const [expandedData, setExpandedData] = useState(null);
     const baseUrl = getBaseUrl();
 
@@ -49,6 +49,9 @@ export default function ArtistSidebar({ selectedNode, allGenres }) {
 
     return (
         <div style={styles.container}>
+            <button onClick={() => setSelectedNode(null)} style={styles.closeButton}>
+                ×
+            </button>
             {selectedNode.imageUrl && (
                 <div style={styles.imageWrapper}>
                     <img
@@ -98,10 +101,16 @@ export default function ArtistSidebar({ selectedNode, allGenres }) {
 
                 {expandedData ? (
                     <div style={styles.expanded}>
-                        <TopTracks tracks={expandedData.topTracks} />
-                        <RecentReleases releases={expandedData.recentReleases} scrollRef={releaseScrollRef} />
-                        { cleanedContent && cleanedContent.length > 0 && (
-                            <BioSection html={cleanedContent} />
+                        <div style={styles.sectionBlock}>
+                            <TopTracks tracks={expandedData.topTracks} />
+                        </div>
+                        <div style={styles.sectionBlock}>
+                            <RecentReleases releases={expandedData.recentReleases} scrollRef={releaseScrollRef} />
+                        </div>
+                        {cleanedContent && cleanedContent.length > 0 && (
+                            <div style={styles.sectionBlock}>
+                                <BioSection html={cleanedContent} />
+                            </div>
                         )}
                     </div>
                 ) : (
@@ -185,5 +194,19 @@ const styles = {
         right: 0,
         height: "80px",
         background: "linear-gradient(to top, #1a1a1a, transparent)"
+    },
+    sectionBlock: {
+        marginBottom: "30px"
+    },
+    closeButton: {
+        position: "absolute",
+        top: "10px",
+        left: "10px",
+        background: "transparent",
+        color: "#fff",
+        border: "none",
+        fontSize: "20px",
+        cursor: "pointer",
+        zIndex: 40
     }
 };
