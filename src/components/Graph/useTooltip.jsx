@@ -17,10 +17,10 @@ export default function useTooltip() {
 
     const showTooltip = (node) => {
         const tooltip = document.getElementById("tooltip");
-        if (node) {
-            tooltip.style.display = "block";
-            tooltip.innerHTML = node.label.replaceAll("\n", "<br>");
-        }
+        if (!node || !node.label) return;
+
+        tooltip.style.display = "block";
+        tooltip.innerHTML = node.label.replaceAll("\n", "<br>");
     };
 
     const hideTooltip = () => {

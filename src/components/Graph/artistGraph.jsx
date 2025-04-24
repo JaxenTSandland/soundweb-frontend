@@ -7,6 +7,7 @@ import DataFetcher from "../../utils/dataFetcher.js";
 import {useGraphInit} from "../../utils/graphInit.jsx";
 import {toTitleCase} from "../../utils/textUtils.js";
 import RightSidebar from "./rightSidebar.jsx";
+import {ArtistNode} from "../../models/artistNode.js";
 
 
 
@@ -17,6 +18,7 @@ export default function ArtistGraph() {
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
     const [hoverNode, setHoverNode] = useState(null);
     const [selectedNode, setSelectedNode] = useState(null);
+    const [showLinks, setShowLinks] = useState(true);
 
     const dataFetcher = new DataFetcher();
     const [lastSyncTime, setLastSyncTime] = useState("Loading...");
@@ -50,6 +52,29 @@ export default function ArtistGraph() {
         setFilteredResults([]);
         setSelectedNode(null);
         setTimeout(() => setSelectedNode(node), 900);
+    }
+
+    function drawLinksIfNeeded() {
+        if (
+            showLinks &&
+            graphData.nodes.length > 0 &&
+            allLinks.length > 0 &&
+            graphRef.current &&
+            canvasRef.current
+        ) {
+            drawLinks(
+                canvasRef.current,
+                graphData.nodes,
+                allLinks,
+                graphRef.current,
+                hoverNode,
+                selectedNode,
+                shouldFadeNode
+            );
+        } else if (canvasRef.current) {
+            const ctx = canvasRef.current.getContext("2d");
+            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        }
     }
 
     useEffect(() => {
@@ -149,24 +174,13 @@ export default function ArtistGraph() {
                 relatedMap[link.target].add(link.source);
             });
 
-            const artistNodes = artistNodesRaw.map(artist => ({
-                id: artist.id,
-                name: artist.name,
-                lastfmMBID: artist.lastfmMBID,
-                radius: Math.pow(artist.popularity / 100, 4.5) * 70 + 5,
-                genres: artist.genres,
-                spotifyId: artist.spotifyId,
-                spotifyUrl: artist.spotifyId
-                    ? `https://open.spotify.com/artist/${artist.spotifyId}`
-                    : artist.spotifyUrl || "",
-                imageUrl: artist.imageUrl,
-                color: artist.color,
-                x: artist.x,
-                y: artist.y,
-                label: `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`,
-                labelNode: false,
-                relatedArtists: Array.from(relatedMap[artist.id] || [])
-            }));
+            const artistNodes = artistNodesRaw.map(artist => {
+                const node = new ArtistNode(artist);
+                node.labelNode = false;
+                node.radius = Math.pow(node.popularity / 100, 4.5) * 70 + 5;
+                node.label = `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`;
+                return node;
+            });
 
             const labelNodes = genreLabels.map((genre, i) => ({
                 id: `genre-${i}`,
@@ -220,26 +234,36 @@ export default function ArtistGraph() {
         fetchSyncTime();
     }, []);
 
-
     useGraphInit(graphRef, graphData.nodes);
 
     useEffect(() => {
-        if (graphData.nodes.length > 0 && allLinks.length > 0) {
-            drawLinks(
-                canvasRef.current,
-                graphData.nodes,
-                allLinks,
-                graphRef.current,
-                hoverNode,
-                selectedNode,
-                shouldFadeNode
-            );
+        if (graphRef.current && canvasRef.current) {
+            drawLinksIfNeeded();
         }
-    }, [hoverNode, selectedNode, allGenres]);
+    }, [hoverNode, selectedNode, allGenres, showLinks, graphData.nodes, allLinks]);
 
     return (
         <div id="graph-container" style={{ display: "flex", width: "100vw", height: "100vh" }}>
             <div style={{ position: "relative", flex: 1 }}>
+                {/* Toggle links button */}
+                <button
+                    onClick={() => setShowLinks(prev => !prev)}
+                    style={{
+                        position: "absolute",
+                        bottom: 20,
+                        left: 20,
+                        padding: "6px 12px",
+                        backgroundColor: "#1a1a1a",
+                        color: "white",
+                        border: "1px solid #444",
+                        borderRadius: "6px",
+                        fontSize: "13px",
+                        cursor: "pointer",
+                        zIndex: 25
+                    }}
+                >
+                    {showLinks ? "Hide Links" : "Show Links"}
+                </button>
                 {/* Tooltip */}
                 <div
                     id="tooltip"
@@ -321,10 +345,10 @@ export default function ArtistGraph() {
                             setPopupData(undefined);
                         }}
                         onZoom={() =>
-                            drawLinks(canvasRef.current, graphData.nodes, allLinks, graphRef.current, hoverNode, selectedNode, shouldFadeNode)
+                            drawLinksIfNeeded()
                         }
                         onPan={() =>
-                            drawLinks(canvasRef.current, graphData.nodes, allLinks, graphRef.current, hoverNode, selectedNode, shouldFadeNode)
+                            drawLinksIfNeeded()
                         }
                     />
                 </div>

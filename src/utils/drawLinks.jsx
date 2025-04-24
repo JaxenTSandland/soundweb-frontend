@@ -1,8 +1,15 @@
 export default function drawLinks(canvas, nodes, links, graph, hoverNode, selectedNode, shouldFadeNode) {
-    if (!canvas || !graph) return;
+    if (!canvas
+        || !graph
+    ) return;
 
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Do not render the links after a certain point of zooming out
+    // if (graph.zoom() < 0.08) {
+    //     return;
+    // }
 
     links.forEach(link => {
         const source = nodes.find(n => n.id === link.source);
