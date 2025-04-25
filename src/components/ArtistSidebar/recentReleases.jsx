@@ -17,7 +17,7 @@ export default function RecentReleases({ releases }) {
                     <div style={{ ...fadeArrowStyle("left") }} onClick={() => scroll(-1)}>◀</div>
                 )}
                 <div ref={ref} style={scrollAreaStyle}>
-                    {releases.map(rel => (
+                    {releases && releases.map(rel => (
                         <div key={rel.id} style={{ minWidth: "100px", maxWidth: "100px", textAlign: "center", flexShrink: 0 }}>
                             <div style={{ fontSize: "12px", color: "#ccc", marginBottom: "4px", height: "30px", lineHeight: "14px", overflow: "hidden" }}>{rel.name}</div>
                             <div style={{ position: "relative", width: "100px", height: "100px" }}>
