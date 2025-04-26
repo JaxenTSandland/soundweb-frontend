@@ -13,7 +13,18 @@ export default function TopTracks({ tracks }) {
                     <React.Fragment key={track.id}>
                         {index > 0 && <div style={styles.divider} />}
                         <div style={styles.trackRow}>
-                            <div style={styles.trackName}>{track.name}</div>
+                            {track.spotifyUrl ? (
+                                <a
+                                    href={track.spotifyUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ ...styles.trackName, textDecoration: "none", color: "inherit" }}
+                                >
+                                    {track.name}
+                                </a>
+                            ) : (
+                                <div style={styles.trackName}>{track.name}</div>
+                            )}
                         </div>
                         {index === slicedTracks.length - 1 && <div style={styles.divider} />}
                     </React.Fragment>

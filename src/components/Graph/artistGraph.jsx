@@ -136,7 +136,7 @@ export default function ArtistGraph() {
             second.low
         );
 
-        return date;
+        return date.toLocaleString();
     }
 
     useEffect(() => {
@@ -381,7 +381,8 @@ export default function ArtistGraph() {
                             zIndex: 25
                         }}
                     >
-                        Last updated: {new Date(lastSyncTime).toLocaleString()}
+                        Last updated: {lastSyncTime}
+
                     </div>
                 )}
             </div>
