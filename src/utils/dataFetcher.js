@@ -10,13 +10,13 @@ export default class DataFetcher {
             const [topGenresRes, allGenresRes, artistsRes] = await Promise.all([
                 fetch(`${this.baseUrl}/api/genres/top?count=10`),
                 fetch(`${this.baseUrl}/api/genres/all`),
-                fetch(`${this.baseUrl}/api/artists/graph`)
+                fetch(`${this.baseUrl}/api/artists/graph?onlytopartists=false&max=1100`)
             ]);
 
             const topGenres = await topGenresRes.json();
             const allGenres = await allGenresRes.json();
             const artistData = await artistsRes.json();
-            console.log(artistData);
+            //console.log(artistData);
             return {
                 artistNodesRaw: artistData.nodes || [],
                 genreLabels: Array.isArray(topGenres) ? topGenres : [],

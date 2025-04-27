@@ -36,11 +36,17 @@ export default function ArtistGraph() {
     const canvasRef = useRef(null);
     const [popupData, setPopupData] = useState(undefined);
     const [allLinks, setAllLinks] = useState([]);
+    const [filteredLinks, setFilteredLinks] = useState([]);
 
     const labelNodesOnly = graphData.nodes.filter(n => n.labelNode);
     const counts = labelNodesOnly.map(n => n.count || 0);
     const maxCount = Math.max(...counts);
     const minCount = Math.min(...counts);
+
+    const [artistNodesRaw, setArtistNodesRaw] = useState([]);
+    const [genreLabelsRaw, setGenreLabelsRaw] = useState([]);
+    const [rawAllGenres, setRawAllGenres] = useState([]);
+    const [rawLinks, setRawLinks] = useState([]);
 
     // region Search bar functions
 
@@ -51,21 +57,22 @@ export default function ArtistGraph() {
         setSearchTerm("");
         setFilteredResults([]);
         setSelectedNode(null);
-        setTimeout(() => setSelectedNode(node), 900);
+        setTimeout(() => setSelectedNode(node), 1050);
     }
 
     function drawLinksIfNeeded() {
         if (
             showLinks &&
             graphData.nodes.length > 0 &&
-            allLinks.length > 0 &&
+            filteredLinks.length > 0 &&
             graphRef.current &&
             canvasRef.current
         ) {
+            const linksToDraw = selectedNode ? filteredLinks : allLinks;
             drawLinks(
                 canvasRef.current,
                 graphData.nodes,
-                allLinks,
+                linksToDraw,
                 graphRef.current,
                 hoverNode,
                 selectedNode,
@@ -76,6 +83,40 @@ export default function ArtistGraph() {
             ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         }
     }
+
+    useEffect(() => {
+        if (!selectedNode) {
+            setFilteredLinks(allLinks); // If nothing selected, show everything
+            return;
+        }
+
+        const firstDegree = new Set();
+        const secondDegree = new Set();
+
+        allLinks.forEach(link => {
+            if (link.source === selectedNode.id) {
+                firstDegree.add(link.target);
+            }
+            if (link.target === selectedNode.id) {
+                firstDegree.add(link.source);
+            }
+        });
+
+        allLinks.forEach(link => {
+            if (firstDegree.has(link.source) || firstDegree.has(link.target)) {
+                secondDegree.add(link.source);
+                secondDegree.add(link.target);
+            }
+        });
+
+        const newFilteredLinks = allLinks.filter(link =>
+            link.source === selectedNode.id ||
+            link.target === selectedNode.id ||
+            (firstDegree.has(link.source) || firstDegree.has(link.target))
+        );
+
+        setFilteredLinks(newFilteredLinks);
+    }, [selectedNode, allLinks]);
 
     useEffect(() => {
         if (!searchTerm.trim()) {
@@ -165,24 +206,46 @@ export default function ArtistGraph() {
         async function loadGraph() {
             const { artistNodesRaw, genreLabels, allGenres, links } = await dataFetcher.fetchArtistAndGenreData();
 
+            // Save the raw data
+            setGenreLabelsRaw(genreLabels);
+            setRawAllGenres(allGenres);
+            setRawLinks(links);
+            setArtistNodesRaw(artistNodesRaw);
+        }
+
+        loadGraph();
+    }, []);
+
+    useEffect(() => {
+        function buildGraph() {
+
+
             // Build artist map by ID for fast lookup
             const relatedMap = {};
-            links.forEach(link => {
+            rawLinks.forEach(link => {
                 if (!relatedMap[link.source]) relatedMap[link.source] = new Set();
                 if (!relatedMap[link.target]) relatedMap[link.target] = new Set();
                 relatedMap[link.source].add(link.target);
                 relatedMap[link.target].add(link.source);
             });
 
+            const artistCount = artistNodesRaw.length;
+            const graphSizeFactor = Math.max(artistCount * 20, 2000) / 20000;
+
             const artistNodes = artistNodesRaw.map(artist => {
                 const node = new ArtistNode(artist);
                 node.labelNode = false;
                 node.radius = Math.pow(node.popularity / 100, 4.5) * 70 + 5;
                 node.label = `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`;
+
+
+                node.x *= graphSizeFactor;
+                node.y *= graphSizeFactor;
+
                 return node;
             });
 
-            const labelNodes = genreLabels.map((genre, i) => ({
+            const labelNodes = genreLabelsRaw.map((genre, i) => ({
                 id: `genre-${i}`,
                 name: toTitleCase(genre.name),
                 x: genre.x,
@@ -195,7 +258,7 @@ export default function ArtistGraph() {
 
             // Build a map of genreName -> color
             const genreColorMap = {};
-            allGenres.forEach(g => {
+            rawAllGenres.forEach(g => {
                 genreColorMap[g.name] = g.color;
             });
 
@@ -218,11 +281,11 @@ export default function ArtistGraph() {
 
             setAllGenres(sortedGenres);
             setGraphData({ nodes: [...artistNodes, ...labelNodes], links: [] });
-            setAllLinks(links);
+            setAllLinks(rawLinks);
         }
 
-        loadGraph();
-    }, []);
+        buildGraph();
+    }, [artistNodesRaw, genreLabelsRaw, rawAllGenres, rawLinks]);
 
 
     useEffect(() => {
