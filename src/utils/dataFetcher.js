@@ -16,16 +16,17 @@ export default class DataFetcher {
             const topGenres = await topGenresRes.json();
             const allGenres = await allGenresRes.json();
             const artistData = await artistsRes.json();
-            //console.log(artistData);
+
             return {
                 artistNodesRaw: artistData.nodes || [],
                 genreLabels: Array.isArray(topGenres) ? topGenres : [],
                 allGenres: Array.isArray(allGenres) ? allGenres : [],
-                links: artistData.links || []
+                links: artistData.links || [],
+                lastSync: artistData.lastSync || null // ✨ Add this line
             };
         } catch (error) {
             console.error("Failed to load artist/genre data:", error);
-            return { artistNodesRaw: [], genreLabels: [], allGenres: [], links: [] };
+            return { artistNodesRaw: [], genreLabels: [], allGenres: [], links: [], lastSync: null };
         }
     }
 

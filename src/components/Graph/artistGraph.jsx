@@ -19,6 +19,7 @@ export default function ArtistGraph() {
     const [hoverNode, setHoverNode] = useState(null);
     const [selectedNode, setSelectedNode] = useState(null);
     const [showLinks, setShowLinks] = useState(true);
+    const [showTopGenres, setShowTopGenres] = useState(true);
 
     const dataFetcher = new DataFetcher();
     const [lastSyncTime, setLastSyncTime] = useState("Loading...");
@@ -59,64 +60,6 @@ export default function ArtistGraph() {
         setSelectedNode(null);
         setTimeout(() => setSelectedNode(node), 1050);
     }
-
-    function drawLinksIfNeeded() {
-        if (
-            showLinks &&
-            graphData.nodes.length > 0 &&
-            filteredLinks.length > 0 &&
-            graphRef.current &&
-            canvasRef.current
-        ) {
-            const linksToDraw = selectedNode ? filteredLinks : allLinks;
-            drawLinks(
-                canvasRef.current,
-                graphData.nodes,
-                linksToDraw,
-                graphRef.current,
-                hoverNode,
-                selectedNode,
-                shouldFadeNode
-            );
-        } else if (canvasRef.current) {
-            const ctx = canvasRef.current.getContext("2d");
-            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        }
-    }
-
-    useEffect(() => {
-        if (!selectedNode) {
-            setFilteredLinks(allLinks); // If nothing selected, show everything
-            return;
-        }
-
-        const firstDegree = new Set();
-        const secondDegree = new Set();
-
-        allLinks.forEach(link => {
-            if (link.source === selectedNode.id) {
-                firstDegree.add(link.target);
-            }
-            if (link.target === selectedNode.id) {
-                firstDegree.add(link.source);
-            }
-        });
-
-        allLinks.forEach(link => {
-            if (firstDegree.has(link.source) || firstDegree.has(link.target)) {
-                secondDegree.add(link.source);
-                secondDegree.add(link.target);
-            }
-        });
-
-        const newFilteredLinks = allLinks.filter(link =>
-            link.source === selectedNode.id ||
-            link.target === selectedNode.id ||
-            (firstDegree.has(link.source) || firstDegree.has(link.target))
-        );
-
-        setFilteredLinks(newFilteredLinks);
-    }, [selectedNode, allLinks]);
 
     useEffect(() => {
         if (!searchTerm.trim()) {
@@ -161,23 +104,94 @@ export default function ArtistGraph() {
     }
     // endregion
 
-    function parseLastSync(lastSync) {
-        if (!lastSync || !lastSync.year) return "Unknown";
+    function drawLinksIfNeeded() {
+        if (
+            showLinks &&
+            graphData.nodes.length > 0 &&
+            filteredLinks.length > 0 &&
+            graphRef.current &&
+            canvasRef.current
+        ) {
+            const linksToDraw = selectedNode ? filteredLinks : allLinks;
+            drawLinks(
+                canvasRef.current,
+                graphData.nodes,
+                linksToDraw,
+                graphRef.current,
+                hoverNode,
+                selectedNode,
+                shouldFadeNode
+            );
+        } else if (canvasRef.current) {
+            const ctx = canvasRef.current.getContext("2d");
+            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        }
+    }
 
-        const {
-            year, month, day, hour, minute, second
-        } = lastSync;
+    useEffect(() => {
+        if (!selectedNode) {
+            setFilteredLinks(allLinks);
+            return;
+        }
 
-        const date = new Date(
-            year.low,
-            month.low - 1,
-            day.low,
-            hour.low,
-            minute.low,
-            second.low
+        const firstDegree = new Set();
+        const secondDegree = new Set();
+
+        allLinks.forEach(link => {
+            if (link.source === selectedNode.id) {
+                firstDegree.add(link.target);
+            }
+            if (link.target === selectedNode.id) {
+                firstDegree.add(link.source);
+            }
+        });
+
+        allLinks.forEach(link => {
+            if (firstDegree.has(link.source) || firstDegree.has(link.target)) {
+                secondDegree.add(link.source);
+                secondDegree.add(link.target);
+            }
+        });
+
+        const newFilteredLinks = allLinks.filter(link =>
+            link.source === selectedNode.id ||
+            link.target === selectedNode.id ||
+            (firstDegree.has(link.source) || firstDegree.has(link.target))
         );
 
-        return date.toLocaleString();
+        setFilteredLinks(newFilteredLinks);
+    }, [selectedNode, allLinks]);
+
+    function parseLastSync(lastSync) {
+        if (!lastSync) return "Unknown";
+
+        if (typeof lastSync === "string") { // ISO String
+            const date = new Date(lastSync);
+            if (isNaN(date)) return "Invalid Date";
+            return date.toLocaleString();
+        }
+
+        if (typeof lastSync === "object") { // Date object
+            const { year, month, day, hour, minute, second } = lastSync;
+
+            if (!year || !month || !day || !hour || !minute || !second) {
+                return "Invalid Date";
+            }
+
+            const date = new Date(
+                year.low,
+                month.low - 1,
+                day.low,
+                hour.low,
+                minute.low,
+                second.low
+            );
+
+            if (isNaN(date)) return "Invalid Date";
+            return date.toLocaleString();
+        }
+
+        return "Unknown";
     }
 
     useEffect(() => {
@@ -204,9 +218,11 @@ export default function ArtistGraph() {
 
     useEffect(() => {
         async function loadGraph() {
-            const { artistNodesRaw, genreLabels, allGenres, links } = await dataFetcher.fetchArtistAndGenreData();
+            const { artistNodesRaw, genreLabels, allGenres, links, lastSync } = await dataFetcher.fetchArtistAndGenreData();
 
             // Save the raw data
+            console.log(lastSync)
+            setLastSyncTime(parseLastSync(lastSync));
             setGenreLabelsRaw(genreLabels);
             setRawAllGenres(allGenres);
             setRawLinks(links);
@@ -236,7 +252,7 @@ export default function ArtistGraph() {
                 const node = new ArtistNode(artist);
                 node.labelNode = false;
                 node.radius = Math.pow(node.popularity / 100, 4.5) * 70 + 5;
-                node.label = `${artist.name}\nGenre: ${artist.genres.join(", ")}\nPopularity: ${artist.popularity}/100`;
+                node.label = `${artist.name}\nGenre: ${artist.genres.slice(0,3).join(", ")}\nPopularity: ${artist.popularity}/100`;
 
 
                 node.x *= graphSizeFactor;
@@ -288,14 +304,14 @@ export default function ArtistGraph() {
     }, [artistNodesRaw, genreLabelsRaw, rawAllGenres, rawLinks]);
 
 
-    useEffect(() => {
-        async function fetchSyncTime() {
-            const lastSync = await dataFetcher.fetchLastSync();
-            setLastSyncTime(parseLastSync(lastSync));
-        }
-
-        fetchSyncTime();
-    }, []);
+    // useEffect(() => {
+    //     async function fetchSyncTime() {
+    //         const lastSync = await dataFetcher.fetchLastSync();
+    //         setLastSyncTime(parseLastSync(lastSync));
+    //     }
+    //
+    //     fetchSyncTime();
+    // }, []);
 
     useGraphInit(graphRef, graphData.nodes);
 
@@ -303,7 +319,7 @@ export default function ArtistGraph() {
         if (graphRef.current && canvasRef.current) {
             drawLinksIfNeeded();
         }
-    }, [hoverNode, selectedNode, allGenres, showLinks, graphData.nodes, allLinks]);
+    }, [hoverNode, selectedNode, filteredLinks, allGenres, showLinks, graphData.nodes, allLinks]);
 
     return (
         <div id="graph-container" style={{ display: "flex", width: "100vw", height: "100vh" }}>
@@ -326,6 +342,25 @@ export default function ArtistGraph() {
                     }}
                 >
                     {showLinks ? "Hide Links" : "Show Links"}
+                </button>
+                {/* Toggle top genres button */}
+                <button
+                    onClick={() => setShowTopGenres(prev => !prev)}
+                    style={{
+                        position: "absolute",
+                        bottom: 60,
+                        left: 20,
+                        padding: "6px 12px",
+                        backgroundColor: "#1a1a1a",
+                        color: "white",
+                        border: "1px solid #444",
+                        borderRadius: "6px",
+                        fontSize: "13px",
+                        cursor: "pointer",
+                        zIndex: 25
+                    }}
+                >
+                    {showTopGenres ? "Hide Top Genres" : "Show Top Genres"}
                 </button>
                 {/* Tooltip */}
                 <div
@@ -387,6 +422,12 @@ export default function ArtistGraph() {
                             ctx.fill();
                         }}
                         nodeCanvasObject={(node, ctx, globalScale) => {
+
+                            // Hide the top genre labels if necessary
+                            if (node.labelNode && !showTopGenres) {
+                                return;
+                            }
+
                             const faded = shouldFadeNode(node);
                             if (!faded) {
                                 renderNode(
