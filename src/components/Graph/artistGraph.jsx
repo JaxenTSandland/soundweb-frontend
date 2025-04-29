@@ -12,8 +12,7 @@ import {ArtistNode} from "../../models/artistNode.js";
 
 
 
-
-export default function ArtistGraph() {
+export default function ArtistGraph({ mode, param }) {
     const { showTooltip, hideTooltip } = useTooltip();
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
     const [hoverNode, setHoverNode] = useState(null);
@@ -48,6 +47,138 @@ export default function ArtistGraph() {
     const [genreLabelsRaw, setGenreLabelsRaw] = useState([]);
     const [rawAllGenres, setRawAllGenres] = useState([]);
     const [rawLinks, setRawLinks] = useState([]);
+
+    // region on-load graph functions
+    useEffect(() => {
+        async function loadGraph() {
+            try {
+                setSelectedNode(null);
+
+                let artistNodesRaw = [];
+                let genreLabels = [];
+                let links = [];
+                let lastSync = null;
+
+                if (mode === "Top1000") {
+                    const data = await dataFetcher.fetchTopArtistAndGenreData();
+                    artistNodesRaw = data.artistNodesRaw;
+                    genreLabels = data.genreLabels;
+                    links = data.links;
+                    lastSync = data.lastSync;
+
+                } else if (mode === "UserCustom" && param) {
+                    const data = await dataFetcher.fetchCustomArtistAndLinkData(1000);
+                    artistNodesRaw = data.artistNodesRaw;
+                    links = data.links;
+                    lastSync = data.lastSync;
+                    genreLabels = [];
+
+                } else if (mode === "ArtistBased" && param) {
+                    console.warn("[ArtistGraph] ArtistBased mode not implemented yet.");
+                }
+
+                console.log(lastSync);
+                setLastSyncTime(parseLastSync(lastSync));
+                setGenreLabelsRaw(genreLabels);
+                setRawLinks(links);
+                setArtistNodesRaw(artistNodesRaw);
+
+            } catch (err) {
+                console.error("[ArtistGraph] Failed to load graph data:", err);
+            }
+        }
+
+        loadGraph();
+    }, [mode, param]);
+
+
+    useEffect(() => {
+        async function loadGenres() {
+            try {
+                const res = await fetch(`${dataFetcher.baseUrl}/api/genres/all`);
+                const allGenres = await res.json();
+                setRawAllGenres(Array.isArray(allGenres) ? allGenres : []);
+            } catch (error) {
+                console.error("[ArtistGraph] Failed to load allGenres:", error);
+                setRawAllGenres([]);
+            }
+        }
+
+        loadGenres();
+    }, []);
+
+
+    useEffect(() => {
+        function buildGraph() {
+
+
+            // Build artist map by ID for fast lookup
+            const relatedMap = {};
+            rawLinks.forEach(link => {
+                if (!relatedMap[link.source]) relatedMap[link.source] = new Set();
+                if (!relatedMap[link.target]) relatedMap[link.target] = new Set();
+                relatedMap[link.source].add(link.target);
+                relatedMap[link.target].add(link.source);
+            });
+
+            const artistCount = artistNodesRaw.length;
+            const graphSizeFactor = Math.max(artistCount * 20, 2000) / 20000;
+
+            const artistNodes = artistNodesRaw.map(artist => {
+                const node = new ArtistNode(artist);
+                node.labelNode = false;
+                node.radius = Math.pow(node.popularity / 100, 4.5) * 70 + 5;
+                node.label = `${artist.name}\nGenre: ${artist.genres.slice(0,3).join(", ")}\nPopularity: ${artist.popularity}/100`;
+
+
+                node.x *= graphSizeFactor;
+                node.y *= graphSizeFactor;
+
+                return node;
+            });
+
+            const labelNodes = genreLabelsRaw.map((genre, i) => ({
+                id: `genre-${i}`,
+                name: toTitleCase(genre.name),
+                x: genre.x,
+                y: genre.y,
+                radius: 1,
+                color: "transparent",
+                labelNode: true,
+                count: genre.count
+            }));
+
+            // Build a map of genreName -> color
+            const genreColorMap = {};
+            rawAllGenres.forEach(g => {
+                genreColorMap[g.name] = g.color;
+            });
+
+            // Count genre usage and add toggled + color
+            const genreUsageMap = {};
+            artistNodes.forEach(artist => {
+                artist.genres.forEach(genre => {
+                    genreUsageMap[genre] = (genreUsageMap[genre] || 0) + 1;
+                });
+            });
+
+            const sortedGenres = Object.entries(genreUsageMap)
+                .sort((a, b) => b[1] - a[1])
+                .map(([genre, count]) => ({
+                    genre,
+                    count,
+                    color: genreColorMap[genre] || "#888",
+                    toggled: true
+                }));
+
+            setAllGenres(sortedGenres);
+            setGraphData({ nodes: [...artistNodes, ...labelNodes], links: [] });
+            setAllLinks(rawLinks);
+        }
+
+        buildGraph();
+    }, [artistNodesRaw, genreLabelsRaw, rawAllGenres, rawLinks]);
+    // endregion
 
     // region Search bar functions
 
@@ -160,7 +291,7 @@ export default function ArtistGraph() {
         );
 
         setFilteredLinks(newFilteredLinks);
-    }, [selectedNode, allLinks]);
+    }, [selectedNode, allLinks, mode]);
 
     function parseLastSync(lastSync) {
         if (!lastSync) return "Unknown";
@@ -208,110 +339,12 @@ export default function ArtistGraph() {
             label: selectedNode.genres.join(", "),
             node: selectedNode
         });
-    }, [selectedNode]);
+    }, [selectedNode, mode]);
 
     function openSidebarForArtist(node) {
         if (!node || node.labelNode) return;
         setSelectedNode(node);
     }
-
-
-    useEffect(() => {
-        async function loadGraph() {
-            const { artistNodesRaw, genreLabels, allGenres, links, lastSync } = await dataFetcher.fetchArtistAndGenreData();
-
-            // Save the raw data
-            console.log(lastSync)
-            setLastSyncTime(parseLastSync(lastSync));
-            setGenreLabelsRaw(genreLabels);
-            setRawAllGenres(allGenres);
-            setRawLinks(links);
-            setArtistNodesRaw(artistNodesRaw);
-        }
-
-        loadGraph();
-    }, []);
-
-    useEffect(() => {
-        function buildGraph() {
-
-
-            // Build artist map by ID for fast lookup
-            const relatedMap = {};
-            rawLinks.forEach(link => {
-                if (!relatedMap[link.source]) relatedMap[link.source] = new Set();
-                if (!relatedMap[link.target]) relatedMap[link.target] = new Set();
-                relatedMap[link.source].add(link.target);
-                relatedMap[link.target].add(link.source);
-            });
-
-            const artistCount = artistNodesRaw.length;
-            const graphSizeFactor = Math.max(artistCount * 20, 2000) / 20000;
-
-            const artistNodes = artistNodesRaw.map(artist => {
-                const node = new ArtistNode(artist);
-                node.labelNode = false;
-                node.radius = Math.pow(node.popularity / 100, 4.5) * 70 + 5;
-                node.label = `${artist.name}\nGenre: ${artist.genres.slice(0,3).join(", ")}\nPopularity: ${artist.popularity}/100`;
-
-
-                node.x *= graphSizeFactor;
-                node.y *= graphSizeFactor;
-
-                return node;
-            });
-
-            const labelNodes = genreLabelsRaw.map((genre, i) => ({
-                id: `genre-${i}`,
-                name: toTitleCase(genre.name),
-                x: genre.x,
-                y: genre.y,
-                radius: 1,
-                color: "transparent",
-                labelNode: true,
-                count: genre.count
-            }));
-
-            // Build a map of genreName -> color
-            const genreColorMap = {};
-            rawAllGenres.forEach(g => {
-                genreColorMap[g.name] = g.color;
-            });
-
-            // Count genre usage and add toggled + color
-            const genreUsageMap = {};
-            artistNodes.forEach(artist => {
-                artist.genres.forEach(genre => {
-                    genreUsageMap[genre] = (genreUsageMap[genre] || 0) + 1;
-                });
-            });
-
-            const sortedGenres = Object.entries(genreUsageMap)
-                .sort((a, b) => b[1] - a[1])
-                .map(([genre, count]) => ({
-                    genre,
-                    count,
-                    color: genreColorMap[genre] || "#888",
-                    toggled: true
-                }));
-
-            setAllGenres(sortedGenres);
-            setGraphData({ nodes: [...artistNodes, ...labelNodes], links: [] });
-            setAllLinks(rawLinks);
-        }
-
-        buildGraph();
-    }, [artistNodesRaw, genreLabelsRaw, rawAllGenres, rawLinks]);
-
-
-    // useEffect(() => {
-    //     async function fetchSyncTime() {
-    //         const lastSync = await dataFetcher.fetchLastSync();
-    //         setLastSyncTime(parseLastSync(lastSync));
-    //     }
-    //
-    //     fetchSyncTime();
-    // }, []);
 
     useGraphInit(graphRef, graphData.nodes);
 
