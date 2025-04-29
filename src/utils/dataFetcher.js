@@ -10,7 +10,7 @@ export default class DataFetcher {
             const [topGenresRes, allGenresRes, artistsRes] = await Promise.all([
                 fetch(`${this.baseUrl}/api/genres/top?count=10`),
                 fetch(`${this.baseUrl}/api/genres/all`),
-                fetch(`${this.baseUrl}/api/artists/graph?onlytopartists=false&max=1100`)
+                fetch(`${this.baseUrl}/api/artists/top?max=1000`)
             ]);
 
             const topGenres = await topGenresRes.json();
