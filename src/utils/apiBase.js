@@ -1,9 +1,7 @@
-export function getBaseUrl() {
+export function getBackendUrl() {
     if (import.meta.env.DEV) {
         return "http://localhost:3000"; // backend dev port
     } else {
         return import.meta.env.VITE_BACKEND_URL;
     }
-
-    return "";
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { getBaseUrl } from "../../utils/apiBase.js";
+import { getBackendUrl } from "../../utils/apiBase.js";
 import GenreTags from "./genreTags.jsx";
 import TopTracks from "./topTracks.jsx";
 import RecentReleases from "./recentReleases.jsx";
@@ -7,7 +7,7 @@ import BioSection from "./bioSection.jsx";
 
 export default function ArtistSidebar({ selectedNode, setSelectedNode, allGenres }) {
     const [expandedData, setExpandedData] = useState(null);
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBackendUrl();
 
     const releaseScrollRef = useRef(null);
 

@@ -1,29 +1,26 @@
-import {getBaseUrl} from "./apiBase.js";
+import {getBackendUrl} from "./apiBase.js";
 
 export default class DataFetcher {
-    constructor(baseUrl = getBaseUrl()) {
+    constructor(baseUrl = getBackendUrl()) {
         this.baseUrl = baseUrl;
     }
 
     async fetchTopArtistAndGenreData() {
         try {
-            const [topGenresRes, artistsRes] = await Promise.all([
-                fetch(`${this.baseUrl}/api/genres/top?count=10`),
+            const [artistsRes] = await Promise.all([
                 fetch(`${this.baseUrl}/api/artists/top?max=1000`)
             ]);
 
-            const topGenres = await topGenresRes.json();
             const artistData = await artistsRes.json();
 
             return {
                 artistNodesRaw: artistData.nodes || [],
-                genreLabels: Array.isArray(topGenres) ? topGenres : [],
                 links: artistData.links || [],
                 lastSync: artistData.lastSync || null
             };
         } catch (error) {
             console.error("Failed to load artist/genre data:", error);
-            return { artistNodesRaw: [], genreLabels: [], links: [], lastSync: null };
+            return { artistNodesRaw: [], links: [], lastSync: null };
         }
     }
 
