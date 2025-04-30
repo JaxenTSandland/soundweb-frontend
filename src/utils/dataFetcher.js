@@ -5,7 +5,7 @@ export default class DataFetcher {
         this.baseUrl = baseUrl;
     }
 
-    async fetchTopArtistAndGenreData() {
+    async fetchTopArtistData() {
         try {
             const [artistsRes] = await Promise.all([
                 fetch(`${this.baseUrl}/api/artists/top?max=1000`)
@@ -49,5 +49,11 @@ export default class DataFetcher {
             console.error("Failed to fetch lastSync metadata:", error);
             return null;
         }
+    }
+
+    async fetchAllGenres() {
+        const res = await fetch(`${this.baseUrl}/api/genres/all`);
+        const allGenres = await res.json();
+        return allGenres;
     }
 }

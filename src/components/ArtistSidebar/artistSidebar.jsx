@@ -37,7 +37,7 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allGenres
     }
 
     const getGenreColor = (genreName) => {
-        const match = allGenres.find(g => g.genre === genreName);
+        const match = allGenres.find(g => g.name === genreName);
         return match?.color || "#555";
     };
 

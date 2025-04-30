@@ -1,6 +1,6 @@
 import wrapText from "../../utils/wrapText.jsx";
 
-export function renderNode(node, ctx, globalScale, graphData, minCount, maxCount, hoverNode, selectedNode) {
+export function renderNode(node, ctx, globalScale, minCount, maxCount, hoverNode, selectedNode) {
 
     const isSelected = selectedNode && node.id === selectedNode.id;
     const isHovered = hoverNode && node.id === hoverNode.id;

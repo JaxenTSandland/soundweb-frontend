@@ -18,7 +18,7 @@ export default function RightSidebar({
                                      }) {
 
     const sortedGenres = [...allGenres].sort((a, b) =>
-        sortMethod === "alphabetical" ? a.genre.localeCompare(b.genre) : b.count - a.count
+        sortMethod === "alphabetical" ? a.name.localeCompare(b.name) : b.count - a.count
     );
 
     return (
@@ -79,14 +79,14 @@ export default function RightSidebar({
                         </div>
 
                         <div style={styles.genreList}>
-                            {sortedGenres.map(({ genre, count, toggled }) => (
-                                <label key={genre} style={styles.genreItem}>
+                            {sortedGenres.map(({ name, count, toggled }) => (
+                                <label key={name} style={styles.genreItem}>
                                     <input
                                         type="checkbox"
                                         checked={toggled}
-                                        onChange={() => toggleGenre(genre)}
+                                        onChange={() => toggleGenre(name)}
                                     />
-                                    <span>{genre} ({count})</span>
+                                    <span>{name} ({count})</span>
                                 </label>
                             ))}
                         </div>
