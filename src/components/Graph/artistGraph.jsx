@@ -27,7 +27,8 @@ export default function ArtistGraph({ mode, param }) {
 
     const [lastSyncTime, setLastSyncTime] = useState("Loading...");
 
-    const [allGenres, setAllGenres] = useState([]);
+    const [allTopGenres, setAllTopGenres] = useState([]);
+    const [allUsedGenres, setAllUsedGenres] = useState([]);
     const [sortMethod, setSortMethod] = useState("popularity");
 
     // Search bar states
@@ -42,20 +43,20 @@ export default function ArtistGraph({ mode, param }) {
     const [filteredLinks, setFilteredLinks] = useState([]);
 
     const activeGenreNameSet = useMemo(() => {
-        return new Set(allGenres.filter(g => g.toggled).map(g => g.name));
-    }, [allGenres]);
+        return new Set(allTopGenres.filter(g => g.toggled).map(g => g.name));
+    }, [allTopGenres]);
     const visibleLabelNameSet = useMemo(() => {
-        if (!Array.isArray(allGenres) || allGenres.length === 0) return new Set();
+        if (!Array.isArray(allTopGenres) || allTopGenres.length === 0) return new Set();
 
-        const toggledGenres = allGenres.filter(g => g.toggled);
+        const toggledGenres = allTopGenres.filter(g => g.toggled);
         const topLabels = generateGenreLabelNodes(toggledGenres, 10);
         console.log("New top genres: ", topLabels);
         return new Set(topLabels.map(g => toTitleCase(g.name)));
-    }, [allGenres]);
+    }, [allTopGenres]);
     const { minCount, maxCount } = useMemo(() => {
-        if (!allGenres || allGenres.length === 0) return { minCount: 0, maxCount: 1 };
+        if (!allTopGenres || allTopGenres.length === 0) return { minCount: 0, maxCount: 1 };
 
-        const counts = allGenres.map(g => g.count || 0);
+        const counts = allTopGenres.map(g => g.count || 0);
         return {
             minCount: Math.min(...counts),
             maxCount: Math.max(...counts),
@@ -64,7 +65,7 @@ export default function ArtistGraph({ mode, param }) {
 
     const [artistNodesRaw, setArtistNodesRaw] = useState([]);
     const [genreLabelsRaw, setGenreLabelsRaw] = useState([]);
-    const [rawAllGenres, setRawAllGenres] = useState([]);
+    const [allGenresRaw, setAllGenresRaw] = useState([]);
     const [rawLinks, setRawLinks] = useState([]);
 
     const graphScale = useMemo(() => {
@@ -124,10 +125,10 @@ export default function ArtistGraph({ mode, param }) {
                     x: g.x * graphScale,
                     y: g.y * graphScale
                 }));
-                setRawAllGenres(scaledGenres);
+                setAllGenresRaw(scaledGenres);
             } catch (error) {
                 console.error("Failed to load allGenres: ", error);
-                setRawAllGenres([]);
+                setAllGenresRaw([]);
             }
         }
 
@@ -137,7 +138,7 @@ export default function ArtistGraph({ mode, param }) {
 
     useEffect(() => {
         function buildGraph() {
-            if (rawAllGenres.length === 0 || artistNodesRaw.length === 0) return;
+            if (allGenresRaw.length === 0 || artistNodesRaw.length === 0) return;
             console.log("Building Graph");
 
             // Build artist map by ID for fast lookup
@@ -163,26 +164,42 @@ export default function ArtistGraph({ mode, param }) {
             console.log(`${artistNodes.length} artist nodes made`);
 
             // Build a set of genres actually used by the artist nodes
-            const genreUsageMap = {};
+            const topGenreUsageMap = {};
+            artistNodes.forEach(artist => {
+                topGenreUsageMap[artist.genres[0]] = (topGenreUsageMap[artist.genres[0]] || 0) + 1;
+            });
+            const usedGenreUsageMap = {};
             artistNodes.forEach(artist => {
                 artist.genres.forEach(genre => {
-                    genreUsageMap[genre] = (genreUsageMap[genre] || 0) + 1;
+                    usedGenreUsageMap[genre] = (usedGenreUsageMap[genre] || 0) + 1;
                 });
             });
 
 
-            const sortedGenres = rawAllGenres
-                .filter(g => genreUsageMap[g.name] && g.count > 0)
+            const sortedTopGenres = allGenresRaw
+                .filter(g => topGenreUsageMap[g.name])
                 .map(g => ({
                     ...g,
                     toggled: true,
                     x: g.x,
                     y: g.y,
-                    count: genreUsageMap[g.name]
+                    count: topGenreUsageMap[g.name]
                 }));
-            const labelNodes = generateGenreLabelNodes(sortedGenres, sortedGenres.length);
 
-            setAllGenres(sortedGenres);
+            const sortedUsedGenres = allGenresRaw
+                .filter(g => usedGenreUsageMap[g.name])
+                .map(g => ({
+                    ...g,
+                    toggled: true,
+                    x: g.x,
+                    y: g.y,
+                    count: usedGenreUsageMap[g.name]
+                }));
+
+            const labelNodes = generateGenreLabelNodes(sortedUsedGenres, sortedUsedGenres.length);
+
+            setAllTopGenres(sortedTopGenres);
+            setAllUsedGenres(sortedUsedGenres);
             setArtistNodes(artistNodes);
             setGenreLabelNodes(labelNodes)
             setAllLinks(rawLinks);
@@ -193,7 +210,7 @@ export default function ArtistGraph({ mode, param }) {
         }
 
         buildGraph();
-    }, [artistNodesRaw, genreLabelsRaw, rawAllGenres, rawLinks]);
+    }, [artistNodesRaw, genreLabelsRaw, allGenresRaw, rawLinks]);
 
     // endregion
 
@@ -226,7 +243,7 @@ export default function ArtistGraph({ mode, param }) {
     // region genre filtering functions
     function toggleGenre(genreName) {
         setSelectedNode(null);
-        setAllGenres(prev =>
+        setAllTopGenres(prev =>
             prev.map(g =>
                 g.name === genreName ? { ...g, toggled: !g.toggled } : g
             )
@@ -355,7 +372,7 @@ export default function ArtistGraph({ mode, param }) {
     }
 
     function openSidebarForArtist(node) {
-        if (!node || node.labelNode) return;
+        if (!node || node.labelNode || shouldFadeNode(node)) return;
         setSelectedNode(node);
     }
 
@@ -452,7 +469,7 @@ export default function ArtistGraph({ mode, param }) {
                         nodeLabel={() => ""}
                         enableNodeDrag={false}
                         onNodeHover={(node) => {
-                            if (node && !node.labelNode) {
+                            if (node && !node.labelNode && !shouldFadeNode(node)) {
                                 setHoverNode(node);
                                 showTooltip(node);
                             } else {
@@ -531,9 +548,10 @@ export default function ArtistGraph({ mode, param }) {
             <RightSidebar
                 selectedNode={selectedNode}
                 setSelectedNode={setSelectedNode}
-                allGenres={allGenres}
+                allTopGenres={allTopGenres}
+                allUsedGenres={allUsedGenres}
                 toggleGenre={toggleGenre}
-                setAllGenres={setAllGenres}
+                setAllGenres={setAllTopGenres}
                 sortMethod={sortMethod}
                 cycleSortMethod={cycleSortMethod}
                 searchTerm={searchTerm}

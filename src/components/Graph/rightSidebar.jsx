@@ -4,7 +4,8 @@ import ArtistSidebar from "../ArtistSidebar/artistSidebar.jsx";
 export default function RightSidebar({
                                          selectedNode,
                                         setSelectedNode,
-                                        allGenres,
+                                        allTopGenres,
+                                        allUsedGenres,
                                         toggleGenre,
                                         setAllGenres,
                                         sortMethod,
@@ -17,17 +18,17 @@ export default function RightSidebar({
                                         handleResultClick
                                      }) {
 
-    const sortedGenres = [...allGenres].sort((a, b) =>
+    const sortedGenres = [...allTopGenres].sort((a, b) =>
         sortMethod === "alphabetical" ? a.name.localeCompare(b.name) : b.count - a.count
     );
 
     return (
         <div style={styles.container}>
             {selectedNode ? (
-                <ArtistSidebar setSelectedNode={setSelectedNode} selectedNode={selectedNode} allGenres={allGenres} />
+                <ArtistSidebar setSelectedNode={setSelectedNode} selectedNode={selectedNode} allUsedGenres={allUsedGenres} />
             ) : (
                 <>
-                    {/* Top: Search section (fixed height) */}
+                    {/* Top: Search section */}
                     <div style={styles.searchSection}>
                         <input
                             type="text"
@@ -54,7 +55,7 @@ export default function RightSidebar({
                         )}
                     </div>
 
-                    {/* Bottom: Genre section (fills remaining space) */}
+                    {/* Bottom: Genre section */}
                     <div style={styles.genreSection}>
                         <div style={styles.genreHeader}>
                             <span style={styles.genreTitle}>Filter by Genre</span>
@@ -66,13 +67,13 @@ export default function RightSidebar({
                         <div style={styles.genreControls}>
                             <button
                                 onClick={() => {
-                                    const onCount = allGenres.filter(g => g.toggled).length;
-                                    const selectAll = onCount / allGenres.length <= 0.5;
-                                    setAllGenres(allGenres.map(g => ({ ...g, toggled: selectAll })));
+                                    const onCount = allTopGenres.filter(g => g.toggled).length;
+                                    const selectAll = onCount / allTopGenres.length <= 0.5;
+                                    setAllGenres(allTopGenres.map(g => ({ ...g, toggled: selectAll })));
                                 }}
                                 style={styles.button}
                             >
-                                {allGenres.filter(g => g.toggled).length / allGenres.length > 0.5
+                                {allTopGenres.filter(g => g.toggled).length / allTopGenres.length > 0.5
                                     ? "Deselect all"
                                     : "Select all"}
                             </button>
@@ -105,7 +106,7 @@ const styles = {
         right: 0,
         width: "300px",
         height: "100vh",
-        backgroundColor: "#1a1a1a",
+        background: "#1a1a1a",
         color: "white",
         padding: "12px",
         overflowY: "auto",

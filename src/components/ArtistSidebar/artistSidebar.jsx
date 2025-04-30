@@ -5,7 +5,7 @@ import TopTracks from "./topTracks.jsx";
 import RecentReleases from "./recentReleases.jsx";
 import BioSection from "./bioSection.jsx";
 
-export default function ArtistSidebar({ selectedNode, setSelectedNode, allGenres }) {
+export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres }) {
     const [expandedData, setExpandedData] = useState(null);
     const baseUrl = getBackendUrl();
 
@@ -37,7 +37,7 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allGenres
     }
 
     const getGenreColor = (genreName) => {
-        const match = allGenres.find(g => g.name === genreName);
+        const match = allUsedGenres.find(g => g.name === genreName);
         return match?.color || "#555";
     };
 
