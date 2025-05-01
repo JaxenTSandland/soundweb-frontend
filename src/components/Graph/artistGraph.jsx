@@ -486,7 +486,6 @@ export default function ArtistGraph({ mode, param }) {
                         }}
                         nodeCanvasObject={(node, ctx, globalScale) => {
 
-                            // Hide the top genre labels if necessary
                             if (node.labelNode) {
                                 if (!showTopGenres || !visibleLabelNameSet.has(node.name)) return;
                                 renderLabelNode(node, ctx, globalScale, minCount, maxCount, graphScale);
