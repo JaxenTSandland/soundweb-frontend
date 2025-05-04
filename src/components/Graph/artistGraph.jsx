@@ -121,9 +121,7 @@ export default function ArtistGraph({ mode, param }) {
             try {
                 const fetchedAllGenres = await dataFetcher.fetchAllGenres();
                 const scaledGenres = fetchedAllGenres.map(g => ({
-                    ...g,
-                    x: g.x * graphScale,
-                    y: g.y * graphScale
+                    ...g
                 }));
                 setAllGenresRaw(scaledGenres);
             } catch (error) {
@@ -181,8 +179,8 @@ export default function ArtistGraph({ mode, param }) {
                 .map(g => ({
                     ...g,
                     toggled: true,
-                    x: g.x,
-                    y: g.y,
+                    x: g.x * graphScale,
+                    y: g.y * graphScale,
                     count: topGenreUsageMap[g.name]
                 }));
 
@@ -204,7 +202,7 @@ export default function ArtistGraph({ mode, param }) {
             setGenreLabelNodes(labelNodes)
             setAllLinks(rawLinks);
             setGraphData({
-                nodes: [...(artistNodes || []), ...(genreLabelNodes || [])],
+                nodes: [...artistNodes, ...labelNodes],
                 links: []
             });
         }
@@ -487,7 +485,7 @@ export default function ArtistGraph({ mode, param }) {
                         nodeCanvasObject={(node, ctx, globalScale) => {
 
                             if (node.labelNode) {
-                                if (!showTopGenres || !visibleLabelNameSet.has(node.name)) return;
+                                if (!showTopGenres || !visibleLabelNameSet.has(toTitleCase(node.name))) return;
                                 renderLabelNode(node, ctx, globalScale, minCount, maxCount, graphScale);
                             } else {
                                 const faded = shouldFadeNode(node);

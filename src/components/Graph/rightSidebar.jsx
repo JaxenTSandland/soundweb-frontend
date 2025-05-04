@@ -1,5 +1,6 @@
 import React from "react";
 import ArtistSidebar from "../ArtistSidebar/artistSidebar.jsx";
+import {toTitleCase} from "../../utils/textUtils.js";
 
 export default function RightSidebar({
                                          selectedNode,
@@ -87,7 +88,7 @@ export default function RightSidebar({
                                         checked={toggled}
                                         onChange={() => toggleGenre(name)}
                                     />
-                                    <span>{name} ({count})</span>
+                                    <span>{toTitleCase(name)} ({count})</span>
                                 </label>
                             ))}
                         </div>
