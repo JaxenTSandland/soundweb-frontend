@@ -4,6 +4,12 @@ import ArtistGraph from "./components/Graph/artistGraph.jsx";
 
 function App() {
     const [activeTab, setActiveTab] = useState({ mode: "Top1000", param: null });
+    const [user, setUser] = useState({
+        id: "7717",
+        display_name: "Jaxen Sandland",
+        email: "jaxensandland8@gmail.com",
+        images: [{ url: null }],
+    });
 
     function switchToTop1000() {
         setActiveTab({ mode: "Top1000", param: null });
@@ -19,7 +25,7 @@ function App() {
 
     return (
         <div className="App">
-            <ArtistGraph mode={activeTab.mode} param={activeTab.param} />
+            <ArtistGraph mode={activeTab.mode} param={activeTab.param} user={user} />
 
             <div className="graph-footer">
                 <button

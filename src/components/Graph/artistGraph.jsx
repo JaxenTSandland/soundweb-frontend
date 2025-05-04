@@ -15,7 +15,9 @@ let top1000Cache = null;
 
 const dataFetcher = new DataFetcher();
 
-export default function ArtistGraph({ mode, param }) {
+export default function ArtistGraph({ mode, param, user }) {
+    const userId = user?.id;
+
     const { showTooltip, hideTooltip } = useTooltip();
     const [artistNodes, setArtistNodes] = useState([]);
     const [genreLabelNodes, setGenreLabelNodes] = useState([]);
@@ -107,7 +109,7 @@ export default function ArtistGraph({ mode, param }) {
                         };
                     }
                 } else if (mode === "UserCustom" && param) {
-                    const data = await dataFetcher.fetchCustomArtistAndLinkData(1000, param);
+                    const data = await dataFetcher.fetchCustomArtistAndLinkData(1000, userId);
                     artistNodesRaw = data.artistNodesRaw;
                     links = data.links;
                     lastSync = data.lastSync;
@@ -536,24 +538,52 @@ export default function ArtistGraph({ mode, param }) {
                 >
                     Soundweb
                 </div>
-                {lastSyncTime && (
-                    <div
+                {mode === "UserCustom" ? (
+                    <button
+                        onClick={async () => {
+                            try {
+                                const res = dataFetcher.refreshCustomArtistData(param);
+                                window.location.reload();
+                            } catch (err) {
+                                console.error("Refresh error:", err);
+                                alert("Failed to refresh custom data.");
+                            }
+                        }}
                         style={{
                             position: "absolute",
                             top: 35,
                             left: 10,
-                            background: "#1a1a1a",
+                            backgroundColor: "#1a1a1a",
                             color: "white",
                             padding: "6px 12px",
                             fontSize: "13px",
                             borderRadius: "6px",
                             border: "1px solid #444",
+                            cursor: "pointer",
                             zIndex: 25
                         }}
                     >
-                        Last updated: {lastSyncTime}
-
-                    </div>
+                        Refresh Graph
+                    </button>
+                ) : (
+                    lastSyncTime && (
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: 35,
+                                left: 10,
+                                background: "#1a1a1a",
+                                color: "white",
+                                padding: "6px 12px",
+                                fontSize: "13px",
+                                borderRadius: "6px",
+                                border: "1px solid #444",
+                                zIndex: 25
+                            }}
+                        >
+                            Last updated: {lastSyncTime}
+                        </div>
+                    )
                 )}
             </div>
 
