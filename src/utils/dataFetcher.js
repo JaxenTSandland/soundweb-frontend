@@ -24,9 +24,14 @@ export default class DataFetcher {
         }
     }
 
-    async fetchCustomArtistAndLinkData(max = 1000) {
+    async fetchCustomArtistAndLinkData(max = 1000, user_id = null) {
         try {
-            const res = await fetch(`${this.baseUrl}/api/artists/custom?max=${max}`);
+            let res = null;
+            if (user_id) {
+                res = await fetch(`${this.baseUrl}/api/artists/by-usertag/${user_id}`);
+            } else {
+                res = await fetch(`${this.baseUrl}/api/artists/custom?max=${max}`);
+            }
             const artistData = await res.json();
 
             return {

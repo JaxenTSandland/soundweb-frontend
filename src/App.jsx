@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import './App.css';
 import ArtistGraph from "./components/Graph/artistGraph.jsx";
 
 function App() {
@@ -18,12 +19,29 @@ function App() {
 
     return (
         <div className="App">
-
             <ArtistGraph mode={activeTab.mode} param={activeTab.param} />
-            <div style={{ position: "fixed", bottom: 0, width: "100%", display: "flex", backgroundColor: "#222" }}>
-                <button onClick={switchToTop1000}>Top 1000</button>
-                <button onClick={() => switchToArtistBased("6eUKZXaKkcviH0Ku9w2n3V")}>Ed Sheeran Graph</button>
-                <button onClick={() => switchToUserCustom("user123")}>My Custom Graph</button>
+
+            <div className="graph-footer">
+                <button
+                    className={activeTab.mode === "Top1000" ? "active" : ""}
+                    onClick={switchToTop1000}
+                >
+                    Top 1000
+                </button>
+
+                <button
+                    className={activeTab.mode === "ArtistBased" ? "active" : ""}
+                    onClick={() => switchToArtistBased("06HL4z0CvFAxyc27GXpf02")}
+                >
+                    Taylor Swift Graph
+                </button>
+
+                <button
+                    className={activeTab.mode === "UserCustom" ? "active" : ""}
+                    onClick={() => switchToUserCustom("7717")}
+                >
+                    My Custom Graph
+                </button>
             </div>
         </div>
     );

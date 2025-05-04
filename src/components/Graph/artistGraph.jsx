@@ -11,7 +11,7 @@ import {generateGenreLabelNodes} from "../../utils/generateGenreLabelNodes.js";
 import {renderLabelNode} from "./labelNodeRenderer.js";
 import {toTitleCase} from "../../utils/textUtils.js";
 
-
+let top1000Cache = null;
 
 const dataFetcher = new DataFetcher();
 
@@ -85,14 +85,29 @@ export default function ArtistGraph({ mode, param }) {
                 let lastSync = null;
 
                 if (mode === "Top1000") {
-                    const data = await dataFetcher.fetchTopArtistData();
-                    artistNodesRaw = data.artistNodesRaw;
-                    genreLabels = [];
-                    links = data.links;
-                    lastSync = data.lastSync;
+                    if (top1000Cache) {
+                        console.log("[ArtistGraph] Using cached Top 1000 graph data");
+                        artistNodesRaw = top1000Cache.artistNodesRaw;
+                        genreLabels = top1000Cache.genreLabels;
+                        links = top1000Cache.links;
+                        lastSync = top1000Cache.lastSync;
+                    } else {
+                        console.log("[ArtistGraph] Fetching Top 1000 graph data");
+                        const data = await dataFetcher.fetchTopArtistData();
+                        artistNodesRaw = data.artistNodesRaw;
+                        genreLabels = [];
+                        links = data.links;
+                        lastSync = data.lastSync;
 
+                        top1000Cache = {
+                            artistNodesRaw,
+                            genreLabels,
+                            links,
+                            lastSync
+                        };
+                    }
                 } else if (mode === "UserCustom" && param) {
-                    const data = await dataFetcher.fetchCustomArtistAndLinkData(1000);
+                    const data = await dataFetcher.fetchCustomArtistAndLinkData(1000, param);
                     artistNodesRaw = data.artistNodesRaw;
                     links = data.links;
                     lastSync = data.lastSync;
@@ -131,7 +146,7 @@ export default function ArtistGraph({ mode, param }) {
         }
 
         loadGenres();
-    }, [graphScale]);
+    }, []);
 
 
     useEffect(() => {
@@ -374,7 +389,7 @@ export default function ArtistGraph({ mode, param }) {
         setSelectedNode(node);
     }
 
-    useGraphInit(graphRef, artistNodes);
+    useGraphInit(graphRef, artistNodes, graphScale);
 
     useEffect(() => {
         if (graphRef.current && canvasRef.current) {
@@ -390,7 +405,7 @@ export default function ArtistGraph({ mode, param }) {
                     onClick={() => setShowLinks(prev => !prev)}
                     style={{
                         position: "absolute",
-                        bottom: 20,
+                        bottom: 50,
                         left: 20,
                         padding: "6px 12px",
                         backgroundColor: "#1a1a1a",
@@ -409,7 +424,7 @@ export default function ArtistGraph({ mode, param }) {
                     onClick={() => setShowTopGenres(prev => !prev)}
                     style={{
                         position: "absolute",
-                        bottom: 60,
+                        bottom: 90,
                         left: 20,
                         padding: "6px 12px",
                         backgroundColor: "#1a1a1a",
