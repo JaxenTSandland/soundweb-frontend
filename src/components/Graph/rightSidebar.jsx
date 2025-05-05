@@ -1,6 +1,7 @@
 import React from "react";
 import ArtistSidebar from "../ArtistSidebar/artistSidebar.jsx";
 import {toTitleCase} from "../../utils/textUtils.js";
+import DataFetcher from "../../utils/dataFetcher.js";
 
 export default function RightSidebar({
                                          selectedNode,
@@ -16,7 +17,8 @@ export default function RightSidebar({
                                         filteredResults,
                                         isSearchFocused,
                                         setIsSearchFocused,
-                                        handleResultClick
+                                        handleResultClick,
+                                        dataFetcher
                                      }) {
 
     const sortedGenres = [...allTopGenres].sort((a, b) =>
@@ -26,7 +28,7 @@ export default function RightSidebar({
     return (
         <div style={styles.container}>
             {selectedNode ? (
-                <ArtistSidebar setSelectedNode={setSelectedNode} selectedNode={selectedNode} allUsedGenres={allUsedGenres} />
+                <ArtistSidebar setSelectedNode={setSelectedNode} selectedNode={selectedNode} allUsedGenres={allUsedGenres} addArtistToCustomGraphFunction={dataFetcher.addArtistToCustomGraph} />
             ) : (
                 <>
                     {/* Top: Search section */}

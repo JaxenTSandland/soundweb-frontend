@@ -571,6 +571,7 @@ export default function ArtistGraph({ mode, param, user }) {
                 isSearchFocused={isSearchFocused}
                 setIsSearchFocused={setIsSearchFocused}
                 handleResultClick={handleResultClick}
+                dataFetcher={dataFetcher}
             />
         </div>
     );

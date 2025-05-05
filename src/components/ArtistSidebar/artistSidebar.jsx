@@ -4,10 +4,18 @@ import GenreTags from "./genreTags.jsx";
 import TopTracks from "./topTracks.jsx";
 import RecentReleases from "./recentReleases.jsx";
 import BioSection from "./bioSection.jsx";
+import { getUser } from "../../utils/dataFetcher.js";
 
-export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres }) {
+export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, addArtistToCustomGraphFunction }) {
     const [expandedData, setExpandedData] = useState(null);
     const baseUrl = getBackendUrl();
+    const userId = getUser()?.id;
+    const [isAddingArtist, setIsAddingArtist] = useState(false);
+    const addArtistToCustomGraph = async () => {
+        setIsAddingArtist(true);
+        await addArtistToCustomGraphFunction(selectedNode, userId);
+        setIsAddingArtist(false);
+    };
 
     const releaseScrollRef = useRef(null);
 
@@ -102,6 +110,45 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
                 </div>
 
                 <GenreTags genres={selectedNode.genres} getGenreColor={getGenreColor} />
+
+                {/* Add to custom graph button */}
+                {userId && (
+                    isAddingArtist ? (
+                        <div
+                            style={{
+                                marginTop: "6px",
+                                marginBottom: "8px",
+                                fontSize: "13px",
+                                backgroundColor: "#444",
+                                color: "#ccc",
+                                border: "1px solid #555",
+                                padding: "6px 10px",
+                                borderRadius: "4px",
+                                textAlign: "center"
+                            }}
+                        >
+                            Adding artist...
+                        </div>
+                    ) : (
+                        <button
+                            onClick={addArtistToCustomGraph}
+                            style={{
+                                marginTop: "6px",
+                                marginBottom: "8px",
+                                fontSize: "13px",
+                                backgroundColor: "#2a2a2a",
+                                color: "#fff",
+                                border: "1px solid #555",
+                                padding: "6px 10px",
+                                borderRadius: "4px",
+                                cursor: "pointer"
+                            }}
+                        >
+                            Add to Custom Graph
+                        </button>
+                    )
+                )}
+
 
                 {expandedData ? (
                     <div style={styles.expanded}>

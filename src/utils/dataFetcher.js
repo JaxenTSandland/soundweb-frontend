@@ -86,4 +86,48 @@ export default class DataFetcher {
             throw error;
         }
     }
+
+    async addArtistToCustomGraph(selectedNode, userId) {
+        try {
+            const payload = {
+                user_tag: userId,
+                spotify_id: selectedNode.spotifyId
+            };
+
+            console.log("Sending payload:", payload);
+
+            const res = await fetch(`${getIngestorUrl()}/api/add-custom-artist`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                throw new Error(`Server returned ${res.status}`);
+            } else {
+                const clearCacheRes = await fetch(`${getBackendUrl()}/api/cache/artists:by-usertag:${userId}`, {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" }
+                });
+                if (clearCacheRes.ok && res.ok)
+                    alert("Artist added to your custom graph and cache cleared!");
+                else
+                    alert("Artist added to your custom graph and cache did not clear :(");
+            }
+
+        } catch (err) {
+            console.error("Failed to add artist:", err);
+            alert("Failed to add artist to custom graph.");
+        }
+    };
+
+
+}
+
+export function getUser() {
+    return {
+        id: "7717",
+        name: "Jaxen Sandland",
+        email: "jaxen@example.com"
+    };
 }
