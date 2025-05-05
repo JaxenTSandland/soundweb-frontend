@@ -1,3 +1,5 @@
+import {toTitleCase} from "../../utils/textUtils.js";
+
 export default function GenreTags({ genres, getGenreColor }) {
     return (
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center", marginBottom: "10px" }}>
@@ -13,7 +15,7 @@ export default function GenreTags({ genres, getGenreColor }) {
                         backgroundColor: getGenreColor(genre)
                     }}
                 >
-                    {genre}
+                    {toTitleCase(genre)}
                 </span>
             ))}
         </div>

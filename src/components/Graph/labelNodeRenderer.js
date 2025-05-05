@@ -1,15 +1,14 @@
 export function renderLabelNode(node, ctx, globalScale, minCount, maxCount, graphScale) {
-    const maxFontSize = 600 * graphScale;
+    const maxFontSize = Math.max((600 * graphScale), 300);
     const minFontSize = maxFontSize * 0.4;
 
     const popularityScale =
         maxCount !== minCount ? (node.count - minCount) / (maxCount - minCount) : 1;
 
     const fontSize = minFontSize + (maxFontSize - minFontSize) * popularityScale;
-
     const fontFactor = fontSize / 500;
-    const fadeStart = 0.1 / fontFactor;
-    const fadeEnd = 0.3 / fontFactor;
+    const fadeStart = Math.min(1, 0.1 / fontFactor);
+    const fadeEnd = Math.min(1.5, 0.3 / fontFactor);
 
     if (globalScale > fadeEnd) return;
 

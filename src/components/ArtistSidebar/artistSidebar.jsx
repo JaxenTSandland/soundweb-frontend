@@ -47,6 +47,10 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
         ?.trim()
         ?.replace(/\n\n/g, "<br /><br />");
 
+    const date = new Date(selectedNode.lastUpdated);
+    const lastUpdatedTime = date.toLocaleTimeString();
+    const lastUpdatedDate = date.toLocaleDateString();
+
     return (
         <div style={styles.container}>
             <button onClick={() => setSelectedNode(null)} style={styles.closeButton}>
@@ -116,6 +120,13 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
                 ) : (
                     <div style={{ marginTop: "12px", fontSize: "13px", opacity: 0.6 }}>
                         Loading artist data...
+                    </div>
+                )}
+
+                {/* Last updated text */}
+                {selectedNode.lastUpdated && (
+                    <div style={{ padding: "0 16px 12px", fontSize: "11px", color: "#888", textAlign: "center" }}>
+                        Last updated: {lastUpdatedDate} at {lastUpdatedTime}
                     </div>
                 )}
             </div>

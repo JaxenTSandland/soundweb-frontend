@@ -20,7 +20,6 @@ export default function ArtistGraph({ mode, param, user }) {
 
     const { showTooltip, hideTooltip } = useTooltip();
     const [artistNodes, setArtistNodes] = useState([]);
-    const [genreLabelNodes, setGenreLabelNodes] = useState([]);
     const [hoverNode, setHoverNode] = useState(null);
     const [selectedNode, setSelectedNode] = useState(null);
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
@@ -169,22 +168,14 @@ export default function ArtistGraph({ mode, param, user }) {
                 const node = new ArtistNode(artist);
                 node.labelNode = false;
                 node.radius = Math.pow(node.popularity / 100, 4.5) * 70 + 5;
-                if (node.lastUpdated) {
-                    const date = new Date(node.lastUpdated);
-                    const formattedDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${
-                        date.getDate().toString().padStart(2, '0')}/${date.getFullYear()}`;
-                    node.label = `${artist.name} (${formattedDate}) \nGenre: ${artist.genres.slice(0,3).join(", ")}\nPopularity: ${artist.popularity}/100`;
-                } else {
-                    node.label = `${artist.name} \nGenre: ${artist.genres.slice(0,3).join(", ")}\nPopularity: ${artist.popularity}/100`;
-                }
-
+                node.label = `${artist.name} \nGenre: ${artist.genres.slice(0,3).join(", ")}\nPopularity: ${artist.popularity}/100`;
 
                 node.x *= graphScale;
                 node.y *= graphScale;
 
                 return node;
             });
-            console.log(`${artistNodes.length} artist nodes made`);
+            console.log(`${artistNodes.length} artist nodes made:`, artistNodes);
 
             // Build a set of genres actually used by the artist nodes
             const topGenreUsageMap = {};
@@ -214,8 +205,8 @@ export default function ArtistGraph({ mode, param, user }) {
                 .map(g => ({
                     ...g,
                     toggled: true,
-                    x: g.x,
-                    y: g.y,
+                    x: g.x * graphScale,
+                    y: g.y * graphScale,
                     count: usedGenreUsageMap[g.name]
                 }));
 
@@ -224,7 +215,6 @@ export default function ArtistGraph({ mode, param, user }) {
             setAllTopGenres(sortedTopGenres);
             setAllUsedGenres(sortedUsedGenres);
             setArtistNodes(artistNodes);
-            setGenreLabelNodes(labelNodes)
             setAllLinks(rawLinks);
             setGraphData({
                 nodes: [...artistNodes, ...labelNodes],

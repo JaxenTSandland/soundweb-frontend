@@ -45,7 +45,7 @@ export function renderArtistNode(node, ctx, globalScale, hoverNode, selectedNode
     ctx.fillStyle = node.color || "#FFF";
     ctx.fill();
 
-    if (globalScale > 1.1 / (radius / 13)) {
+    if (globalScale > 1.1 / (radius / 13) || globalScale >= 2.5) {
         ctx.fillStyle = "#000";
         const lines = wrapText(ctx, node.name, maxTextWidth);
         const lineHeight = fontSize * 1.15;
