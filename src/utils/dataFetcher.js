@@ -105,7 +105,7 @@ export default class DataFetcher {
             if (!res.ok) {
                 throw new Error(`Server returned ${res.status}`);
             } else {
-                const clearCacheRes = await fetch(`${getBackendUrl()}/api/cache/artists:by-usertag:${userId}`, {
+                const clearCacheRes = await fetch(`${getBackendUrl()}/api/cache?key=artists:by-usertag:${userId}`, {
                     method: "DELETE",
                     headers: { "Content-Type": "application/json" }
                 });
