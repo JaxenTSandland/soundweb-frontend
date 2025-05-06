@@ -33,6 +33,16 @@ export class ArtistNode {
         this.lastUpdated = lastUpdated;
     }
 
+    appendUserTag(tag) {
+        if (!tag) return;
+        if (!this.userTags) {
+            this.userTags = [];
+        }
+        if (!this.userTags.includes(tag)) {
+            this.userTags.push(tag);
+        }
+    }
+
     toDict() {
         return {
             id: this.id,

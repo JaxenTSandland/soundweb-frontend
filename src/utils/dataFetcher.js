@@ -1,4 +1,5 @@
 import { getBackendUrl, getIngestorUrl } from "./apiBase.js";
+import {refreshTop1000Cache} from "../cache/top1000.js";
 
 export async function fetchTopArtistData() {
     try {
@@ -70,26 +71,36 @@ export async function addArtistToCustomGraph(selectedNode, userId) {
             user_tag: userId,
             spotify_id: selectedNode.spotifyId
         };
-        const res = await fetch(`${getIngestorUrl()}/api/add-custom-artist`, {
+        const addArtistRes = await fetch(`${getIngestorUrl()}/api/add-custom-artist`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
 
-        if (!res.ok) {
-            throw new Error(`Server returned ${res.status}`);
+        if (!addArtistRes.ok) throw new Error(`Server returned ${addArtistRes.status}`);
+
+        const addArtistJson = await addArtistRes.json();
+
+        const deleteCacheTopArtistRes = await fetch(`${getBackendUrl()}/api/cache?key=artistGraph:top:1000`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" }
+        });
+        if (!deleteCacheTopArtistRes.ok) {
+            alert(`Something went wrong deleting the cache data of the top 1000 artists`)
         }
 
-        const cacheClearRes = await fetch(`${getBackendUrl()}/api/cache?key=artists:by-usertag:${userId}`, {
+        const cacheUserClearRes = await fetch(`${getBackendUrl()}/api/cache?key=artists:by-usertag:${userId}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" }
         });
 
-        if (cacheClearRes.ok) {
-            alert("Artist added and cache cleared!");
+        if (cacheUserClearRes.ok) {
+            await refreshTop1000Cache();
+            return addArtistJson;
         } else {
             alert("Artist added, but cache not cleared.");
         }
+
 
     } catch (err) {
         console.error("Failed to add artist:", err);

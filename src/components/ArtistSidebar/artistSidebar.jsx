@@ -5,6 +5,7 @@ import TopTracks from "./topTracks.jsx";
 import RecentReleases from "./recentReleases.jsx";
 import BioSection from "./bioSection.jsx";
 import { addArtistToCustomGraph } from "../../utils/dataFetcher.js";
+import {addUserTagToTop1000Node, getTop1000Cache, refreshTop1000Cache} from "../../cache/top1000.js";
 
 export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, user }) {
     const [expandedData, setExpandedData] = useState(null);
@@ -13,15 +14,27 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
     const [isAddingArtist, setIsAddingArtist] = useState(false);
     const addArtistToCustomGraphVar = async () => {
         setIsAddingArtist(true);
-        await addArtistToCustomGraph(selectedNode, userId);
+        const addArtistJson = await addArtistToCustomGraph(selectedNode, userId);
         setIsAddingArtist(false);
+
+        const updatedNode = addArtistJson?.data?.artistNode || selectedNode.appendUserTag(user.id);
+
+        if (updatedNode) {
+            addUserTagToTop1000Node(selectedNode.spotifyId, user.id)
+            setSelectedNode(updatedNode);
+        }
+    };
+    const removeArtistFromCustomGraphVar = async () => {
+
     };
 
     const releaseScrollRef = useRef(null);
 
     useEffect(() => {
         setExpandedData(null);
-        releaseScrollRef?.current?.scrollTo({ left: 0 });
+        if (releaseScrollRef.current) {
+            releaseScrollRef.current.scrollTo({ left: 0 });
+        }
 
         if (!selectedNode || selectedNode.labelNode) return;
 
@@ -111,40 +124,25 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
 
                 <GenreTags genres={selectedNode.genres} getGenreColor={getGenreColor} />
 
-                {/* Add to custom graph button */}
                 {userId && (
                     isAddingArtist ? (
-                        <div
-                            style={{
-                                marginTop: "6px",
-                                marginBottom: "8px",
-                                fontSize: "13px",
-                                backgroundColor: "#444",
-                                color: "#ccc",
-                                border: "1px solid #555",
-                                padding: "6px 10px",
-                                borderRadius: "4px",
-                                textAlign: "center"
-                            }}
-                        >
+                        <div style={buttonStyles.adding}>
                             Adding artist...
                         </div>
                     ) : (
                         <button
-                            onClick={addArtistToCustomGraphVar}
-                            style={{
-                                marginTop: "6px",
-                                marginBottom: "8px",
-                                fontSize: "13px",
-                                backgroundColor: "#2a2a2a",
-                                color: "#fff",
-                                border: "1px solid #555",
-                                padding: "6px 10px",
-                                borderRadius: "4px",
-                                cursor: "pointer"
-                            }}
+                            onClick={
+                                selectedNode.userTags?.includes(userId)
+                                    ? removeArtistFromCustomGraphVar
+                                    : addArtistToCustomGraphVar
+                            }
+                            style={
+                                selectedNode.userTags?.includes(userId)
+                                    ? buttonStyles.remove
+                                    : buttonStyles.add
+                            }
                         >
-                            Add to Custom Graph
+                            {selectedNode.userTags?.includes(userId) ? "Remove" : "Add"}
                         </button>
                     )
                 )}
@@ -269,5 +267,35 @@ const styles = {
         fontSize: "14px",
         cursor: "pointer",
         zIndex: 40
+    }
+};
+
+const baseButtonStyle = {
+    marginTop: "6px",
+    marginBottom: "8px",
+    fontSize: "13px",
+    border: "1px solid #555",
+    padding: "6px 10px",
+    borderRadius: "4px",
+    textAlign: "center"
+};
+
+const buttonStyles = {
+    add: {
+        ...baseButtonStyle,
+        backgroundColor: "#2a2a2a",
+        color: "#fff",
+        cursor: "pointer"
+    },
+    remove: {
+        ...baseButtonStyle,
+        backgroundColor: "#502a2a",
+        color: "#fff",
+        cursor: "pointer"
+    },
+    adding: {
+        ...baseButtonStyle,
+        backgroundColor: "#444",
+        color: "#ccc"
     }
 };

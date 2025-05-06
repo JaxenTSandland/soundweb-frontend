@@ -3,15 +3,14 @@ import { ForceGraph2D } from "react-force-graph";
 import useTooltip from "./useTooltip.jsx";
 import {renderArtistNode} from "./artistNodeRenderer.js";
 import drawLinks from "../../utils/drawLinks.jsx";
-import {fetchAllGenres, fetchCustomArtistAndLinkData, fetchTopArtistData} from "../../utils/dataFetcher.js";
+import {fetchAllGenres, fetchCustomArtistAndLinkData} from "../../utils/dataFetcher.js";
 import {useGraphInit} from "../../utils/graphInit.jsx";
 import RightSidebar from "./rightSidebar.jsx";
 import {ArtistNode} from "../../models/artistNode.js";
 import {generateGenreLabelNodes} from "../../utils/generateGenreLabelNodes.js";
 import {renderLabelNode} from "./labelNodeRenderer.js";
 import {toTitleCase} from "../../utils/textUtils.js";
-
-let top1000Cache = null;
+import {getTop1000Cache, refreshTop1000Cache} from "../../cache/top1000.js";
 
 export default function ArtistGraph({ mode, param, user }) {
     const userId = user?.id;
@@ -63,7 +62,6 @@ export default function ArtistGraph({ mode, param, user }) {
     }, [activeGenreNameSet]);
 
     const [artistNodesRaw, setArtistNodesRaw] = useState([]);
-    const [genreLabelsRaw, setGenreLabelsRaw] = useState([]);
     const [allGenresRaw, setAllGenresRaw] = useState([]);
     const [rawLinks, setRawLinks] = useState([]);
 
@@ -79,45 +77,33 @@ export default function ArtistGraph({ mode, param, user }) {
                 setSelectedNode(null);
 
                 let artistNodesRaw = [];
-                let genreLabels = [];
                 let links = [];
                 let lastSync = null;
 
                 if (mode === "Top1000") {
-                    if (top1000Cache) {
-                        console.log("[ArtistGraph] Using cached Top 1000 graph data");
-                        artistNodesRaw = top1000Cache.artistNodesRaw;
-                        genreLabels = top1000Cache.genreLabels;
-                        links = top1000Cache.links;
-                        lastSync = top1000Cache.lastSync;
-                    } else {
+                    let top1000Cache = getTop1000Cache();
+                    if (!top1000Cache || top1000Cache.artistNodesRaw.length === 0) {
                         console.log("[ArtistGraph] Fetching Top 1000 graph data");
-                        const data = await fetchTopArtistData();
-                        artistNodesRaw = data.artistNodesRaw;
-                        genreLabels = [];
-                        links = data.links;
-                        lastSync = data.lastSync;
-
-                        top1000Cache = {
-                            artistNodesRaw,
-                            genreLabels,
-                            links,
-                            lastSync
-                        };
+                        await refreshTop1000Cache();
+                        top1000Cache = getTop1000Cache();
                     }
+
+                    console.log("[ArtistGraph] Using cached Top 1000 graph data");
+                    artistNodesRaw = top1000Cache.artistNodesRaw;
+                    links = top1000Cache.links;
+                    lastSync = top1000Cache.lastSync;
+
                 } else if (mode === "UserCustom" && param) {
                     const data = await fetchCustomArtistAndLinkData(1000, userId);
                     artistNodesRaw = data.artistNodesRaw;
                     links = data.links;
                     lastSync = data.lastSync;
-                    genreLabels = [];
 
                 } else if (mode === "ArtistBased" && param) {
                     console.warn("[ArtistGraph] ArtistBased mode not implemented yet.");
                 }
 
                 setLastSyncTime(parseLastSync(lastSync));
-                setGenreLabelsRaw(genreLabels);
                 setRawLinks(links);
                 setArtistNodesRaw(artistNodesRaw);
 
@@ -221,7 +207,7 @@ export default function ArtistGraph({ mode, param, user }) {
         }
 
         buildGraph();
-    }, [artistNodesRaw, genreLabelsRaw, allGenresRaw, rawLinks]);
+    }, [artistNodesRaw, allGenresRaw, rawLinks]);
 
     // endregion
 
