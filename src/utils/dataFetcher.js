@@ -71,7 +71,7 @@ export async function addArtistToCustomGraph(selectedNode, userId) {
             user_tag: userId,
             spotify_id: selectedNode.spotifyId
         };
-        const addArtistRes = await fetch(`${getIngestorUrl()}/api/add-custom-artist`, {
+        const addArtistRes = await fetch(`${getIngestorUrl()}/api/custom-artist`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)

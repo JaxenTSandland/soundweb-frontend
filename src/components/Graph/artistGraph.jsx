@@ -382,80 +382,33 @@ export default function ArtistGraph({ mode, param, user }) {
     }, [selectedNode, filteredLinks, showLinks, artistNodes]);
 
     return (
-        <div id="graph-container" style={{ display: "flex", width: "100vw", height: "100vh" }}>
+        <div id="graph-container" style={graphStyles.container}>
             <div style={{ position: "relative", flex: 1 }}>
                 {/* Toggle links button */}
                 <button
                     onClick={() => setShowLinks(prev => !prev)}
-                    style={{
-                        position: "absolute",
-                        bottom: 50,
-                        left: 20,
-                        padding: "6px 12px",
-                        backgroundColor: "#1a1a1a",
-                        color: "white",
-                        border: "1px solid #444",
-                        borderRadius: "6px",
-                        fontSize: "13px",
-                        cursor: "pointer",
-                        zIndex: 25
-                    }}
+                    style={{ ...graphStyles.toggleButton, bottom: 95, left: 15 }}
                 >
                     {showLinks ? "Hide Links" : "Show Links"}
                 </button>
+
                 {/* Toggle top genres button */}
                 <button
                     onClick={() => setShowTopGenres(prev => !prev)}
-                    style={{
-                        position: "absolute",
-                        bottom: 90,
-                        left: 20,
-                        padding: "6px 12px",
-                        backgroundColor: "#1a1a1a",
-                        color: "white",
-                        border: "1px solid #444",
-                        borderRadius: "6px",
-                        fontSize: "13px",
-                        cursor: "pointer",
-                        zIndex: 25
-                    }}
+                    style={{ ...graphStyles.toggleButton, bottom: 135, left: 15 }}
                 >
                     {showTopGenres ? "Hide Top Genres" : "Show Top Genres"}
                 </button>
-                {/* Tooltip */}
-                <div
-                    id="tooltip"
-                    style={{
-                        position: "absolute",
-                        pointerEvents: "none",
-                        background: "rgba(0,0,0,0.8)",
-                        color: "white",
-                        padding: "8px",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        display: "none",
-                        zIndex: 10
-                    }}
-                />
 
-                <div
-                    style={{
-                        width: "100vw",
-                        height: "100vh",
-                        position: "relative",
-                        background: "black"
-                    }}
-                >
+                {/* Tooltip */}
+                <div id="tooltip" style={graphStyles.tooltip} />
+
+                <div style={graphStyles.canvasWrapper}>
                     <canvas
                         ref={canvasRef}
                         width={window.innerWidth}
                         height={window.innerHeight}
-                        style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            zIndex: 0.5
-                        }}
+                        style={graphStyles.canvas}
                     />
                     <ForceGraph2D
                         d3Force="none"
@@ -506,37 +459,12 @@ export default function ArtistGraph({ mode, param, user }) {
                         }
                     />
                 </div>
-                <div
-                    style={{
-                        position: "absolute",
-                        top: 10,
-                        left: 15,
-                        color: "white",
-                        fontSize: "18px",
-                        fontWeight: "bold",
-                        letterSpacing: "1px",
-                        zIndex: 25
-                    }}
-                >
-                    Soundweb
-                </div>
-                {mode === "Top1000" && (
-                    lastSyncTime && (
-                        <div style={{
-                            position: "absolute",
-                            top: 35,
-                            left: 10,
-                            background: "#1a1a1a",
-                            color: "white",
-                            padding: "6px 12px",
-                            fontSize: "13px",
-                            borderRadius: "6px",
-                            border: "1px solid #444",
-                            zIndex: 25
-                        }}>
-                            Last updated: {lastSyncTime}
-                        </div>
-                    )
+
+                {/* Last updated timestamp */}
+                {mode === "Top1000" && lastSyncTime && (
+                    <div style={graphStyles.lastSync}>
+                        Last updated: {lastSyncTime}
+                    </div>
                 )}
             </div>
 
@@ -561,3 +489,58 @@ export default function ArtistGraph({ mode, param, user }) {
     );
 
 }
+
+
+const graphStyles = {
+    container: {
+        display: "flex",
+        width: "100vw",
+        height: "100vh"
+    },
+    canvasWrapper: {
+        width: "100vw",
+        height: "100vh",
+        position: "relative",
+        background: "black"
+    },
+    canvas: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        zIndex: 0.5
+    },
+    tooltip: {
+        position: "absolute",
+        pointerEvents: "none",
+        background: "rgba(0,0,0,0.8)",
+        color: "white",
+        padding: "8px",
+        borderRadius: "6px",
+        fontSize: "14px",
+        display: "none",
+        zIndex: 10
+    },
+    toggleButton: {
+        position: "absolute",
+        padding: "6px 12px",
+        backgroundColor: "#1a1a1a",
+        color: "white",
+        border: "1px solid #444",
+        borderRadius: "6px",
+        fontSize: "13px",
+        cursor: "pointer",
+        zIndex: 25
+    },
+    lastSync: {
+        position: "absolute",
+        top: 10,
+        left: 10,
+        background: "#1a1a1a",
+        color: "white",
+        padding: "6px 12px",
+        fontSize: "13px",
+        borderRadius: "6px",
+        border: "1px solid #444",
+        zIndex: 25
+    }
+};

@@ -1,7 +1,9 @@
 import defaultAvatar from "../../../assets/default-avatar.jpg";
+import React from "react";
 
 export default function TopBar({ user, onLoginClick }) {
     return (
+
         <div style={styles.bar}>
             {user === null ? (
                 <button style={styles.loginButton} onClick={onLoginClick}>
@@ -17,6 +19,10 @@ export default function TopBar({ user, onLoginClick }) {
                     <span style={styles.userName}>{user.display_name}</span>
                 </div>
             )}
+            <div
+                style={styles.title}>
+                Soundweb
+            </div>
         </div>
     );
 }
@@ -57,5 +63,13 @@ const styles = {
     },
     userName: {
         fontWeight: "500"
+    },
+    title: {
+        position: "absolute",
+        right: "15px",
+        color: "white",
+        fontSize: "18px",
+        fontWeight: "bold",
+        letterSpacing: "1px"
     }
 };
