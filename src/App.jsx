@@ -1,15 +1,12 @@
 import React, { useState } from "react";
 import './App.css';
 import ArtistGraph from "./components/Graph/artistGraph.jsx";
+import GraphFooter from "./components/Footer/graphFooter.jsx";
+import TopBar from "./components/TopBar/topBar.jsx";
 
 function App() {
     const [activeTab, setActiveTab] = useState({ mode: "Top1000", param: null });
-    const [user, setUser] = useState({
-        id: "7717",
-        display_name: "Jaxen Sandland",
-        email: "jaxensandland8@gmail.com",
-        images: [{ url: null }],
-    });
+    const [user, setUser] = useState(null);
 
     function switchToTop1000() {
         setActiveTab({ mode: "Top1000", param: null });
@@ -23,32 +20,29 @@ function App() {
         setActiveTab({ mode: "UserCustom", param: userId });
     }
 
+    function handleLogin() {
+        // Placeholder: replace with real Spotify auth later
+        setUser({
+            id: "7717",
+            display_name: "Jaxen Sandland",
+            email: "jaxensandland8@gmail.com",
+            images: [{ url: null }],
+        });
+    }
+
     return (
         <div className="App">
+            <TopBar user={user} onLoginClick={handleLogin} />
+
             <ArtistGraph mode={activeTab.mode} param={activeTab.param} user={user} />
 
-            <div className="graph-footer">
-                <button
-                    className={activeTab.mode === "Top1000" ? "active" : ""}
-                    onClick={switchToTop1000}
-                >
-                    Top 1000
-                </button>
-
-                <button
-                    className={activeTab.mode === "ArtistBased" ? "active" : ""}
-                    onClick={() => switchToArtistBased("06HL4z0CvFAxyc27GXpf02")}
-                >
-                    Taylor Swift Graph
-                </button>
-
-                <button
-                    className={activeTab.mode === "UserCustom" ? "active" : ""}
-                    onClick={() => switchToUserCustom("7717")}
-                >
-                    My Custom Graph
-                </button>
-            </div>
+            <GraphFooter
+                activeTab={activeTab}
+                switchToTop1000={switchToTop1000}
+                switchToArtistBased={switchToArtistBased}
+                switchToUserCustom={switchToUserCustom}
+                user={user}
+            />
         </div>
     );
 }
