@@ -3,7 +3,7 @@ import { ForceGraph2D } from "react-force-graph";
 import useTooltip from "./useTooltip.jsx";
 import {renderArtistNode} from "./artistNodeRenderer.js";
 import drawLinks from "../../utils/drawLinks.jsx";
-import DataFetcher from "../../utils/dataFetcher.js";
+import {fetchAllGenres, fetchCustomArtistAndLinkData, fetchTopArtistData} from "../../utils/dataFetcher.js";
 import {useGraphInit} from "../../utils/graphInit.jsx";
 import RightSidebar from "./rightSidebar.jsx";
 import {ArtistNode} from "../../models/artistNode.js";
@@ -12,8 +12,6 @@ import {renderLabelNode} from "./labelNodeRenderer.js";
 import {toTitleCase} from "../../utils/textUtils.js";
 
 let top1000Cache = null;
-
-const dataFetcher = new DataFetcher();
 
 export default function ArtistGraph({ mode, param, user }) {
     const userId = user?.id;
@@ -94,7 +92,7 @@ export default function ArtistGraph({ mode, param, user }) {
                         lastSync = top1000Cache.lastSync;
                     } else {
                         console.log("[ArtistGraph] Fetching Top 1000 graph data");
-                        const data = await dataFetcher.fetchTopArtistData();
+                        const data = await fetchTopArtistData();
                         artistNodesRaw = data.artistNodesRaw;
                         genreLabels = [];
                         links = data.links;
@@ -108,7 +106,7 @@ export default function ArtistGraph({ mode, param, user }) {
                         };
                     }
                 } else if (mode === "UserCustom" && param) {
-                    const data = await dataFetcher.fetchCustomArtistAndLinkData(1000, userId);
+                    const data = await fetchCustomArtistAndLinkData(1000, userId);
                     artistNodesRaw = data.artistNodesRaw;
                     links = data.links;
                     lastSync = data.lastSync;
@@ -135,7 +133,7 @@ export default function ArtistGraph({ mode, param, user }) {
     useEffect(() => {
         async function loadGenres() {
             try {
-                const fetchedAllGenres = await dataFetcher.fetchAllGenres();
+                const fetchedAllGenres = await fetchAllGenres();
                 const scaledGenres = fetchedAllGenres.map(g => ({
                     ...g
                 }));
@@ -571,7 +569,7 @@ export default function ArtistGraph({ mode, param, user }) {
                 isSearchFocused={isSearchFocused}
                 setIsSearchFocused={setIsSearchFocused}
                 handleResultClick={handleResultClick}
-                dataFetcher={dataFetcher}
+                user={user}
             />
         </div>
     );

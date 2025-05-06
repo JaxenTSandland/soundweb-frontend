@@ -4,16 +4,16 @@ import GenreTags from "./genreTags.jsx";
 import TopTracks from "./topTracks.jsx";
 import RecentReleases from "./recentReleases.jsx";
 import BioSection from "./bioSection.jsx";
-import { getUser } from "../../utils/dataFetcher.js";
+import { addArtistToCustomGraph } from "../../utils/dataFetcher.js";
 
-export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, addArtistToCustomGraphFunction }) {
+export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, user }) {
     const [expandedData, setExpandedData] = useState(null);
     const baseUrl = getBackendUrl();
-    const userId = getUser()?.id;
+    const userId = user?.id;
     const [isAddingArtist, setIsAddingArtist] = useState(false);
-    const addArtistToCustomGraph = async () => {
+    const addArtistToCustomGraphVar = async () => {
         setIsAddingArtist(true);
-        await addArtistToCustomGraphFunction(selectedNode, userId);
+        await addArtistToCustomGraph(selectedNode, userId);
         setIsAddingArtist(false);
     };
 
@@ -131,7 +131,7 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
                         </div>
                     ) : (
                         <button
-                            onClick={addArtistToCustomGraph}
+                            onClick={addArtistToCustomGraphVar}
                             style={{
                                 marginTop: "6px",
                                 marginBottom: "8px",
