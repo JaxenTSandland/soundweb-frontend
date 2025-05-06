@@ -9,6 +9,7 @@ export function getIngestorUrl() {
     if (import.meta.env.DEV) {
         return "http://localhost:8000"; // ingestor dev port
     } else {
+        console.log("Ingestor URL: ", import.meta.env.VITE_INGESTOR_API_URL);
         return import.meta.env.VITE_INGESTOR_API_URL;
     }
 }
