@@ -107,3 +107,44 @@ export async function addArtistToCustomGraph(selectedNode, userId) {
         alert("Failed to add artist to custom graph.");
     }
 }
+
+export async function removeArtistFromCustomGraph(selectedNode, userId) {
+    try {
+        const payload = {
+            user_tag: userId,
+            spotify_id: selectedNode.spotifyId
+        };
+
+        const removeArtistRes = await fetch(`${getIngestorUrl()}/api/remove-custom-artist-usertag`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (!removeArtistRes.ok) {
+            const errText = await removeArtistRes.text();
+            throw new Error(`Server returned ${removeArtistRes.status}: ${errText}`);
+        }
+
+        const removeArtistJson = await removeArtistRes.json();
+
+        const cacheClearRes = await fetch(`${getBackendUrl()}/api/cache?key=artists:by-usertag:${userId}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        if (cacheClearRes.ok) {
+            return removeArtistJson;
+        } else {
+            console.warn("Artist removed, but cache not cleared.");
+            return {
+                ...removeArtistJson,
+                warning: "Artist removed, but cache not cleared."
+            };
+        }
+
+    } catch (err) {
+        console.error("Failed to remove artist:", err);
+        alert("Failed to remove artist from custom graph.");
+    }
+}

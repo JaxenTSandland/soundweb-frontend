@@ -43,6 +43,11 @@ export class ArtistNode {
         }
     }
 
+    removeUserTag(tag) {
+        if (!tag || !this.userTags) return;
+        this.userTags = this.userTags.filter(t => t !== tag);
+    }
+
     toDict() {
         return {
             id: this.id,

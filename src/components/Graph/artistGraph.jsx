@@ -5,7 +5,7 @@ import {renderArtistNode} from "./artistNodeRenderer.js";
 import drawLinks from "../../utils/drawLinks.jsx";
 import {fetchAllGenres, fetchCustomArtistAndLinkData} from "../../utils/dataFetcher.js";
 import {useGraphInit} from "../../utils/graphInit.jsx";
-import RightSidebar from "./rightSidebar.jsx";
+import RightSidebar from "../Sidebar/rightSidebar.jsx";
 import {ArtistNode} from "../../models/artistNode.js";
 import {generateGenreLabelNodes} from "../../utils/generateGenreLabelNodes.js";
 import {renderLabelNode} from "./labelNodeRenderer.js";
@@ -70,51 +70,61 @@ export default function ArtistGraph({ mode, param, user }) {
         return Math.max(artistCount * 20, 2000) / 20000;
     }, [artistNodesRaw.length]);
 
-    useEffect(() => {
-        async function loadGraph() {
-            try {
-                console.log("Loading graph data");
-                setSelectedNode(null);
+    function removeNodeFromGraph(nodeId) {
+        // Remove from artistNodes
+        setArtistNodes(prev => prev.filter(node => node.id !== nodeId));
 
-                let artistNodesRaw = [];
-                let links = [];
-                let lastSync = null;
+        // Remove from raw artist data
+        setArtistNodesRaw(prev => prev.filter(node => node.id !== nodeId));
 
-                if (mode === "Top1000") {
-                    let top1000Cache = getTop1000Cache();
-                    if (!top1000Cache || top1000Cache.artistNodesRaw.length === 0) {
-                        console.log("[ArtistGraph] Fetching Top 1000 graph data");
-                        await refreshTop1000Cache();
-                        top1000Cache = getTop1000Cache();
-                    }
+        // Remove any links that included this node
+        setAllLinks(prev => prev.filter(link => link.source !== nodeId && link.target !== nodeId));
+    }
 
-                    console.log("[ArtistGraph] Using cached Top 1000 graph data");
-                    artistNodesRaw = top1000Cache.artistNodesRaw;
-                    links = top1000Cache.links;
-                    lastSync = top1000Cache.lastSync;
+    async function loadGraph() {
+        try {
+            console.log("Loading graph data");
+            setSelectedNode(null);
 
-                } else if (mode === "UserCustom" && param) {
-                    const data = await fetchCustomArtistAndLinkData(1000, userId);
-                    artistNodesRaw = data.artistNodesRaw;
-                    links = data.links;
-                    lastSync = data.lastSync;
+            let artistNodesRaw = [];
+            let links = [];
+            let lastSync = null;
 
-                } else if (mode === "ArtistBased" && param) {
-                    console.warn("[ArtistGraph] ArtistBased mode not implemented yet.");
+            if (mode === "Top1000") {
+                let top1000Cache = getTop1000Cache();
+                if (!top1000Cache || top1000Cache.artistNodesRaw.length === 0) {
+                    console.log("[ArtistGraph] Fetching Top 1000 graph data");
+                    await refreshTop1000Cache();
+                    top1000Cache = getTop1000Cache();
                 }
 
-                setLastSyncTime(parseLastSync(lastSync));
-                setRawLinks(links);
-                setArtistNodesRaw(artistNodesRaw);
+                console.log("[ArtistGraph] Using cached Top 1000 graph data");
+                artistNodesRaw = top1000Cache.artistNodesRaw;
+                links = top1000Cache.links;
+                lastSync = top1000Cache.lastSync;
 
-            } catch (err) {
-                console.error("[ArtistGraph] Failed to load graph data:", err);
+            } else if (mode === "UserCustom" && param) {
+                const data = await fetchCustomArtistAndLinkData(1000, userId);
+                artistNodesRaw = data.artistNodesRaw;
+                links = data.links;
+                lastSync = data.lastSync;
+
+            } else if (mode === "ArtistBased" && param) {
+                console.warn("[ArtistGraph] ArtistBased mode not implemented yet.");
             }
+
+            setLastSyncTime(parseLastSync(lastSync));
+            setRawLinks(links);
+            setArtistNodesRaw(artistNodesRaw);
+
+        } catch (err) {
+            console.error("[ArtistGraph] Failed to load graph data:", err);
         }
+    }
 
-        loadGraph().then();
+    useEffect(() => {
+        loadGraph();
     }, [mode, param]);
-
 
     useEffect(() => {
         async function loadGenres() {
@@ -484,6 +494,9 @@ export default function ArtistGraph({ mode, param, user }) {
                 setIsSearchFocused={setIsSearchFocused}
                 handleResultClick={handleResultClick}
                 user={user}
+                removeNodeFromGraph={removeNodeFromGraph}
+                mode={mode}
+                reloadGraph={loadGraph}
             />
         </div>
     );

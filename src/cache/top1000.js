@@ -37,3 +37,11 @@ export function addUserTagToTop1000Node(artistId, userId) {
     }
 }
 
+export function removeUserTagFromNodeInCache(artistId, userId) {
+    if (!top1000Cache || !Array.isArray(top1000Cache.artistNodesRaw)) return;
+
+    const node = top1000Cache.artistNodesRaw.find(n => n.id === artistId);
+    if (!node || !Array.isArray(node.userTags)) return;
+
+    node.userTags = node.userTags.filter(tag => tag !== userId);
+}

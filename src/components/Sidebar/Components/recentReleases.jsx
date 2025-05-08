@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import useScrollArrows from "./useScrollArrows";
+import useScrollArrows from "./useScrollArrows.js";
 
 export default function RecentReleases({ releases }) {
     const ref = useRef();

@@ -1,5 +1,5 @@
 import React from "react";
-import ArtistSidebar from "../ArtistSidebar/artistSidebar.jsx";
+import ArtistSidebar from "./artistSidebar.jsx";
 import {toTitleCase} from "../../utils/textUtils.js";
 
 export default function RightSidebar({
@@ -17,7 +17,10 @@ export default function RightSidebar({
                                         isSearchFocused,
                                         setIsSearchFocused,
                                         handleResultClick,
-                                        user
+                                        user,
+                                        removeNodeFromGraph,
+                                        mode,
+                                        reloadGraph
                                      }) {
 
     const sortedGenres = [...allTopGenres].sort((a, b) =>
@@ -27,7 +30,15 @@ export default function RightSidebar({
     return (
         <div style={styles.container}>
             {selectedNode ? (
-                <ArtistSidebar setSelectedNode={setSelectedNode} selectedNode={selectedNode} allUsedGenres={allUsedGenres} user={user} />
+                <ArtistSidebar
+                    selectedNode={selectedNode}
+                    setSelectedNode={setSelectedNode}
+                    allUsedGenres={allUsedGenres}
+                    user={user}
+                    mode={mode}
+                    removeNodeFromGraph={removeNodeFromGraph}
+                    reloadGraph={reloadGraph}
+                />
             ) : (
                 <>
                     {/* Top: Search section */}

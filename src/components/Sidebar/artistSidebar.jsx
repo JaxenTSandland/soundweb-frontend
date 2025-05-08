@@ -1,17 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import { getBackendUrl } from "../../utils/apiBase.js";
-import GenreTags from "./genreTags.jsx";
-import TopTracks from "./topTracks.jsx";
-import RecentReleases from "./recentReleases.jsx";
-import BioSection from "./bioSection.jsx";
-import { addArtistToCustomGraph } from "../../utils/dataFetcher.js";
-import {addUserTagToTop1000Node, getTop1000Cache, refreshTop1000Cache} from "../../cache/top1000.js";
+import GenreTags from "./Components/genreTags.jsx";
+import TopTracks from "./Components/topTracks.jsx";
+import RecentReleases from "./Components/recentReleases.jsx";
+import BioSection from "./Components/bioSection.jsx";
+import {addArtistToCustomGraph, removeArtistFromCustomGraph} from "../../utils/dataFetcher.js";
+import {
+    addUserTagToTop1000Node, removeUserTagFromNodeInCache
+} from "../../cache/top1000.js";
 
-export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, user }) {
+export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, user, mode, removeNodeFromGraph, reloadGraph }) {
     const [expandedData, setExpandedData] = useState(null);
     const baseUrl = getBackendUrl();
     const userId = user?.id;
     const [isAddingArtist, setIsAddingArtist] = useState(false);
+    const [isRemovingArtist, setIsRemovingArtist] = useState(false);
     const addArtistToCustomGraphVar = async () => {
         setIsAddingArtist(true);
         const addArtistJson = await addArtistToCustomGraph(selectedNode, userId);
@@ -24,7 +27,24 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
             setSelectedNode(updatedNode);
         }
     };
+
     const removeArtistFromCustomGraphVar = async () => {
+        setIsRemovingArtist(true);
+        const removeArtistJson = await removeArtistFromCustomGraph(selectedNode, userId);
+        setIsRemovingArtist(false);
+        console.log("respose type shit:", removeArtistJson);
+
+        removeUserTagFromNodeInCache(selectedNode.spotifyId, userId);
+        selectedNode.userTags = selectedNode.userTags.filter(tag => tag !== userId);
+
+        await fetch(`${getBackendUrl()}/api/cache?key=artists:by-usertag:${userId}`, {
+            method: "DELETE"
+        });
+
+        if (mode !== "Top1000") {
+            removeNodeFromGraph(selectedNode);
+            reloadGraph();
+        }
 
     };
 
@@ -124,29 +144,14 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
 
                 <GenreTags genres={selectedNode.genres} getGenreColor={getGenreColor} />
 
-                {userId && (
-                    isAddingArtist ? (
-                        <div style={buttonStyles.adding}>
-                            Adding artist...
-                        </div>
-                    ) : (
-                        <button
-                            onClick={
-                                selectedNode.userTags?.includes(userId)
-                                    ? removeArtistFromCustomGraphVar
-                                    : addArtistToCustomGraphVar
-                            }
-                            style={
-                                selectedNode.userTags?.includes(userId)
-                                    ? buttonStyles.remove
-                                    : buttonStyles.add
-                            }
-                        >
-                            {selectedNode.userTags?.includes(userId) ? "Remove" : "Add"}
-                        </button>
-                    )
-                )}
-
+                <ArtistAddOrRemoveButton
+                    userId={userId}
+                    selectedNode={selectedNode}
+                    isAdding={isAddingArtist}
+                    isRemoving={isRemovingArtist}
+                    onAdd={addArtistToCustomGraphVar}
+                    onRemove={removeArtistFromCustomGraphVar}
+                />
 
                 {expandedData ? (
                     <div style={styles.expanded}>
@@ -267,35 +272,5 @@ const styles = {
         fontSize: "14px",
         cursor: "pointer",
         zIndex: 40
-    }
-};
-
-const baseButtonStyle = {
-    marginTop: "6px",
-    marginBottom: "8px",
-    fontSize: "13px",
-    border: "1px solid #555",
-    padding: "6px 10px",
-    borderRadius: "4px",
-    textAlign: "center"
-};
-
-const buttonStyles = {
-    add: {
-        ...baseButtonStyle,
-        backgroundColor: "#2a2a2a",
-        color: "#fff",
-        cursor: "pointer"
-    },
-    remove: {
-        ...baseButtonStyle,
-        backgroundColor: "#502a2a",
-        color: "#fff",
-        cursor: "pointer"
-    },
-    adding: {
-        ...baseButtonStyle,
-        backgroundColor: "#444",
-        color: "#ccc"
     }
 };

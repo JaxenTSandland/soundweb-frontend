@@ -1,4 +1,4 @@
-import {toTitleCase} from "../../utils/textUtils.js";
+import {toTitleCase} from "../../../utils/textUtils.js";
 
 export default function GenreTags({ genres, getGenreColor }) {
     return (
