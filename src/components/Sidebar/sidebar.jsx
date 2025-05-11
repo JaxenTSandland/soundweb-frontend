@@ -2,7 +2,7 @@ import React from "react";
 import ArtistSidebar from "./artistSidebar.jsx";
 import {toTitleCase} from "../../utils/textUtils.js";
 
-export default function RightSidebar({
+export default function Sidebar({
                                          selectedNode,
                                         setSelectedNode,
                                         allTopGenres,

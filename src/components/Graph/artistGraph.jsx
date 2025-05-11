@@ -5,7 +5,7 @@ import {renderArtistNode} from "./artistNodeRenderer.js";
 import drawLinks from "../../utils/drawLinks.jsx";
 import {fetchAllGenres, fetchCustomArtistAndLinkData} from "../../utils/dataFetcher.js";
 import {useGraphInit} from "../../utils/graphInit.jsx";
-import RightSidebar from "../Sidebar/rightSidebar.jsx";
+import Sidebar from "../Sidebar/sidebar.jsx";
 import {ArtistNode} from "../../models/artistNode.js";
 import {generateGenreLabelNodes} from "../../utils/generateGenreLabelNodes.js";
 import {renderLabelNode} from "./labelNodeRenderer.js";
@@ -478,7 +478,7 @@ export default function ArtistGraph({ mode, param, user }) {
                 )}
             </div>
 
-            <RightSidebar
+            <Sidebar
                 selectedNode={selectedNode}
                 setSelectedNode={setSelectedNode}
                 allTopGenres={allTopGenres}

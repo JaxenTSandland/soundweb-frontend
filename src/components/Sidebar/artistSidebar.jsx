@@ -32,7 +32,6 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
         setIsRemovingArtist(true);
         const removeArtistJson = await removeArtistFromCustomGraph(selectedNode, userId);
         setIsRemovingArtist(false);
-        console.log("respose type shit:", removeArtistJson);
 
         removeUserTagFromNodeInCache(selectedNode.spotifyId, userId);
         selectedNode.userTags = selectedNode.userTags.filter(tag => tag !== userId);
