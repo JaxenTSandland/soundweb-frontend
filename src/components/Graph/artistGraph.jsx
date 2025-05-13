@@ -81,6 +81,7 @@ export default function ArtistGraph({ mode, param, user }) {
         setAllLinks(prev => prev.filter(link => link.source !== nodeId && link.target !== nodeId));
     }
 
+
     async function loadGraph() {
         try {
             console.log("Loading graph data");

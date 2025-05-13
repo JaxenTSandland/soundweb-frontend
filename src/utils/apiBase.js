@@ -16,6 +16,6 @@ export function getSpotifyRedirectUrl() {
     if (import.meta.env.DEV) {
         return "http://localhost:5173/callback"; // spotify redirect dev port
     } else {
-        return import.meta.env.VITE_SPORT_REDIRECT_URI;
+        return import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
     }
 }
