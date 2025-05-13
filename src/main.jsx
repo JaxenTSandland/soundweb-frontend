@@ -8,7 +8,7 @@ import Callback from './components/Auth/callback.jsx';
 
 function Root() {
     const [user, setUser] = useState(null);
-
+    console.log(user);
     return (
         <Router>
             <Routes>

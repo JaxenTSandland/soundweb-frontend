@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {getSpotifyRedirectUrl} from "../../utils/apiBase.js";
 
 export default function Callback({ setUser }) {
     const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function Callback({ setUser }) {
             const codeVerifier = localStorage.getItem("spotify_code_verifier");
 
             const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-            const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
+            const redirectUri = getSpotifyRedirectUrl();
 
             const body = new URLSearchParams({
                 client_id: clientId,
@@ -20,7 +21,7 @@ export default function Callback({ setUser }) {
                 redirect_uri: redirectUri,
                 code_verifier: codeVerifier
             });
-
+            //console.log("Token request body:", body.toString());
             const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -29,20 +30,25 @@ export default function Callback({ setUser }) {
 
             const tokenJson = await tokenResponse.json();
             const accessToken = tokenJson.access_token;
+            //console.log("Token JSON:", tokenJson);
 
             // Fetch user profile with access token
             const profileResponse = await fetch("https://api.spotify.com/v1/me", {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
 
-            const userProfile = await profileResponse.json();
+            if (profileResponse.status === 200) {
+                const userProfile = await profileResponse.json();
+                //console.log(userProfile);
 
-            setUser({
-                id: userProfile.id,
-                display_name: userProfile.display_name,
-                email: userProfile.email,
-                images: userProfile.images
-            });
+                setUser({
+                    id: userProfile.id,
+                    display_name: userProfile.display_name,
+                    email: userProfile.email,
+                    images: userProfile.images
+                });
+            }
+
 
             navigate("/");
         };
