@@ -3,10 +3,10 @@ import './App.css';
 import ArtistGraph from "./components/Graph/artistGraph.jsx";
 import GraphFooter from "./components/Footer/graphFooter.jsx";
 import TopBar from "./components/TopBar/topBar.jsx";
+import {generateCodeChallenge, generateRandomString} from "./utils/pkceUtils.js";
 
-function App() {
+function App({ user, setUser }) {
     const [activeTab, setActiveTab] = useState({ mode: "Top1000", param: null });
-    const [user, setUser] = useState(null);
 
     function switchToTop1000() {
         setActiveTab({ mode: "Top1000", param: null });
@@ -20,14 +20,26 @@ function App() {
         setActiveTab({ mode: "UserCustom", param: userId });
     }
 
-    function handleLogin() {
-        // Placeholder: replace with real Spotify auth later
-        setUser({
-            id: "7717",
-            display_name: "Jaxen Sandland",
-            email: "jaxensandland8@gmail.com",
-            images: [{ url: null }],
+    async function handleLogin() {
+        const spotifyClientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+        const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
+        const spotifyScope = "user-read-email user-read-private";
+
+        const codeVerifier = generateRandomString(128);
+        const codeChallenge = await generateCodeChallenge(codeVerifier);
+
+        localStorage.setItem("spotify_code_verifier", codeVerifier);
+
+        const params = new URLSearchParams({
+            client_id: spotifyClientId,
+            response_type: "code",
+            redirect_uri: redirectUri,
+            code_challenge_method: "S256",
+            code_challenge: codeChallenge,
+            scope: spotifyScope
         });
+
+        window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
     }
 
     return (
