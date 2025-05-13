@@ -1,4 +1,4 @@
-function ArtistAddOrRemoveButton({ userId, selectedNode, isAdding, isRemoving, onAdd, onRemove }) {
+export default function ArtistAddOrRemoveButton({ userId, selectedNode, isAdding, isRemoving, onAdd, onRemove }) {
     if (!userId) return null;
     if (isAdding) return <div style={buttonStyles.adding}>Adding artist...</div>;
     if (isRemoving) return <div style={buttonStyles.adding}>Removing artist...</div>;

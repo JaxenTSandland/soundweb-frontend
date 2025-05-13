@@ -8,6 +8,8 @@ import {addArtistToCustomGraph, removeArtistFromCustomGraph} from "../../utils/d
 import {
     addUserTagToTop1000Node, removeUserTagFromNodeInCache
 } from "../../cache/top1000.js";
+import ArtistAddOrRemoveButton from "./Components/addOrRemoveButton.jsx";
+
 
 export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, user, mode, removeNodeFromGraph, reloadGraph }) {
     const [expandedData, setExpandedData] = useState(null);
