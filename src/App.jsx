@@ -4,7 +4,7 @@ import ArtistGraph from "./components/Graph/artistGraph.jsx";
 import GraphFooter from "./components/Footer/graphFooter.jsx";
 import TopBar from "./components/TopBar/topBar.jsx";
 import { generateCodeChallenge, generateRandomString } from "./utils/pkceUtils.js";
-import { getSpotifyRedirectUrl } from "./utils/apiBase.js";
+import {getHomePageLink, getSpotifyRedirectUrl} from "./utils/apiBase.js";
 
 function App({ user, setUser }) {
     const [activeTab, setActiveTab] = useState({ mode: "Top1000", param: null });
@@ -43,7 +43,7 @@ function App({ user, setUser }) {
     async function handleLogin() {
         const spotifyClientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
         const redirectUri = getSpotifyRedirectUrl();
-        const spotifyScope = "user-read-email user-read-private";
+        const spotifyScope = "user-read-email user-read-private user-top-read";
 
         const codeVerifier = generateRandomString(128);
         const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -64,6 +64,7 @@ function App({ user, setUser }) {
     async function handleLogout() {
         setDropdownOpen(false);
         setUser(null);
+        window.location.href = getHomePageLink();
     }
 
     return (
