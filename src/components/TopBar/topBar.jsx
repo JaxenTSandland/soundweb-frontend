@@ -1,31 +1,35 @@
 import defaultAvatar from "../../../assets/default-avatar.jpg";
 import React from "react";
 
-export default function TopBar({ user, onLoginClick }) {
+export default function TopBar({ user, onLoginClick, onLogoutClick, dropdownOpen, setDropdownOpen, menuButtonRef }) {
     return (
-
         <div style={styles.bar}>
             {user === null ? (
                 <button style={styles.loginButton} onClick={onLoginClick}>
                     Log in with Spotify
                 </button>
             ) : (
-                <div style={styles.userInfo}>
+                <div
+                    ref={menuButtonRef}
+                    style={styles.userInfo}
+                    onClick={() => setDropdownOpen(prev => !prev)}
+                >
                     <img
                         src={user.images?.[0]?.url || defaultAvatar}
                         alt="avatar"
                         style={styles.userImage}
                     />
                     <span style={styles.userName}>{user.display_name}</span>
+                    <span style={styles.caret}>▾</span>
                 </div>
             )}
-            <div
-                style={styles.title}>
-                Soundweb
-            </div>
+
+            <div style={styles.title}>Soundweb</div>
         </div>
     );
 }
+
+
 
 const styles = {
     bar: {
@@ -61,7 +65,8 @@ const styles = {
         borderRadius: "50%",
         objectFit: "cover"
     },
-    userName: {
+    username: {
+        fontSize: "15px",
         fontWeight: "500"
     },
     title: {
@@ -71,5 +76,10 @@ const styles = {
         fontSize: "18px",
         fontWeight: "bold",
         letterSpacing: "1px"
+    },
+    userWrapper: {
+        position: "relative",
+        display: "inline-block",
+        zIndex: 999,
     }
 };
