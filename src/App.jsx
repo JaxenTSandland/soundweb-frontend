@@ -79,62 +79,16 @@ function App({ user, setUser }) {
             />
 
             {dropdownOpen && (
-                <div
-                    ref={dropdownRef}
-                    style={{
-                        position: "absolute",
-                        top: 52,
-                        left: 18,
-                        backgroundColor: "#1e1e1e",
-                        border: "1px solid #444",
-                        borderRadius: "6px",
-                        padding: "8px 0",
-                        boxShadow: "0 0 6px rgba(0,0,0,0.3)",
-                        zIndex: 1000,
-                        minWidth: "178px"
-                    }}
-                >
-                    {/* Logout button */}
-                    <button
-                        onClick={handleLogout}
-                        style={{
-                            width: "100%",
-                            padding: "8px 12px",
-                            textAlign: "left",
-                            background: "none",
-                            border: "none",
-                            color: "#F00",
-                            fontSize: "14px",
-                            cursor: "pointer"
-                        }}
-                    >
-                        Log Out
-                    </button>
+                <div ref={dropdownRef} style={styles.dropdownMenu}>
+                    <button onClick={handleLogout} style={styles.logoutButton}>Log Out</button>
                 </div>
             )}
 
             {/* Add artist button */}
             { activeTab.mode !== "Top1000" &&
-
-                <button
-                        onClick={() => []}
-                    style={{
-                        position: "absolute",
-                        top: "60px",
-                        right: "310px",
-                        zIndex: 30,
-                        padding: "6px 12px",
-                        backgroundColor: "#1db954",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "6px",
-                        fontSize: "13px",
-                        cursor: "pointer"
-                    }}
-                >
+                <button onClick={() => []} style={styles.addArtistButton}>
                     + Add Artist
                 </button>
-
             }
 
 
@@ -150,5 +104,43 @@ function App({ user, setUser }) {
         </div>
     );
 }
+
+const styles = {
+    dropdownMenu: {
+        position: "absolute",
+        top: 52,
+        left: 10,
+        backgroundColor: "#1e1e1e",
+        border: "1px solid #444",
+        borderRadius: "6px",
+        padding: "8px 0",
+        boxShadow: "0 0 6px rgba(0,0,0,0.3)",
+        zIndex: 1000,
+        minWidth: "178px"
+    },
+    logoutButton: {
+        width: "100%",
+        padding: "8px 12px",
+        textAlign: "left",
+        background: "none",
+        border: "none",
+        color: "#F00",
+        fontSize: "14px",
+        cursor: "pointer"
+    },
+    addArtistButton: {
+        position: "absolute",
+        top: "60px",
+        right: "310px",
+        zIndex: 30,
+        padding: "6px 12px",
+        backgroundColor: "#1db954",
+        color: "white",
+        border: "none",
+        borderRadius: "6px",
+        fontSize: "13px",
+        cursor: "pointer"
+    }
+};
 
 export default App;

@@ -39,7 +39,7 @@ const styles = {
         display: "flex",
         alignItems: "center",
         justifyContent: "flex-start",
-        padding: "0 20px",
+        padding: "0 10px",
         boxSizing: "border-box",
         borderBottom: "1px solid #333"
     },
