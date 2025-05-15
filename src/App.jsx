@@ -113,6 +113,31 @@ function App({ user, setUser }) {
                 </div>
             )}
 
+            {/* Add artist button */}
+            { activeTab.mode !== "Top1000" &&
+
+                <button
+                        onClick={() => []}
+                    style={{
+                        position: "absolute",
+                        top: "60px",
+                        right: "310px",
+                        zIndex: 30,
+                        padding: "6px 12px",
+                        backgroundColor: "#1db954",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        fontSize: "13px",
+                        cursor: "pointer"
+                    }}
+                >
+                    + Add Artist
+                </button>
+
+            }
+
+
             <ArtistGraph mode={activeTab.mode} param={activeTab.param} user={user} />
 
             <GraphFooter

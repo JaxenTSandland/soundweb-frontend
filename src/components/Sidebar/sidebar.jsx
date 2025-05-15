@@ -28,7 +28,7 @@ export default function Sidebar({
     );
 
     return (
-        <div style={styles.container}>
+        <div className="sidebar-container" style={styles.container}>
             {selectedNode ? (
                 <ArtistSidebar
                     selectedNode={selectedNode}
@@ -45,7 +45,7 @@ export default function Sidebar({
                     <div style={styles.searchSection}>
                         <input
                             type="text"
-                            placeholder="Search artist..."
+                            placeholder="Find artist in graph..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onFocus={() => setIsSearchFocused(true)}
@@ -69,7 +69,7 @@ export default function Sidebar({
                     </div>
 
                     {/* Bottom: Genre section */}
-                    <div style={styles.genreSection}>
+                    <div className="genreSection" style={styles.genreSection}>
                         <div style={styles.genreHeader}>
                             <span style={styles.genreTitle}>Filter by Genre</span>
                             <button onClick={cycleSortMethod} style={styles.button}>
@@ -92,7 +92,7 @@ export default function Sidebar({
                             </button>
                         </div>
 
-                        <div style={styles.genreList}>
+                        <div className={"genreList"} style={styles.genreList}>
                             {sortedGenres.map(({ name, count, toggled }) => (
                                 <label key={name} style={styles.genreItem}>
                                     <input
@@ -122,11 +122,11 @@ const styles = {
         background: "#1a1a1a",
         color: "white",
         padding: "12px",
-        overflowY: "auto",
         borderLeft: "1px solid #333",
         display: "flex",
         flexDirection: "column",
-        zIndex: 9999
+        zIndex: 9999,
+        overflow: "hidden"
     },
     searchInput: {
         padding: "6px 10px",
@@ -179,7 +179,9 @@ const styles = {
     },
     genreList: {
         overflowY: "auto",
-        flex: 1
+        flex: 1,
+        maxHeight: "76.5%",
+        paddingRight: "6px",
     },
     genreItem: {
         display: "flex",

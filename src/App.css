@@ -63,4 +63,19 @@ svg, canvas {
     font-weight: bold;
 }
 
+/* style only inside the sidebar */
+.sidebar-container .genreList::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar-container .genreList::-webkit-scrollbar-track {
+    background: #111;
+}
+
+.sidebar-container .genreList::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 4px;
+    border: 2px solid #111;
+}
+
 
