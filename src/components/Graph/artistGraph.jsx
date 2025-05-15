@@ -43,14 +43,15 @@ export default function ArtistGraph({ mode, param, user }) {
     const activeGenreNameSet = useMemo(() => {
         return new Set(allTopGenres.filter(g => g.toggled).map(g => g.name));
     }, [allTopGenres]);
+
     const visibleLabelNameSet = useMemo(() => {
         if (!Array.isArray(allTopGenres) || allTopGenres.length === 0) return new Set();
 
         const toggledGenres = allTopGenres.filter(g => g.toggled);
         const topLabels = generateGenreLabelNodes(toggledGenres, 10);
-        console.log("New top genres: ", topLabels);
         return new Set(topLabels.map(g => toTitleCase(g.name)));
     }, [allTopGenres]);
+
     const { minCount, maxCount } = useMemo(() => {
         if (!allTopGenres || allTopGenres.length === 0) return { minCount: 0, maxCount: 1 };
 
@@ -79,6 +80,12 @@ export default function ArtistGraph({ mode, param, user }) {
 
         // Remove any links that included this node
         setAllLinks(prev => prev.filter(link => link.source !== nodeId && link.target !== nodeId));
+    }
+
+    function handleZoom(factor) {
+        if (!graphRef.current) return;
+        const currentZoom = graphRef.current.zoom();
+        graphRef.current.zoom(currentZoom * factor, 500);
     }
 
 
@@ -170,7 +177,7 @@ export default function ArtistGraph({ mode, param, user }) {
 
                 return node;
             });
-            console.log(`${artistNodes.length} artist nodes made:`, artistNodes);
+            //console.log(`${artistNodes.length} artist nodes made:`, artistNodes);
 
             // Build a set of genres actually used by the artist nodes
             const topGenreUsageMap = {};
@@ -398,7 +405,7 @@ export default function ArtistGraph({ mode, param, user }) {
                 {/* Toggle links button */}
                 <button
                     onClick={() => setShowLinks(prev => !prev)}
-                    style={{ ...graphStyles.toggleButton, bottom: 95, left: 15 }}
+                    style={{ ...graphStyles.toggleButton, bottom: 90, left: 10 }}
                 >
                     {showLinks ? "Hide Links" : "Show Links"}
                 </button>
@@ -406,10 +413,16 @@ export default function ArtistGraph({ mode, param, user }) {
                 {/* Toggle top genres button */}
                 <button
                     onClick={() => setShowTopGenres(prev => !prev)}
-                    style={{ ...graphStyles.toggleButton, bottom: 135, left: 15 }}
+                    style={{ ...graphStyles.toggleButton, bottom: 130, left: 10 }}
                 >
                     {showTopGenres ? "Hide Top Genres" : "Show Top Genres"}
                 </button>
+
+                {/* Zoom in/out buttons */}
+                <div style={graphStyles.zoomControls}>
+                    <button onClick={() => handleZoom(1.65)} style={graphStyles.zoomButtonTop}>＋</button>
+                    <button onClick={() => handleZoom(0.45)} style={graphStyles.zoomButtonBottom}>−</button>
+                </div>
 
                 {/* Tooltip */}
                 <div id="tooltip" style={graphStyles.tooltip} />
@@ -505,6 +518,16 @@ export default function ArtistGraph({ mode, param, user }) {
 }
 
 
+const zoomBase = {
+    backgroundColor: "#1a1a1a",
+    color: "white",
+    border: "1px solid #444",
+    fontSize: "18px",
+    width: "36px",
+    height: "36px",
+    cursor: "pointer"
+};
+
 const graphStyles = {
     container: {
         display: "flex",
@@ -555,6 +578,24 @@ const graphStyles = {
         fontSize: "13px",
         borderRadius: "6px",
         border: "1px solid #444",
+        zIndex: 25
+    },
+    zoomButtonTop: {
+        ...zoomBase,
+        borderTopLeftRadius: "6px",
+        borderTopRightRadius: "6px"
+    },
+    zoomButtonBottom: {
+        ...zoomBase,
+        borderBottomLeftRadius: "6px",
+        borderBottomRightRadius: "6px"
+    },
+    zoomControls: {
+        position: "absolute",
+        bottom: 90,
+        right: 310,
+        display: "flex",
+        flexDirection: "column",
         zIndex: 25
     }
 };
