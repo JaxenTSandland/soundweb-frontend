@@ -8,7 +8,8 @@ export function renderArtistNode(
     selectedNode,
     shouldFadeExplicitly,
     userRank,
-    fadeNonTopArtists
+    fadeNonTopArtists,
+    getEffectiveNodeRadius
 ) {
     const isSelected = selectedNode && node.id === selectedNode.id;
     const isHovered = hoverNode && node.id === hoverNode.id;
@@ -45,16 +46,7 @@ export function renderArtistNode(
         ctx.globalAlpha = 1;
     }
 
-    let radius;
-
-    if (fadeNonTopArtists && userRank > 0) {
-        const maxSize = 80;
-        const minSize = 15;
-        const normalizedRank = Math.min(userRank - 1, 99) / 99;
-        radius = maxSize - normalizedRank * (maxSize - minSize);
-    } else {
-        radius = node.radius; // use popularity-based default
-    }
+    const radius = getEffectiveNodeRadius(node, fadeNonTopArtists, userRank);
     const fontSize = Math.max(5, radius / 3);
     const maxTextWidth = radius * 1.5;
 

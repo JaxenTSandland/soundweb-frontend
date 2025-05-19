@@ -326,6 +326,17 @@ export default function ArtistGraph({ mode, param, user }) {
         const topGenre = node.genres[0];
         return !activeGenreNameSet.has(topGenre);
     }
+
+    function getEffectiveNodeRadius(node, fadeNonTopArtists, userRank) {
+        if (fadeNonTopArtists && typeof userRank === "number" && userRank > 0) {
+            const maxSize = 80;
+            const minSize = 15;
+            const normalizedRank = Math.min(userRank - 1, 99) / 99;
+            return maxSize - normalizedRank * (maxSize - minSize);
+        }
+
+        return node.radius;
+    }
     // endregion
 
     function drawLinksIfNeeded() {
@@ -514,10 +525,11 @@ export default function ArtistGraph({ mode, param, user }) {
                             }
                         }}
                         nodePointerAreaPaint={(node, color, ctx) => {
-                            const adjustedRadius = node.radius / 1;
+                            const userRank = userArtistRanks?.get(node.id);
+                            const radius = getEffectiveNodeRadius(node, fadeNonTopArtists, userRank);
                             ctx.fillStyle = color;
                             ctx.beginPath();
-                            ctx.arc(node.x, node.y, adjustedRadius, 0, 2 * Math.PI, false);
+                            ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
                             ctx.fill();
                         }}
                         nodeCanvasObject={(node, ctx, globalScale) => {
@@ -541,7 +553,7 @@ export default function ArtistGraph({ mode, param, user }) {
                                     shouldFade,
                                     userRank,
                                     fadeNonTopArtists,
-                                    getNodeLabel
+                                    getEffectiveNodeRadius
                                 );
                             }
 
