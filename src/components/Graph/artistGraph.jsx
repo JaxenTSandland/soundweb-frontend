@@ -11,6 +11,7 @@ import {generateGenreLabelNodes} from "../../utils/generateGenreLabelNodes.js";
 import {renderLabelNode} from "./labelNodeRenderer.js";
 import {toTitleCase} from "../../utils/textUtils.js";
 import {getTop1000Cache, refreshTop1000Cache} from "../../cache/top1000.js";
+import {evaluateRenderState} from "../../utils/graphUtils.js";
 
 export default function ArtistGraph({ mode, param, user }) {
     const userId = user?.id;
@@ -38,6 +39,7 @@ export default function ArtistGraph({ mode, param, user }) {
 
     const graphRef = useRef(null);
     const canvasRef = useRef(null);
+    const zoomingRef = useRef(false);
     const [allLinks, setAllLinks] = useState([]);
     const [filteredLinks, setFilteredLinks] = useState([]);
 
@@ -271,13 +273,20 @@ export default function ArtistGraph({ mode, param, user }) {
 
 
     function handleResultClick(node) {
-        if (!node || !graphRef.current) return;
+        if (!node || !graphRef.current || zoomingRef.current) return;
+
+        zoomingRef.current = true;
+
         graphRef.current.centerAt(node.x, node.y, 1000);
         graphRef.current.zoom(1.5, 1000);
         setSearchTerm("");
         setFilteredResults([]);
         setSelectedNode(null);
-        setTimeout(() => setSelectedNode(node), 1050);
+
+        setTimeout(() => {
+            setSelectedNode(node);
+            zoomingRef.current = false;
+        }, 1050);
     }
 
     useEffect(() => {
@@ -538,11 +547,10 @@ export default function ArtistGraph({ mode, param, user }) {
                                 if (!showTopGenres || !visibleLabelNameSet.has(toTitleCase(node.name))) return;
                                 renderLabelNode(node, ctx, globalScale, minCount, maxCount, graphScale);
                             } else {
+                                const { shouldRender, userRank } = evaluateRenderState(node, fadeNonTopArtists, userArtistRanks);
                                 const shouldFade = shouldFadeNode(node);
-                                const rank = userArtistRanks.get(node.id);
-                                const userRank = typeof rank === "number" ? rank + 1 : 0;
 
-                                if (fadeNonTopArtists && userRank === 0) return;
+                                if (!shouldRender) return;
 
                                 renderArtistNode(
                                     node,
@@ -601,6 +609,7 @@ export default function ArtistGraph({ mode, param, user }) {
                 artistNodes={artistNodes}
                 userTopRanks={userArtistRanks}
                 globalRanks={globalArtistRanks}
+                shouldFadeNode={shouldFadeNode}
             />
         </div>
     );

@@ -23,7 +23,8 @@ export default function Sidebar({
                                         reloadGraph,
                                         artistNodes,
                                         userTopRanks,
-                                        globalRanks
+                                        globalRanks,
+                                        shouldFadeNode
                                      }) {
 
     const sortedGenres = [...allTopGenres].sort((a, b) =>
@@ -81,11 +82,30 @@ export default function Sidebar({
                                 {[...artistNodes]
                                     .filter(n => !n.labelNode)
                                     .sort((a, b) => b.popularity - a.popularity)
-                                    .map((node, index) => (
-                                        <div key={node.id} style={styles.popularArtistItem}>
-                                            {index + 1}. {node.name}
-                                        </div>
-                                    ))}
+                                    .map((node, index) => {
+                                        const faded = shouldFadeNode(node);
+
+                                        return (
+                                            <div
+                                                key={node.id}
+                                                onClick={faded ? undefined : () => handleResultClick(node)}
+                                                style={{
+                                                    ...styles.popularArtistItem,
+                                                    color: faded ? "#666" : "#ccc",
+                                                    cursor: faded ? "default" : "pointer",
+                                                    transition: "background 0.2s"
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    if (!faded) e.currentTarget.style.background = "#222";
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    if (!faded) e.currentTarget.style.background = "transparent";
+                                                }}
+                                            >
+                                                {index + 1}. {node.name}
+                                            </div>
+                                        );
+                                    })}
                             </div>
                         </div>
                     )}
