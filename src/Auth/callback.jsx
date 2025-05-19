@@ -1,6 +1,6 @@
 import {useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
-import { getSpotifyRedirectUrl } from "../utils/apiBase.js";
+import {getBackendUrl, getSpotifyRedirectUrl} from "../utils/apiBase.js";
 
 export default function Callback({ setUser }) {
     const hasFetchedRef = useRef(false);
@@ -26,90 +26,23 @@ export default function Callback({ setUser }) {
                 return;
             }
 
-            const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-            const redirectUri = getSpotifyRedirectUrl();
+            const backendUrl = getBackendUrl();
 
-            const body = new URLSearchParams({
-                client_id: clientId,
-                grant_type: "authorization_code",
-                code,
-                redirect_uri: redirectUri,
-                code_verifier: codeVerifier
-            });
-
-            const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
+            const backendResponse = await fetch(`${backendUrl}/api/spotify/callback`, {
                 method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code, code_verifier: codeVerifier })
             });
 
-            if (!tokenResponse.ok) {
-                console.error("Failed to exchange code for token:", await tokenResponse.text());
+            if (!backendResponse.ok) {
+                console.error("Spotify login failed:", await backendResponse.text());
                 navigate("/");
                 return;
             }
 
-            const tokenJson = await tokenResponse.json();
-            localStorage.removeItem("spotify_code_verifier");
-            const accessToken = tokenJson.access_token;
-
-            if (!accessToken) {
-                console.error("Access token missing:", tokenJson);
-                return;
-            }
-            const profileResponse = await fetch("https://api.spotify.com/v1/me", {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-
-            if (!profileResponse.ok) {
-                console.error("Failed to fetch user profile");
-                navigate("/");
-                return;
-            }
-
-            const userProfile = await profileResponse.json();
-
-            const topArtistIds = [];
-            let offset = 0;
-            const limit = 50;
-            let hasMore = true;
-
-            while (hasMore) {
-                const topArtistsRes = await fetch(
-                    `https://api.spotify.com/v1/me/top/artists?time_range=long_term&limit=${limit}&offset=${offset}`,
-                    {
-                        headers: { Authorization: `Bearer ${accessToken}` }
-                    }
-                );
-
-                if (!topArtistsRes.ok) {
-                    console.error("Failed to fetch top artists from user");
-                    break;
-                }
-
-                const topArtistsJson = await topArtistsRes.json();
-                const items = topArtistsJson.items || [];
-
-                for (const artist of items) {
-                    topArtistIds.push(artist.id);
-                }
-
-                if (items.length < limit) {
-                    hasMore = false;
-                } else {
-                    offset += limit;
-                }
-            }
-
-            setUser({
-                id: userProfile.id,
-                display_name: userProfile.display_name,
-                email: userProfile.email,
-                images: userProfile.images,
-                topSpotifyIds: topArtistIds
-            });
+            const userData = await backendResponse.json();
+            setUser(userData);
             navigate("/");
-            window.history.replaceState({}, document.title, "/");
         };
 
         fetchSpotifyUser();
