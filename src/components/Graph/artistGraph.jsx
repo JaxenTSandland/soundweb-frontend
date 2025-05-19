@@ -22,6 +22,7 @@ export default function ArtistGraph({ mode, param, user }) {
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
     const [showLinks, setShowLinks] = useState(true);
     const [showTopGenres, setShowTopGenres] = useState(true);
+    const [fadeNonTopArtists, setFadeNonTopArtists] = useState(false);
 
     const [lastSyncTime, setLastSyncTime] = useState("Loading...");
 
@@ -61,6 +62,19 @@ export default function ArtistGraph({ mode, param, user }) {
             maxCount: Math.max(...counts),
         };
     }, [activeGenreNameSet]);
+
+    const topArtistRanks = useMemo(() => {
+        if (!Array.isArray(user?.topSpotifyIds)) return new Map();
+
+        const limit = 100;
+        const map = new Map();
+
+        user.topSpotifyIds.slice(0, limit).forEach((id, index) => {
+            map.set(id, index);
+        });
+
+        return map;
+    }, [user]);
 
     const [artistNodesRaw, setArtistNodesRaw] = useState([]);
     const [allGenresRaw, setAllGenresRaw] = useState([]);
@@ -169,15 +183,19 @@ export default function ArtistGraph({ mode, param, user }) {
             const artistNodes = artistNodesRaw.map(artist => {
                 const node = new ArtistNode(artist);
                 node.labelNode = false;
-                node.radius = Math.pow(node.popularity / 100, 4.5) * 70 + 5;
-                node.label = `${artist.name} \nGenre: ${artist.genres.slice(0,3).join(", ")}\nPopularity: ${artist.popularity}/100`;
+                node.radius = Math.pow(artist.popularity / 100, 4.5) * 70 + 5;
+
+                const rank = topArtistRanks.get(artist.id);
+
+                node.label = `${artist.name}`
+                    + (typeof rank === "number" ? ` (Rank #${rank + 1})` : "")
+                    + `\nGenre: ${artist.genres.slice(0, 3).join(", ")}`;
 
                 node.x *= graphScale;
                 node.y *= graphScale;
 
                 return node;
             });
-            //console.log(`${artistNodes.length} artist nodes made:`, artistNodes);
 
             // Build a set of genres actually used by the artist nodes
             const topGenreUsageMap = {};
@@ -275,6 +293,13 @@ export default function ArtistGraph({ mode, param, user }) {
 
     function shouldFadeNode(node) {
         if (node.labelNode) return false;
+
+        const isUserTopArtist = topArtistRanks.has(node.id);
+
+        if (fadeNonTopArtists) {
+            return !isUserTopArtist; // Only show top artists
+        }
+
         if (!node.genres || node.genres.length === 0) return true;
 
         const topGenre = node.genres[0];
@@ -290,8 +315,6 @@ export default function ArtistGraph({ mode, param, user }) {
             graphRef.current &&
             canvasRef.current
         ) {
-
-            //console.log(`Drawing ${linksToDraw.length} links`);
             drawLinks(
                 canvasRef.current,
                 artistNodes,
@@ -306,28 +329,32 @@ export default function ArtistGraph({ mode, param, user }) {
     }
 
     useEffect(() => {
-        if (!selectedNode) {
-            const visibleLinks = allLinks.filter(link => {
-                const sourceNode = artistNodes.find(n => n.id === link.source);
-                const targetNode = artistNodes.find(n => n.id === link.target);
+        // Build fade map for performance
+        const fadeMap = new Map();
+        for (const node of artistNodes) {
+            fadeMap.set(node.id, shouldFadeNode(node));
+        }
 
-                return sourceNode && targetNode && !shouldFadeNode(sourceNode) && !shouldFadeNode(targetNode);
+        if (!selectedNode) {
+            // If no node is selected, only show links between visible nodes
+            const visibleLinks = allLinks.filter(link => {
+                return (
+                    !fadeMap.get(link.source) &&
+                    !fadeMap.get(link.target)
+                );
             });
 
             setFilteredLinks(visibleLinks);
             return;
         }
 
+        // First-degree & second-degree connection detection
         const firstDegree = new Set();
         const secondDegree = new Set();
 
         allLinks.forEach(link => {
-            if (link.source === selectedNode.id) {
-                firstDegree.add(link.target);
-            }
-            if (link.target === selectedNode.id) {
-                firstDegree.add(link.source);
-            }
+            if (link.source === selectedNode.id) firstDegree.add(link.target);
+            if (link.target === selectedNode.id) firstDegree.add(link.source);
         });
 
         allLinks.forEach(link => {
@@ -338,20 +365,21 @@ export default function ArtistGraph({ mode, param, user }) {
         });
 
         const newFilteredLinks = allLinks.filter(link => {
-            const sourceNode = artistNodes.find(n => n.id === link.source);
-            const targetNode = artistNodes.find(n => n.id === link.target);
-            const bothVisible = sourceNode && targetNode && !shouldFadeNode(sourceNode) && !shouldFadeNode(targetNode);
+            const bothVisible =
+                !fadeMap.get(link.source) &&
+                !fadeMap.get(link.target);
 
-            return bothVisible && (
+            const isRelevantLink =
                 link.source === selectedNode.id ||
                 link.target === selectedNode.id ||
                 firstDegree.has(link.source) ||
-                firstDegree.has(link.target)
-            );
+                firstDegree.has(link.target);
+
+            return bothVisible && isRelevantLink;
         });
 
         setFilteredLinks(newFilteredLinks);
-    }, [activeGenreNameSet, selectedNode, allLinks, artistNodes, mode]);
+    }, [activeGenreNameSet, fadeNonTopArtists, selectedNode, allLinks, artistNodes, mode, user]);
 
 
     function parseLastSync(lastSync) {
@@ -402,21 +430,34 @@ export default function ArtistGraph({ mode, param, user }) {
     return (
         <div id="graph-container" style={graphStyles.container}>
             <div style={{ position: "relative", flex: 1 }}>
-                {/* Toggle links button */}
-                <button
-                    onClick={() => setShowLinks(prev => !prev)}
-                    style={{ ...graphStyles.toggleButton, bottom: 90, left: 10 }}
-                >
-                    {showLinks ? "Hide Links" : "Show Links"}
-                </button>
+                <div style={graphStyles.toggleButtonGroup}>
+                    { user &&
+                        <button
+                            onClick={() => setFadeNonTopArtists(prev => !prev)}
+                            style={{ ...graphStyles.toggleButton, ...graphStyles.buttonTop }}
+                        >
+                            {fadeNonTopArtists ? "Showing All Artists" : "Showing Your Top Artists"}
+                        </button>
+                    }
 
-                {/* Toggle top genres button */}
-                <button
-                    onClick={() => setShowTopGenres(prev => !prev)}
-                    style={{ ...graphStyles.toggleButton, bottom: 130, left: 10 }}
-                >
-                    {showTopGenres ? "Hide Top Genres" : "Show Top Genres"}
-                </button>
+
+                    <button
+                        onClick={() => setShowTopGenres(prev => !prev)}
+                        style={{
+                            ...graphStyles.toggleButton,
+                            ...(user ? graphStyles.buttonMiddle : graphStyles.buttonTop)
+                        }}
+                    >
+                        {showTopGenres ? "Hide Genre Labels" : "Show Genre Labels"}
+                    </button>
+
+                    <button
+                        onClick={() => setShowLinks(prev => !prev)}
+                        style={{ ...graphStyles.toggleButton, ...graphStyles.buttonBottom }}
+                    >
+                        {showLinks ? "Hide Links" : "Show Links"}
+                    </button>
+                </div>
 
                 {/* Zoom in/out buttons */}
                 <div style={graphStyles.zoomControls}>
@@ -464,10 +505,22 @@ export default function ArtistGraph({ mode, param, user }) {
                                 if (!showTopGenres || !visibleLabelNameSet.has(toTitleCase(node.name))) return;
                                 renderLabelNode(node, ctx, globalScale, minCount, maxCount, graphScale);
                             } else {
-                                const faded = shouldFadeNode(node);
-                                if (!faded) {
-                                    renderArtistNode(node, ctx, globalScale, hoverNode, selectedNode);
-                                }
+                                const shouldFade = shouldFadeNode(node);
+                                const rank = topArtistRanks.get(node.id);
+                                const userRank = typeof rank === "number" ? rank + 1 : 0;
+
+                                if (fadeNonTopArtists && userRank === 0) return;
+
+                                renderArtistNode(
+                                    node,
+                                    ctx,
+                                    globalScale,
+                                    hoverNode,
+                                    selectedNode,
+                                    shouldFade,
+                                    userRank,
+                                    fadeNonTopArtists
+                                );
                             }
 
                         }}
@@ -558,7 +611,6 @@ const graphStyles = {
         zIndex: 10
     },
     toggleButton: {
-        position: "absolute",
         padding: "6px 12px",
         backgroundColor: "#1a1a1a",
         color: "white",
@@ -566,7 +618,13 @@ const graphStyles = {
         borderRadius: "6px",
         fontSize: "13px",
         cursor: "pointer",
-        zIndex: 25
+        zIndex: 25,
+        width: "100%",
+        textAlign: "left",
+        boxSizing: "border-box",
+        lineHeight: "1.4",
+        userSelect: "none",
+        transform: "none"
     },
     lastSync: {
         position: "absolute",
@@ -597,5 +655,28 @@ const graphStyles = {
         display: "flex",
         flexDirection: "column",
         zIndex: 25
+    },
+    toggleButtonGroup: {
+        position: "absolute",
+        bottom: 90,
+        left: 10,
+        display: "flex",
+        flexDirection: "column",
+        width: "180px",
+        zIndex: 25
+    },
+    buttonTop: {
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0
+    },
+    buttonMiddle: {
+        borderRadius: 0,
+        borderTop: "none",
+        borderBottom: "1px solid #444"
+    },
+    buttonBottom: {
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
+        borderTop: "none"
     }
 };

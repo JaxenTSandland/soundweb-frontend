@@ -1,15 +1,30 @@
-import { useEffect } from "react";
+import {useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import { getSpotifyRedirectUrl } from "../utils/apiBase.js";
 
 export default function Callback({ setUser }) {
+    const hasFetchedRef = useRef(false);
     const navigate = useNavigate();
 
     useEffect(() => {
+        if (hasFetchedRef.current) return;
+        hasFetchedRef.current = true;
+
         const fetchSpotifyUser = async () => {
             const params = new URLSearchParams(window.location.search);
+
             const code = params.get("code");
+            if (!code) {
+                console.error("Missing authorization code from URL.");
+                navigate("/");
+                return;
+            }
             const codeVerifier = localStorage.getItem("spotify_code_verifier");
+
+            if (!codeVerifier) {
+                console.error("Missing code_verifier");
+                return;
+            }
 
             const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
             const redirectUri = getSpotifyRedirectUrl();
@@ -28,9 +43,20 @@ export default function Callback({ setUser }) {
                 body
             });
 
+            if (!tokenResponse.ok) {
+                console.error("Failed to exchange code for token:", await tokenResponse.text());
+                navigate("/");
+                return;
+            }
+
             const tokenJson = await tokenResponse.json();
+            localStorage.removeItem("spotify_code_verifier");
             const accessToken = tokenJson.access_token;
 
+            if (!accessToken) {
+                console.error("Access token missing:", tokenJson);
+                return;
+            }
             const profileResponse = await fetch("https://api.spotify.com/v1/me", {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
@@ -57,7 +83,7 @@ export default function Callback({ setUser }) {
                 );
 
                 if (!topArtistsRes.ok) {
-                    console.error("Failed to fetch top artists");
+                    console.error("Failed to fetch top artists from user");
                     break;
                 }
 
@@ -82,8 +108,8 @@ export default function Callback({ setUser }) {
                 images: userProfile.images,
                 topSpotifyIds: topArtistIds
             });
-            //console.log(`USER INFO: ${userProfile.toString()}`)
             navigate("/");
+            window.history.replaceState({}, document.title, "/");
         };
 
         fetchSpotifyUser();

@@ -5,10 +5,13 @@ import GraphFooter from "./components/Footer/graphFooter.jsx";
 import TopBar from "./components/TopBar/topBar.jsx";
 import { generateCodeChallenge, generateRandomString } from "./utils/pkceUtils.js";
 import {getHomePageLink, getSpotifyRedirectUrl} from "./utils/apiBase.js";
+import AddArtistModal from "./components/addArtistModal.jsx";
 
 function App({ user, setUser }) {
     const [activeTab, setActiveTab] = useState({ mode: "Top1000", param: null });
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [showAddArtistModal, setShowAddArtistModal] = useState(false);
+    const [addArtistSearch, setAddArtistSearch] = useState("");
     const dropdownRef = useRef();
     const menuButtonRef = useRef(null);
 
@@ -63,6 +66,7 @@ function App({ user, setUser }) {
 
     async function handleLogout() {
         setDropdownOpen(false);
+        localStorage.removeItem("spotify_access_token");
         setUser(null);
         window.location.href = getHomePageLink();
     }
@@ -84,12 +88,22 @@ function App({ user, setUser }) {
                 </div>
             )}
 
-            {/* Add artist button */}
-            { activeTab.mode !== "Top1000" &&
-                <button onClick={() => []} style={styles.addArtistButton}>
-                    + Add Artist
-                </button>
-            }
+            {/* Add artist stuff */}
+            {activeTab.mode !== "Top1000" && (
+                <>
+                    <button onClick={() => setShowAddArtistModal(true)} style={styles.addArtistButton}>
+                        + Add Artist
+                    </button>
+
+                    {showAddArtistModal && (
+                        <AddArtistModal
+                            searchTerm={addArtistSearch}
+                            setSearchTerm={setAddArtistSearch}
+                            onClose={() => setShowAddArtistModal(false)}
+                        />
+                    )}
+                </>
+            )}
 
 
             <ArtistGraph mode={activeTab.mode} param={activeTab.param} user={user} />
@@ -140,6 +154,34 @@ const styles = {
         borderRadius: "6px",
         fontSize: "13px",
         cursor: "pointer"
+    },
+    overlay: {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        zIndex: 50
+    },
+    modal: {
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        backgroundColor: "#1e1e1e",
+        borderRadius: "10px",
+        padding: "24px",
+        zIndex: 100,
+        color: "white",
+        minWidth: "300px",
+        maxWidth: "90vw",
+        boxShadow: "0 0 20px rgba(0,0,0,0.4)"
+    },
+    modalInner: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px"
     }
 };
 

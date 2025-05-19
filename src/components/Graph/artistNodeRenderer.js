@@ -1,16 +1,39 @@
 import wrapText from "../../utils/wrapText.jsx";
 
-export function renderArtistNode(node, ctx, globalScale, hoverNode, selectedNode) {
+export function renderArtistNode(
+    node,
+    ctx,
+    globalScale,
+    hoverNode,
+    selectedNode,
+    shouldFadeExplicitly,
+    userRank,
+    fadeNonTopArtists
+) {
     const isSelected = selectedNode && node.id === selectedNode.id;
     const isHovered = hoverNode && node.id === hoverNode.id;
 
-    const isConnectedToSelectedNode = Boolean(
-        selectedNode &&
-        Array.isArray(selectedNode.relatedArtists) &&
-        (selectedNode.relatedArtists.includes(node.id) || node.relatedArtists?.includes(selectedNode.id))
-    );
 
-    if (selectedNode) {
+    if (shouldFadeExplicitly) {
+        if (userRank === 0) {
+            ctx.globalAlpha = 0.1; // not a top artist
+        } else if (userRank <= 50) {
+            ctx.globalAlpha = 1.0;
+        } else if (userRank <= 100) {
+            const fadeRatio = (userRank - 50) / 50;
+            ctx.globalAlpha = 1.0 - 0.6 * fadeRatio;
+        } else {
+            ctx.globalAlpha = 0.2;
+        }
+    } else if (selectedNode) {
+        const isSelected = selectedNode && node.id === selectedNode.id;
+        const isHovered = hoverNode && node.id === hoverNode.id;
+        const isConnectedToSelectedNode =
+            selectedNode &&
+            Array.isArray(selectedNode.relatedArtists) &&
+            (selectedNode.relatedArtists.includes(node.id) ||
+                node.relatedArtists?.includes(selectedNode.id));
+
         if (isSelected || isConnectedToSelectedNode) {
             ctx.globalAlpha = 1;
         } else if (isHovered) {
@@ -22,7 +45,16 @@ export function renderArtistNode(node, ctx, globalScale, hoverNode, selectedNode
         ctx.globalAlpha = 1;
     }
 
-    const radius = node.radius;
+    let radius;
+
+    if (fadeNonTopArtists && userRank > 0) {
+        const maxSize = 80;
+        const minSize = 15;
+        const normalizedRank = Math.min(userRank - 1, 99) / 99;
+        radius = maxSize - normalizedRank * (maxSize - minSize);
+    } else {
+        radius = node.radius; // use popularity-based default
+    }
     const fontSize = Math.max(5, radius / 3);
     const maxTextWidth = radius * 1.5;
 
