@@ -21,7 +21,9 @@ export default function Sidebar({
                                         removeNodeFromGraph,
                                         mode,
                                         reloadGraph,
-                                        artistNodes
+                                        artistNodes,
+                                        userTopRanks,
+                                        globalRanks
                                      }) {
 
     const sortedGenres = [...allTopGenres].sort((a, b) =>
@@ -39,6 +41,8 @@ export default function Sidebar({
                     mode={mode}
                     removeNodeFromGraph={removeNodeFromGraph}
                     reloadGraph={reloadGraph}
+                    userTopRanks={userTopRanks}
+                    globalRanks={globalRanks}
                 />
             ) : (
                 <>

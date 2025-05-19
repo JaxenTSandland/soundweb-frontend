@@ -11,7 +11,7 @@ import {
 import ArtistAddOrRemoveButton from "./Components/addOrRemoveButton.jsx";
 
 
-export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, user, mode, removeNodeFromGraph, reloadGraph }) {
+export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, user, mode, removeNodeFromGraph, reloadGraph, userTopRanks, globalRanks }) {
     const [expandedData, setExpandedData] = useState(null);
     const baseUrl = getBackendUrl();
     const userId = user?.id;
@@ -98,6 +98,21 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
             <button onClick={() => setSelectedNode(null)} style={styles.closeButton}>
                 ×
             </button>
+            { mode === "Top1000" && (
+                <div style={styles.rankBadge}>
+                    {typeof globalRanks?.get(selectedNode.id) === "number" && (
+                        <div style={(user && typeof userTopRanks?.get(selectedNode.id) === "number" ? styles.rankLine : styles.rankLineLast)}>
+                            Global: #{globalRanks.get(selectedNode.id) + 1}
+                        </div>
+                    )}
+                    {user && typeof userTopRanks?.get(selectedNode.id) === "number" && (
+                        <div style={styles.rankLineLast}>
+                            Personal: #{userTopRanks.get(selectedNode.id) + 1}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {selectedNode.imageUrl && (
                 <div style={styles.imageWrapper}>
                     <img
@@ -273,5 +288,31 @@ const styles = {
         fontSize: "14px",
         cursor: "pointer",
         zIndex: 40
+    },
+    rankBadge: {
+        position: "absolute",
+        top: "10px",
+        right: "10px",
+        display: "flex",
+        flexDirection: "column",
+        width: "fit-content",
+        backgroundColor: "#1a1a1a",
+        opacity: "0.6",
+        border: "1px solid #444",
+        borderRadius: "6px",
+        overflow: "hidden",
+        fontSize: "13px",
+        zIndex: 40
+    },
+    rankLine: {
+        padding: "4px 6px",
+        color: "white",
+        textAlign: "center",
+        borderBottom: "1px solid #444"
+    },
+    rankLineLast: {
+        padding: "4px 6px",
+        color: "white",
+        textAlign: "left"
     }
 };

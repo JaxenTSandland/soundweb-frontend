@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export default function useTooltip() {
+export default function useTooltip(getNodeLabel) {
     useEffect(() => {
         const tooltip = document.getElementById("tooltip");
 
@@ -17,10 +17,11 @@ export default function useTooltip() {
 
     const showTooltip = (node) => {
         const tooltip = document.getElementById("tooltip");
-        if (!node || !node.label) return;
+        if (!node) return;
 
+        const label = getNodeLabel(node);
+        tooltip.innerHTML = label.replaceAll("\n", "<br>");
         tooltip.style.display = "block";
-        tooltip.innerHTML = node.label.replaceAll("\n", "<br>");
     };
 
     const hideTooltip = () => {
