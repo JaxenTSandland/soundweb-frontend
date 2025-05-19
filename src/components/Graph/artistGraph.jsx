@@ -187,8 +187,10 @@ export default function ArtistGraph({ mode, param, user }) {
 
                 const rank = topArtistRanks.get(artist.id);
 
+                const showRank = fadeNonTopArtists && typeof rank === "number";
+
                 node.label = `${artist.name}`
-                    + (typeof rank === "number" ? ` (Rank #${rank + 1})` : "")
+                    + (showRank ? ` (Rank #${rank + 1})` : "")
                     + `\nGenre: ${artist.genres.slice(0, 3).join(", ")}`;
 
                 node.x *= graphScale;
