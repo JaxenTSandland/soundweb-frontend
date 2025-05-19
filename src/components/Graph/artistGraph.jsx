@@ -566,6 +566,7 @@ export default function ArtistGraph({ mode, param, user }) {
                 removeNodeFromGraph={removeNodeFromGraph}
                 mode={mode}
                 reloadGraph={loadGraph}
+                artistNodes={artistNodes}
             />
         </div>
     );

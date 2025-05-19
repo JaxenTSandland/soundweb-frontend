@@ -20,7 +20,8 @@ export default function Sidebar({
                                         user,
                                         removeNodeFromGraph,
                                         mode,
-                                        reloadGraph
+                                        reloadGraph,
+                                        artistNodes
                                      }) {
 
     const sortedGenres = [...allTopGenres].sort((a, b) =>
@@ -67,6 +68,23 @@ export default function Sidebar({
                             </div>
                         )}
                     </div>
+
+                    {mode === "Top1000" && (
+                        <div style={styles.popularArtistSection}>
+                            <div style={styles.popularArtistHeader}>Top Ranked Artists</div>
+
+                            <div className="popularArtistList" style={styles.popularArtistList}>
+                                {[...artistNodes]
+                                    .filter(n => !n.labelNode)
+                                    .sort((a, b) => b.popularity - a.popularity)
+                                    .map((node, index) => (
+                                        <div key={node.id} style={styles.popularArtistItem}>
+                                            {index + 1}. {node.name}
+                                        </div>
+                                    ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Bottom: Genre section */}
                     <div className="genreSection" style={styles.genreSection}>
@@ -135,13 +153,24 @@ const styles = {
         border: "1px solid #444",
         background: "#111",
         color: "#fff",
-        marginBottom: "12px"
+        marginBottom: "0",
+        zIndex: 999
     },
     searchResults: {
+        position: "absolute",
+        top: "20px",
+        left: "0",
+        right: "0",
+        paddingTop: "10px",
         background: "#222",
-        borderRadius: "6px",
         border: "1px solid #444",
-        marginBottom: "12px"
+        borderTop: "none",
+        borderBottomLeftRadius: "6px",
+        borderBottomRightRadius: "6px",
+        overflowY: "auto",
+        maxHeight: "300px",
+        zIndex: 998,
+        boxShadow: "0 4px 6px rgba(0,0,0,0.5)"
     },
     resultItem: {
         padding: "6px 10px",
@@ -166,13 +195,16 @@ const styles = {
         flex: 1
     },
     searchSection: {
-        flex: "0 0 40%",
+        flex: "0 0 auto",
+        position: "relative",
+        marginBottom: "12px",
         display: "flex",
         flexDirection: "column",
-        marginBottom: "12px"
+        zIndex: 10
     },
     genreSection: {
-        flex: "1 1 60%",
+        flex: "1 1 30%",
+        paddingTop: "10px",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden"
@@ -200,5 +232,36 @@ const styles = {
     genreTitle: {
         fontWeight: "bold",
         fontSize: "16px"
+    },
+    popularArtistSection: {
+        flex: "0 0 35%",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        background: "#1a1a1a"
+    },
+    popularArtistHeader: {
+        fontWeight: "bold",
+        fontSize: "14px",
+        paddingBottom: "6px",
+        textAlign: "center",
+        borderBottom: "1px solid #444",
+        marginBottom: "6px"
+    },
+    popularArtistList: {
+        flex: 1,
+        overflowY: "auto",
+        padding: "0 6px 6px 6px",
+        background: "#111",
+        borderRadius: "6px",
+        border: "1px solid #333"
+    },
+    popularArtistItem: {
+        fontSize: "13px",
+        padding: "6px 4px",
+        borderBottom: "1px solid #222",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis"
     }
 };
