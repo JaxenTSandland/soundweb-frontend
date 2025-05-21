@@ -1,7 +1,7 @@
 import {useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
-import {getBackendUrl, getSpotifyRedirectUrl} from "../utils/apiBase.js";
-import {User} from "../models/User.js";
+import {getBackendUrl} from "../utils/apiBase.js";
+import {User} from "../models/user.js";
 import {fetchUserTopArtistGraph, initializeUserIfNeeded} from "../utils/dataFetcher.js";
 
 export default function Callback({ setUser }) {
