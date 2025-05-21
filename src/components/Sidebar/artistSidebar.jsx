@@ -160,14 +160,14 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
 
                 <GenreTags genres={selectedNode.genres} getGenreColor={getGenreColor} />
 
-                <ArtistAddOrRemoveButton
-                    userId={userId}
-                    selectedNode={selectedNode}
-                    isAdding={isAddingArtist}
-                    isRemoving={isRemovingArtist}
-                    onAdd={addArtistToCustomGraphVar}
-                    onRemove={removeArtistFromCustomGraphVar}
-                />
+                {/*<ArtistAddOrRemoveButton*/}
+                {/*    userId={userId}*/}
+                {/*    selectedNode={selectedNode}*/}
+                {/*    isAdding={isAddingArtist}*/}
+                {/*    isRemoving={isRemovingArtist}*/}
+                {/*    onAdd={addArtistToCustomGraphVar}*/}
+                {/*    onRemove={removeArtistFromCustomGraphVar}*/}
+                {/*/>*/}
 
                 {expandedData ? (
                     <div style={styles.expanded}>

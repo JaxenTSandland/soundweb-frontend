@@ -38,8 +38,13 @@ function App({ user, setUser }) {
     function switchToArtistBased(spotifyId) {
         setActiveTab({ mode: "ArtistBased", param: spotifyId });
     }
-    function switchToUserCustom(userId) {
-        setActiveTab({ mode: "UserCustom", param: userId });
+    function switchToUserCustom() {
+        if (!user) return;
+        setActiveTab({ mode: "UserCustom", param: user.id });
+    }
+    function switchToUserTop() {
+        if (!user) return;
+        setActiveTab({ mode: "UserTop", param: user.id });
     }
 
     // Auth
@@ -88,22 +93,22 @@ function App({ user, setUser }) {
                 </div>
             )}
 
-            {/* Add artist stuff */}
-            {activeTab.mode !== "Top1000" && (
-                <>
-                    <button onClick={() => setShowAddArtistModal(true)} style={styles.addArtistButton}>
-                        + Add Artist
-                    </button>
+            {/*/!* Add artist stuff *!/*/}
+            {/*{activeTab.mode !== "Top1000" && (*/}
+            {/*    <>*/}
+            {/*        <button onClick={() => setShowAddArtistModal(true)} style={styles.addArtistButton}>*/}
+            {/*            + Add Artist*/}
+            {/*        </button>*/}
 
-                    {showAddArtistModal && (
-                        <AddArtistModal
-                            searchTerm={addArtistSearch}
-                            setSearchTerm={setAddArtistSearch}
-                            onClose={() => setShowAddArtistModal(false)}
-                        />
-                    )}
-                </>
-            )}
+            {/*        {showAddArtistModal && (*/}
+            {/*            <AddArtistModal*/}
+            {/*                searchTerm={addArtistSearch}*/}
+            {/*                setSearchTerm={setAddArtistSearch}*/}
+            {/*                onClose={() => setShowAddArtistModal(false)}*/}
+            {/*            />*/}
+            {/*        )}*/}
+            {/*    </>*/}
+            {/*)}*/}
 
 
             <ArtistGraph mode={activeTab.mode} param={activeTab.param} user={user} />
@@ -113,6 +118,7 @@ function App({ user, setUser }) {
                 switchToTop1000={switchToTop1000}
                 switchToArtistBased={switchToArtistBased}
                 switchToUserCustom={switchToUserCustom}
+                switchToUserTop={switchToUserTop}
                 user={user}
             />
         </div>

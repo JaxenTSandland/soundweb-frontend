@@ -1,6 +1,8 @@
 import {useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import {getBackendUrl, getSpotifyRedirectUrl} from "../utils/apiBase.js";
+import {User} from "../models/User.js";
+import {fetchUserTopArtistGraph, initializeUserIfNeeded} from "../utils/dataFetcher.js";
 
 export default function Callback({ setUser }) {
     const hasFetchedRef = useRef(false);
@@ -40,9 +42,12 @@ export default function Callback({ setUser }) {
                 return;
             }
 
-            const userData = await backendResponse.json();
-            setUser(userData);
+            const rawData = await backendResponse.json();
+            const user = new User(rawData);
+            setUser(user);
             navigate("/");
+
+            initializeUserIfNeeded(user.id, user.topSpotifyIds);
         };
 
         fetchSpotifyUser();

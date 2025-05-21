@@ -7,28 +7,16 @@ export function renderArtistNode(
     hoverNode,
     selectedNode,
     shouldFadeExplicitly,
-    userRank,
     fadeNonTopArtists,
-    getEffectiveNodeRadius
+    radius
 ) {
     const isSelected = selectedNode && node.id === selectedNode.id;
     const isHovered = hoverNode && node.id === hoverNode.id;
 
 
     if (shouldFadeExplicitly) {
-        if (userRank === 0) {
-            ctx.globalAlpha = 0.1; // not a top artist
-        } else if (userRank <= 50) {
-            ctx.globalAlpha = 1.0;
-        } else if (userRank <= 100) {
-            const fadeRatio = (userRank - 50) / 50;
-            ctx.globalAlpha = 1.0 - 0.6 * fadeRatio;
-        } else {
-            ctx.globalAlpha = 0.2;
-        }
+        ctx.globalAlpha = 0.2;
     } else if (selectedNode) {
-        const isSelected = selectedNode && node.id === selectedNode.id;
-        const isHovered = hoverNode && node.id === hoverNode.id;
         const isConnectedToSelectedNode =
             selectedNode &&
             Array.isArray(selectedNode.relatedArtists) &&
@@ -46,7 +34,6 @@ export function renderArtistNode(
         ctx.globalAlpha = 1;
     }
 
-    const radius = getEffectiveNodeRadius(node, fadeNonTopArtists, userRank);
     const fontSize = Math.max(5, radius / 3);
     const maxTextWidth = radius * 1.5;
 

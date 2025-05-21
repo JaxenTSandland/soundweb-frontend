@@ -3,7 +3,7 @@ import { ForceGraph2D } from "react-force-graph";
 import useTooltip from "./useTooltip.jsx";
 import {renderArtistNode} from "./artistNodeRenderer.js";
 import drawLinks from "../../utils/drawLinks.jsx";
-import {fetchAllGenres, fetchCustomArtistAndLinkData} from "../../utils/dataFetcher.js";
+import {fetchAllGenres, fetchCustomArtistAndLinkData, fetchUserTopArtistGraph} from "../../utils/dataFetcher.js";
 import {useGraphInit} from "../../utils/graphInit.jsx";
 import Sidebar from "../Sidebar/sidebar.jsx";
 import {ArtistNode} from "../../models/artistNode.js";
@@ -11,7 +11,6 @@ import {generateGenreLabelNodes} from "../../utils/generateGenreLabelNodes.js";
 import {renderLabelNode} from "./labelNodeRenderer.js";
 import {toTitleCase} from "../../utils/textUtils.js";
 import {getTop1000Cache, refreshTop1000Cache} from "../../cache/top1000.js";
-import {evaluateRenderState} from "../../utils/graphUtils.js";
 
 export default function ArtistGraph({ mode, param, user }) {
     const userId = user?.id;
@@ -65,17 +64,18 @@ export default function ArtistGraph({ mode, param, user }) {
         };
     }, [activeGenreNameSet]);
 
-    const userArtistRanks = useMemo(() => {
-        if (!Array.isArray(user?.topSpotifyIds)) return new Map();
+    const [userTop100Ranks, userAllRanks] = useMemo(() => {
+        if (!Array.isArray(user?.topSpotifyIds)) return [new Map(), new Map()];
 
-        const limit = 100;
-        const map = new Map();
+        const allMap = new Map();
+        const top100Map = new Map();
 
-        user.topSpotifyIds.slice(0, limit).forEach((id, index) => {
-            map.set(id, index);
+        user.topSpotifyIds.forEach((id, index) => {
+            allMap.set(id, index);
+            if (index < 100) top100Map.set(id, index);
         });
 
-        return map;
+        return [top100Map, allMap];
     }, [user]);
 
     const [artistNodesRaw, setArtistNodesRaw] = useState([]);
@@ -123,7 +123,7 @@ export default function ArtistGraph({ mode, param, user }) {
             setSelectedNode(null);
 
             let artistNodesRaw = [];
-            let links = [];
+            let rawLinks = [];
             let lastSync = null;
 
             if (mode === "Top1000") {
@@ -136,21 +136,25 @@ export default function ArtistGraph({ mode, param, user }) {
 
                 console.log("[ArtistGraph] Using cached Top 1000 graph data");
                 artistNodesRaw = top1000Cache.artistNodesRaw;
-                links = top1000Cache.links;
+                rawLinks = top1000Cache.links;
                 lastSync = top1000Cache.lastSync;
 
             } else if (mode === "UserCustom" && param) {
                 const data = await fetchCustomArtistAndLinkData(1000, userId);
                 artistNodesRaw = data.artistNodesRaw;
-                links = data.links;
+                rawLinks = data.links;
                 lastSync = data.lastSync;
 
             } else if (mode === "ArtistBased" && param) {
                 console.warn("[ArtistGraph] ArtistBased mode not implemented yet.");
+            } else if (mode === "UserTop" && userId) {
+                const {nodes, links} = await fetchUserTopArtistGraph(userId, user.topSpotifyIds);
+                artistNodesRaw = nodes;
+                rawLinks = links;
             }
 
             setLastSyncTime(parseLastSync(lastSync));
-            setRawLinks(links);
+            setRawLinks(rawLinks);
             setArtistNodesRaw(artistNodesRaw);
 
         } catch (err) {
@@ -183,7 +187,7 @@ export default function ArtistGraph({ mode, param, user }) {
     useEffect(() => {
         function buildGraph() {
             if (allGenresRaw.length === 0 || artistNodesRaw.length === 0) return;
-            console.log("Building Graph");
+            console.log(`Building ${mode} Graph`);
 
             // Build artist map by ID for fast lookup
             const relatedMap = {};
@@ -257,12 +261,12 @@ export default function ArtistGraph({ mode, param, user }) {
 
     // region Search bar functions
     function getNodeLabel(node) {
-        const personalRank = userArtistRanks.get(node.id);
+        const personalRank = userAllRanks.get(node.id);
         const globalRank = globalArtistRanks.get(node.id);
 
         let rankText = "";
 
-        if (fadeNonTopArtists && typeof personalRank === "number") {
+        if ((fadeNonTopArtists || mode === "UserTop") && typeof personalRank === "number") {
             rankText = `\n(Personal rank #${personalRank + 1})`;
         } else if (typeof globalRank === "number") {
             rankText = `\n(Global rank #${globalRank + 1})`;
@@ -324,7 +328,7 @@ export default function ArtistGraph({ mode, param, user }) {
     function shouldFadeNode(node) {
         if (node.labelNode) return false;
 
-        const isUserTopArtist = userArtistRanks.has(node.id);
+        const isUserTopArtist = userTop100Ranks.has(node.id);
 
         if (fadeNonTopArtists) {
             return !isUserTopArtist; // Only show top artists
@@ -336,8 +340,11 @@ export default function ArtistGraph({ mode, param, user }) {
         return !activeGenreNameSet.has(topGenre);
     }
 
-    function getEffectiveNodeRadius(node, fadeNonTopArtists, userRank) {
-        if (fadeNonTopArtists && typeof userRank === "number" && userRank > 0) {
+    function getEffectiveNodeRadius(node, mode, fadeNonTopArtists, userRank) {
+        const shouldSizeByRank =
+            (mode === "UserTop" && typeof userRank === "number" && userRank > 0) || (fadeNonTopArtists && typeof userRank === "number" && userRank > 0);
+
+        if (shouldSizeByRank) {
             const maxSize = 80;
             const minSize = 15;
             const normalizedRank = Math.min(userRank - 1, 99) / 99;
@@ -477,7 +484,7 @@ export default function ArtistGraph({ mode, param, user }) {
                             onClick={() => setFadeNonTopArtists(prev => !prev)}
                             style={{ ...graphStyles.toggleButton, ...graphStyles.buttonTop }}
                         >
-                            {fadeNonTopArtists ? "Show All Artists" : "Show Your Top Artists"}
+                            {mode === "top1000" ? (fadeNonTopArtists ? "Show All Artists" : "Show Your Top Artists") : (fadeNonTopArtists ? "Displaying top 100" : "Displaying all")}
                         </button>
                     }
 
@@ -534,23 +541,24 @@ export default function ArtistGraph({ mode, param, user }) {
                             }
                         }}
                         nodePointerAreaPaint={(node, color, ctx) => {
-                            const userRank = userArtistRanks?.get(node.id);
-                            const radius = getEffectiveNodeRadius(node, fadeNonTopArtists, userRank);
+                            const userRank = userAllRanks?.get(node.id);
+                            const radius = getEffectiveNodeRadius(node, mode, fadeNonTopArtists, userRank);
                             ctx.fillStyle = color;
                             ctx.beginPath();
                             ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
                             ctx.fill();
                         }}
                         nodeCanvasObject={(node, ctx, globalScale) => {
-
                             if (node.labelNode) {
                                 if (!showTopGenres || !visibleLabelNameSet.has(toTitleCase(node.name))) return;
                                 renderLabelNode(node, ctx, globalScale, minCount, maxCount, graphScale);
                             } else {
-                                const { shouldRender, userRank } = evaluateRenderState(node, fadeNonTopArtists, userArtistRanks);
-                                const shouldFade = shouldFadeNode(node);
+                                const shouldFade = shouldFadeNode(node); // Always genre-based
 
-                                if (!shouldRender) return;
+                                // Only get userRank if userTopRanks exists
+                                const userRank = userAllRanks?.get?.(node.id) ?? 0;
+
+                                const radius = getEffectiveNodeRadius(node, mode, fadeNonTopArtists, userRank);
 
                                 renderArtistNode(
                                     node,
@@ -559,12 +567,10 @@ export default function ArtistGraph({ mode, param, user }) {
                                     hoverNode,
                                     selectedNode,
                                     shouldFade,
-                                    userRank,
                                     fadeNonTopArtists,
-                                    getEffectiveNodeRadius
+                                    radius
                                 );
                             }
-
                         }}
                         onNodeClick={openSidebarForArtist}
                         onBackgroundClick={() => {
@@ -607,7 +613,7 @@ export default function ArtistGraph({ mode, param, user }) {
                 mode={mode}
                 reloadGraph={loadGraph}
                 artistNodes={artistNodes}
-                userTopRanks={userArtistRanks}
+                userTopRanks={userAllRanks}
                 globalRanks={globalArtistRanks}
                 shouldFadeNode={shouldFadeNode}
             />

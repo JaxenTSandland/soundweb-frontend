@@ -148,3 +148,42 @@ export async function removeArtistFromCustomGraph(selectedNode, userId) {
         alert("Failed to remove artist from custom graph.");
     }
 }
+
+export async function initializeUserIfNeeded(userId, topSpotifyIds) {
+    if (!userId || !Array.isArray(topSpotifyIds) || topSpotifyIds.length === 0) {
+        console.warn("Skipping user initialization: invalid input");
+        return;
+    }
+
+    try {
+        await fetch(`${getBackendUrl()}/api/users`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                user_tag: userId,
+                spotify_ids: topSpotifyIds
+            })
+        });
+    } catch (err) {
+        console.warn(`User init request failed for ${userId}:`, err.message);
+    }
+}
+
+export async function fetchUserTopArtistGraph(userId, topSpotifyIds) {
+    if (!userId || !Array.isArray(topSpotifyIds) || topSpotifyIds.length === 0) {
+        throw new Error("Invalid input for fetchUserTopArtistGraph");
+    }
+
+    const response = await fetch(`${getBackendUrl()}/api/graph/user/${userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ spotify_ids: topSpotifyIds })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch user top graph: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json(); // { nodes, links, foundCount, totalCount, progress }
+}

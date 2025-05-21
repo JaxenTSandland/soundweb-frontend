@@ -1,7 +1,7 @@
 import React from "react";
 import lockedIcon from "../../../assets/locked-symbol.png";
 
-export default function GraphFooter({ activeTab, switchToTop1000, switchToArtistBased, switchToUserCustom, user }) {
+export default function GraphFooter({ activeTab, switchToTop1000, switchToArtistBased, switchToUserCustom, switchToUserTop, user }) {
     return (
         <div className="graph-footer">
             <button
@@ -29,12 +29,21 @@ export default function GraphFooter({ activeTab, switchToTop1000, switchToArtist
             {/*    Taylor Swift Graph*/}
             {/*</button>*/}
 
+            {/*{ user &&*/}
+            {/*    <button*/}
+            {/*        className={activeTab.mode === "UserCustom" ? "active" : ""}*/}
+            {/*        onClick={() => switchToUserCustom()}*/}
+            {/*        >*/}
+            {/*        Custom Graph*/}
+            {/*    </button>*/}
+            {/*}*/}
+
             { user &&
                 <button
-                    className={activeTab.mode === "UserCustom" ? "active" : ""}
-                    onClick={() => switchToUserCustom("7717")}
+                    className={activeTab.mode === "UserTop" ? "active" : ""}
+                    onClick={() => switchToUserTop()}
                     >
-                    Custom Graph
+                    My Spotify Graph
                 </button>
             }
 

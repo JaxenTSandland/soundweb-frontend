@@ -31,6 +31,27 @@ export default function Sidebar({
         sortMethod === "alphabetical" ? a.name.localeCompare(b.name) : b.count - a.count
     );
 
+    const rankedNodes = Array.from(
+        new Map(
+            artistNodes
+                .filter(n => !n.labelNode)
+                .map(n => [n.id, n]) // de-duplicate by ID
+        ).values()
+    ).sort((a, b) => {
+        if (mode === "UserTop") {
+            const rankA = userTopRanks?.get?.(a.id);
+            const rankB = userTopRanks?.get?.(b.id);
+            const aValid = typeof rankA === "number";
+            const bValid = typeof rankB === "number";
+
+            if (aValid && bValid) return rankA - rankB;
+            if (aValid) return -1;
+            if (bValid) return 1;
+            return 0;
+        }
+        return b.popularity - a.popularity;
+    });
+
     return (
         <div className="sidebar-container" style={styles.container}>
             {selectedNode ? (
@@ -74,20 +95,23 @@ export default function Sidebar({
                         )}
                     </div>
 
-                    {mode === "Top1000" && (
-                        <div style={styles.popularArtistSection}>
-                            <div style={styles.popularArtistHeader}>Top Ranked Artists</div>
+                        {(mode === "Top1000" || mode === "UserTop") && (
+                            <div style={styles.popularArtistSection}>
+                                <div style={styles.popularArtistHeader}>Top Ranked Artists</div>
 
-                            <div className="popularArtistList" style={styles.popularArtistList}>
-                                {[...artistNodes]
-                                    .filter(n => !n.labelNode)
-                                    .sort((a, b) => b.popularity - a.popularity)
-                                    .map((node, index) => {
+                                <div className="popularArtistList" style={styles.popularArtistList}>
+                                    {rankedNodes.map((node, index) => {
                                         const faded = shouldFadeNode(node);
+                                        const userRank = userTopRanks?.get?.(node.id);
+
+                                        const displayRank =
+                                            mode === "UserTop"
+                                                ? (typeof userRank === "number" ? `${userRank + 1}. ` : "")
+                                                : `${index + 1}. `;
 
                                         return (
                                             <div
-                                                key={node.id}
+                                                key={`SidebarRankItem:${node.id}`}
                                                 onClick={faded ? undefined : () => handleResultClick(node)}
                                                 style={{
                                                     ...styles.popularArtistItem,
@@ -102,13 +126,13 @@ export default function Sidebar({
                                                     if (!faded) e.currentTarget.style.background = "transparent";
                                                 }}
                                             >
-                                                {index + 1}. {node.name}
+                                                {displayRank}{node.name}
                                             </div>
                                         );
                                     })}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
                     {/* Bottom: Genre section */}
                     <div className="genreSection" style={styles.genreSection}>

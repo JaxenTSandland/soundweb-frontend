@@ -10,7 +10,7 @@ export default function TopTracks({ tracks }) {
             <div style={styles.sectionTitle}>Top Tracks</div>
             <div style={styles.trackList}>
                 {slicedTracks.map((track, index) => (
-                    <React.Fragment key={track.id}>
+                    <div key={track.id}>
                         {index > 0 && <div style={styles.divider} />}
                         <div style={styles.trackRow}>
                             {track.spotifyUrl ? (
@@ -27,7 +27,7 @@ export default function TopTracks({ tracks }) {
                             )}
                         </div>
                         {index === slicedTracks.length - 1 && <div style={styles.divider} />}
-                    </React.Fragment>
+                    </div>
                 ))}
             </div>
         </div>
