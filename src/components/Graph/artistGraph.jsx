@@ -134,6 +134,7 @@ export default function ArtistGraph({ mode, param, user }) {
 
 
     async function loadGraph() {
+        hideTooltip();
         try {
             console.log("Loading graph data");
             setIsLoading(true);
@@ -575,6 +576,8 @@ export default function ArtistGraph({ mode, param, user }) {
 
     return (
             <div id="graph-container" style={graphStyles.container}>
+                {/* Tooltip */}
+                <div id="tooltip" style={{ ...graphStyles.tooltip }} />
                 {(artistNodesRaw.length > 0 || isLoading) ? (
                     <>
                     <div style={{ position: "relative", flex: 1 }}>
@@ -613,75 +616,80 @@ export default function ArtistGraph({ mode, param, user }) {
                             <button onClick={() => handleZoom(0.45)} style={graphStyles.zoomButtonBottom}>−</button>
                         </div>
 
-                        {/* Tooltip */}
-                        <div id="tooltip" style={graphStyles.tooltip} />
 
 
-                            <div style={graphStyles.canvasWrapper}>
-                                <canvas
-                                    ref={canvasRef}
-                                    width={window.innerWidth}
-                                    height={window.innerHeight}
-                                    style={graphStyles.canvas}
-                                />
-                                <ForceGraph2D
-                                    d3Force="none"
-                                    ref={graphRef}
-                                    minZoom={0.04}
-                                    maxZoom={2.5}
-                                    graphData={graphData}
-                                    nodeLabel={() => ""}
-                                    enableNodeDrag={false}
-                                    onNodeHover={(node) => {
-                                        if (node && !node.labelNode && !shouldFadeNode(node)) {
-                                            setHoverNode(node);
-                                            showTooltip(node);
-                                        } else {
-                                            setHoverNode(null);
-                                            hideTooltip();
-                                        }
-                                    }}
-                                    nodePointerAreaPaint={(node, color, ctx) => {
-                                        let radius = node.popularityRadius;
-                                        if (mode === "UserTop") radius = node.userRankRadius;
-                                        ctx.fillStyle = color;
-                                        ctx.beginPath();
-                                        ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
-                                        ctx.fill();
-                                    }}
-                                    nodeCanvasObject={(node, ctx, globalScale) => {
-                                        if (node.labelNode) {
-                                            if (!showTopGenres || !visibleLabelNameSet.has(toTitleCase(node.name))) return;
-                                            renderLabelNode(node, ctx, globalScale, minCount, maxCount, graphScale);
-                                        } else {
-                                            const shouldFade = shouldFadeNode(node); // Always genre-based
 
-                                            if (activeGenreNameSet.has(node.genres[0])) {
-                                                renderArtistNode(
-                                                    node,
-                                                    ctx,
-                                                    globalScale,
-                                                    hoverNode,
-                                                    selectedNode,
-                                                    shouldFade,
-                                                    fadeNonTopArtists,
-                                                    mode
-                                                );
-                                            }
-                                        }
-                                    }}
-                                    onNodeClick={openSidebarForArtist}
-                                    onBackgroundClick={() => {
-                                        setSelectedNode(null);
-                                    }}
-                                    onZoom={() =>
-                                        drawLinksIfNeeded()
+                        <div style={graphStyles.canvasWrapper}>
+                            <canvas
+                                ref={canvasRef}
+                                width={window.innerWidth}
+                                height={window.innerHeight}
+                                style={graphStyles.canvas}
+                            />
+                            <ForceGraph2D
+                                d3Force="none"
+                                ref={graphRef}
+                                minZoom={0.04}
+                                maxZoom={2.5}
+                                graphData={graphData}
+                                nodeLabel={() => ""}
+                                enableNodeDrag={false}
+                                onNodeHover={(node) => {
+                                    if (
+                                        node &&
+                                        !node.labelNode &&
+                                        !shouldFadeNode(node) &&
+                                        artistNodes.length > 0 &&
+                                        graphData.nodes.length > 0
+                                    ) {
+                                        setHoverNode(node);
+                                        showTooltip(node);
+                                    } else {
+                                        setHoverNode(null);
+                                        hideTooltip();
                                     }
-                                    onPan={() =>
-                                        drawLinksIfNeeded()
+                                }}
+                                nodePointerAreaPaint={(node, color, ctx) => {
+                                    let radius = node.popularityRadius;
+                                    if (mode === "UserTop") radius = node.userRankRadius;
+                                    ctx.fillStyle = color;
+                                    ctx.beginPath();
+                                    ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
+                                    ctx.fill();
+                                }}
+                                nodeCanvasObject={(node, ctx, globalScale) => {
+                                    if (node.labelNode) {
+                                        if (!showTopGenres || !visibleLabelNameSet.has(toTitleCase(node.name))) return;
+                                        renderLabelNode(node, ctx, globalScale, minCount, maxCount, graphScale);
+                                    } else {
+                                        const shouldFade = shouldFadeNode(node); // Always genre-based
+
+                                        if (activeGenreNameSet.has(node.genres[0])) {
+                                            renderArtistNode(
+                                                node,
+                                                ctx,
+                                                globalScale,
+                                                hoverNode,
+                                                selectedNode,
+                                                shouldFade,
+                                                fadeNonTopArtists,
+                                                mode
+                                            );
+                                        }
                                     }
-                                />
-                            </div>
+                                }}
+                                onNodeClick={openSidebarForArtist}
+                                onBackgroundClick={() => {
+                                    setSelectedNode(null);
+                                }}
+                                onZoom={() =>
+                                    drawLinksIfNeeded()
+                                }
+                                onPan={() =>
+                                    drawLinksIfNeeded()
+                                }
+                            />
+                        </div>
 
                         {/* Last updated timestamp */}
                         {mode === "Top1000" && lastSyncTime && (
