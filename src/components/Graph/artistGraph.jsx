@@ -3,7 +3,12 @@ import { ForceGraph2D } from "react-force-graph";
 import useTooltip from "./useTooltip.jsx";
 import {renderArtistNode} from "./artistNodeRenderer.js";
 import drawLinks from "../../utils/drawLinks.jsx";
-import {fetchAllGenres, fetchCustomArtistAndLinkData, fetchUserTopArtistGraph} from "../../utils/dataFetcher.js";
+import {
+    fetchAllGenres,
+    fetchCustomArtistAndLinkData,
+    fetchUserImportProgress, fetchUserMissingArtistIds,
+    fetchUserTopArtistGraph
+} from "../../utils/dataFetcher.js";
 import {useGraphInit} from "../../utils/graphInit.jsx";
 import Sidebar from "../Sidebar/sidebar.jsx";
 import {ArtistNode} from "../../models/artistNode.js";
@@ -16,6 +21,12 @@ export default function ArtistGraph({ mode, param, user }) {
     const userId = user?.id;
 
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoadedGraph, setHasLoadedGraph] = useState(false);
+    const [progressInfo, setProgressInfo] = useState({
+        foundCount: 0,
+        totalCount: 0,
+        progress: 0
+    });
 
     const { showTooltip, hideTooltip } = useTooltip(getNodeLabel);
     const [artistNodes, setArtistNodes] = useState([]);
@@ -46,14 +57,6 @@ export default function ArtistGraph({ mode, param, user }) {
 
     const activeGenreNameSet = useMemo(() => {
         return new Set(allTopGenres.filter(g => g.toggled).map(g => g.name));
-    }, [allTopGenres]);
-
-    const visibleLabelNameSet = useMemo(() => {
-        if (!Array.isArray(allTopGenres) || allTopGenres.length === 0) return new Set();
-
-        const toggledGenres = allTopGenres.filter(g => g.toggled);
-        const topLabels = generateGenreLabelNodes(toggledGenres, 10);
-        return new Set(topLabels.map(g => toTitleCase(g.name)));
     }, [allTopGenres]);
 
     const { minCount, maxCount } = useMemo(() => {
@@ -96,10 +99,21 @@ export default function ArtistGraph({ mode, param, user }) {
         return map;
     }, [artistNodesRaw]);
 
+    const visibleLabelNameSet = useMemo(() => {
+        if (!Array.isArray(allTopGenres) || allTopGenres.length === 0 || (artistNodesRaw && artistNodesRaw.length <= 100)) return new Set();
+
+        const toggledGenres = allTopGenres.filter(g => g.toggled);
+        const topLabels = generateGenreLabelNodes(toggledGenres, 10);
+        return new Set(topLabels.map(g => toTitleCase(g.name)));
+    }, [allTopGenres]);
+
     const graphScale = useMemo(() => {
         const artistCount = artistNodesRaw.length;
-        return Math.max(artistCount * 20, 2000) / 20000;
+        const baseScale = 4500;
+        const perArtist = 18;
+        return Math.max(artistCount * perArtist, baseScale) / 20000;
     }, [artistNodesRaw.length]);
+
 
     function removeNodeFromGraph(nodeId) {
         // Remove from artistNodes
@@ -158,19 +172,27 @@ export default function ArtistGraph({ mode, param, user }) {
             } else if (mode === "ArtistBased" && param) {
                 console.warn("[ArtistGraph] ArtistBased mode not implemented yet.");
             } else if (mode === "UserTop" && userId) {
-                let nodes = [];
-                let links = [];
+                setIsLoading(true);
 
                 try {
-                    const result = await fetchUserTopArtistGraph(userId, user.topSpotifyIds);
-                    nodes = result.nodes;
-                    links = result.links;
+                    const progressData = await fetchUserImportProgress(userId);
+                    setProgressInfo(progressData);
+
+                    if (progressData.progress >= 1.0 || progressData.totalCount === 0) {
+                        const { nodes: rawNodesFromApi, links: rawLinksFromApi } = await fetchUserTopArtistGraph(userId);
+                        artistNodesRaw = rawNodesFromApi;
+                        rawLinks = rawLinksFromApi;
+                        setIsLoading(false);
+                        setHasLoadedGraph(true);
+                    } else {
+                        artistNodesRaw = [];
+                        rawLinks = [];
+                    }
                 } catch (err) {
                     console.warn("Failed to fetch UserTop graph:", err.message);
+                    artistNodesRaw = [];
+                    rawLinks = [];
                 }
-
-                artistNodesRaw = nodes;
-                rawLinks = links;
             }
 
             setLastSyncTime(parseLastSync(lastSync));
@@ -208,8 +230,7 @@ export default function ArtistGraph({ mode, param, user }) {
 
     useEffect(() => {
         function buildGraph() {
-            console.log(`Building ${mode} Graph`);
-            if (allGenresRaw.length === 0 || artistNodesRaw.length === 0) {
+            if (allGenresRaw.length === 0 || (artistNodesRaw.length === 0 && !hasLoadedGraph)) {
                 setArtistNodes([]);
                 setGraphData({ nodes: [], links: [] });
                 setAllTopGenres([]);
@@ -217,6 +238,7 @@ export default function ArtistGraph({ mode, param, user }) {
                 setAllLinks([]);
                 return;
             }
+            console.log(`Building ${mode} Graph`);
 
             // Build artist map by ID for fast lookup
             const relatedMap = {};
@@ -230,7 +252,25 @@ export default function ArtistGraph({ mode, param, user }) {
             const artistNodes = artistNodesRaw.map(artist => {
                 const node = new ArtistNode(artist);
                 node.labelNode = false;
-                node.radius = Math.pow(artist.popularity / 100, 4.5) * 70 + 5;
+
+                // Always calculate and store both radius types
+                const popularityRadius = Math.pow(artist.popularity / 100, 4.5) * 70 + 5;
+
+                const userRank = userAllRanks?.get(artist.id);
+                const graphSizeOffsetFactor = (graphScale + ((1 - graphScale) * 0.6));
+                const maxSize = 80 * graphSizeOffsetFactor;
+                const minSize = 15 * graphSizeOffsetFactor;
+                const normalizedRank = Math.min(userRank - 1, 99) / 99;
+
+                let userRankRadius = maxSize - normalizedRank * (maxSize - minSize);
+                if (userRank < 10) userRankRadius *= 1.25;
+
+                // Save both for easy access later
+                node.popularityRadius = popularityRadius;
+                node.userRankRadius = userRankRadius;
+
+                // Still assign one as the default so ForceGraph doesn't break
+                node.radius = popularityRadius; // or userRankRadius depending on context
 
                 node.x *= graphScale;
                 node.y *= graphScale;
@@ -287,6 +327,37 @@ export default function ArtistGraph({ mode, param, user }) {
     }, [artistNodesRaw, allGenresRaw, rawLinks]);
 
     // endregion
+
+    useEffect(() => {
+        let interval;
+
+        if (mode === "UserTop" && user?.id && progressInfo.progress < 1.0) {
+            interval = setInterval(async () => {
+                const { foundCount, totalCount, progress } = await fetchUserImportProgress(user.id);
+                setProgressInfo({ foundCount, totalCount, progress });
+
+                if (progress >= 1.0) {
+                    clearInterval(interval);
+                    await loadGraph();
+                } else {
+                    //await logMissingArtists(user);
+                }
+            }, 1000);
+        }
+
+        return () => clearInterval(interval);
+    }, [mode, user, progressInfo.progress]);
+
+    async function logMissingArtists(user) {
+        try {
+            const debugData = await fetchUserMissingArtistIds(user.id, user.topSpotifyIds);
+
+            console.log("Ingestion Summary:", debugData.summary);
+            console.log("Missing artist IDs:", debugData.missingIds);
+        } catch (err) {
+            console.error("Error checking missing artists:", err);
+        }
+    }
 
     // region Search bar functions
     function getNodeLabel(node) {
@@ -371,16 +442,14 @@ export default function ArtistGraph({ mode, param, user }) {
 
     function getEffectiveNodeRadius(node, mode, fadeNonTopArtists, userRank) {
         const shouldSizeByRank =
-            (mode === "UserTop" && typeof userRank === "number" && userRank > 0) || (fadeNonTopArtists && typeof userRank === "number" && userRank > 0);
+            (mode === "UserTop" && typeof userRank === "number")
+            || (fadeNonTopArtists && typeof userRank === "number");
 
         if (shouldSizeByRank) {
-            const maxSize = 80;
-            const minSize = 15;
-            const normalizedRank = Math.min(userRank - 1, 99) / 99;
-            return maxSize - normalizedRank * (maxSize - minSize);
+            return node.userRankRadius ?? 15;
         }
 
-        return node.radius;
+        return node.popularityRadius ?? node.radius ?? 15;
     }
     // endregion
 
@@ -573,8 +642,8 @@ export default function ArtistGraph({ mode, param, user }) {
                                         }
                                     }}
                                     nodePointerAreaPaint={(node, color, ctx) => {
-                                        const userRank = userAllRanks?.get(node.id);
-                                        const radius = getEffectiveNodeRadius(node, mode, fadeNonTopArtists, userRank);
+                                        let radius = node.popularityRadius;
+                                        if (mode === "UserTop") radius = node.userRankRadius;
                                         ctx.fillStyle = color;
                                         ctx.beginPath();
                                         ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
@@ -587,21 +656,18 @@ export default function ArtistGraph({ mode, param, user }) {
                                         } else {
                                             const shouldFade = shouldFadeNode(node); // Always genre-based
 
-                                            // Only get userRank if userTopRanks exists
-                                            const userRank = userAllRanks?.get?.(node.id) ?? 0;
-
-                                            const radius = getEffectiveNodeRadius(node, mode, fadeNonTopArtists, userRank);
-
-                                            renderArtistNode(
-                                                node,
-                                                ctx,
-                                                globalScale,
-                                                hoverNode,
-                                                selectedNode,
-                                                shouldFade,
-                                                fadeNonTopArtists,
-                                                radius
-                                            );
+                                            if (activeGenreNameSet.has(node.genres[0])) {
+                                                renderArtistNode(
+                                                    node,
+                                                    ctx,
+                                                    globalScale,
+                                                    hoverNode,
+                                                    selectedNode,
+                                                    shouldFade,
+                                                    fadeNonTopArtists,
+                                                    mode
+                                                );
+                                            }
                                         }
                                     }}
                                     onNodeClick={openSidebarForArtist}
@@ -653,10 +719,24 @@ export default function ArtistGraph({ mode, param, user }) {
                 ) : (
                     <div style={graphStyles.emptyStateWrapper}>
                         <div style={graphStyles.emptyStateBox}>
-                            {isLoading && <div style={graphStyles.spinner} />}
                             <div style={graphStyles.emptyStateText}>
-                                {isLoading ? "Loading web..." : "No artist data"}
+                                {progressInfo !== null && progressInfo.progress < 1.0
+                                    ? `Importing ${user?.display_name}'s top artists...`
+                                    : "No artist data"}
                             </div>
+                            {progressInfo !== null && progressInfo.progress < 1.0 && (
+                                <div style={graphStyles.progressBarWrapper}>
+                                    <div
+                                        style={{
+                                            ...graphStyles.progressBarFill,
+                                            width: `${progressInfo.progress * 100}%`
+                                        }}
+                                    />
+                                    <span style={graphStyles.progressTextCentered}>
+                                        {progressInfo.foundCount} / {progressInfo.totalCount}
+                                      </span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -813,4 +893,43 @@ const graphStyles = {
         borderRadius: "8px",
         boxShadow: "0 0 20px rgba(255,255,255,0.05)",
     },
+    progressBarWrapper: {
+        width: "100%",
+        height: "22px",
+        backgroundColor: "#222",
+        border: "1px solid #444",
+        borderRadius: "6px",
+        overflow: "hidden",
+        marginTop: "12px",
+        position: "relative"
+    },
+    progressBarFill: {
+        height: "100%",
+        backgroundColor: "#00ff99",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        transition: "width 0.3s ease"
+    },
+    progressTextInside: {
+        color: "#000",
+        fontWeight: "bold",
+        fontSize: "13px",
+        whiteSpace: "nowrap"
+    },
+    progressTextCentered: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: "bold",
+        fontSize: "13px",
+        color: "#fff",
+        pointerEvents: "none",
+        textShadow: "0 0 2px rgba(0,0,0,0.8)"
+    }
 };

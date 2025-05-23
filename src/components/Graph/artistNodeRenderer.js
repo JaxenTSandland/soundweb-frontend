@@ -8,7 +8,7 @@ export function renderArtistNode(
     selectedNode,
     shouldFadeExplicitly,
     fadeNonTopArtists,
-    radius
+    mode
 ) {
     const isSelected = selectedNode && node.id === selectedNode.id;
     const isHovered = hoverNode && node.id === hoverNode.id;
@@ -33,6 +33,9 @@ export function renderArtistNode(
     } else {
         ctx.globalAlpha = 1;
     }
+
+    let radius = node.popularityRadius;
+    if (mode === "UserTop") radius = node.userRankRadius;
 
     const fontSize = Math.max(5, radius / 3);
     const maxTextWidth = radius * 1.5;

@@ -169,23 +169,45 @@ export async function initializeUserIfNeeded(userId, topSpotifyIds) {
     }
 }
 
-export async function fetchUserTopArtistGraph(userId, topSpotifyIds) {
-    console.log(userId);
-    console.log(topSpotifyIds);
-    if (!userId || !Array.isArray(topSpotifyIds) || topSpotifyIds.length === 0) {
-        throw new Error("Invalid input for fetchUserTopArtistGraph");
-    }
+export async function fetchUserTopArtistGraph(userId) {
+    if (!userId) throw new Error("Missing user ID");
 
-    const response = await fetch(`${getBackendUrl()}/api/graph/user/${userId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spotify_ids: topSpotifyIds })
-    });
+    const response = await fetch(`${getBackendUrl()}/api/graph/user/${userId}`);
 
     if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to fetch user top graph: ${response.status} - ${errorText}`);
     }
 
-    return await response.json(); // { nodes, links, foundCount, totalCount, progress }
+    return await response.json(); // { nodes, links }
+}
+
+export async function fetchUserImportProgress(userId) {
+    const response = await fetch(`${getBackendUrl()}/api/progress/user/${userId}`);
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch import progress: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json(); // { foundCount, totalCount, progress }
+}
+
+export async function fetchUserMissingArtistIds(userTag, spotifyIds) {
+    if (!userTag || !Array.isArray(spotifyIds) || spotifyIds.length === 0) {
+        throw new Error("Invalid input for fetchUserMissingArtistIds");
+    }
+
+    const response = await fetch(`${getBackendUrl()}/api/debug/user/${userTag}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ spotify_ids: spotifyIds })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch debug info: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json(); // { summary, ingestedIds, missingIds }
 }

@@ -31,6 +31,8 @@ export class ArtistNode {
         this.relatedArtists = relatedArtists;
         this.rank = rank;
         this.lastUpdated = lastUpdated;
+        this.popularityRadius = null;
+        this.userRankRadius = null;
     }
 
     appendUserTag(tag) {
@@ -64,7 +66,10 @@ export class ArtistNode {
             userTags: this.userTags,
             relatedArtists: this.relatedArtists,
             rank: this.rank,
-            lastUpdated: this.lastUpdated
+            lastUpdated: this.lastUpdated,
+            popularityRadius: this.popularityRadius,
+            userRankRadius: this.userRankRadius
         };
     }
+
 }
