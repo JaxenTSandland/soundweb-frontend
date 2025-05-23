@@ -4,7 +4,7 @@ import { StrictMode } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './index.css';
 import App from './App.jsx';
-import Callback from './Auth/callback.jsx';
+import Callback from './auth/callback.jsx';
 
 function Root() {
     const [user, setUser] = useState(null);

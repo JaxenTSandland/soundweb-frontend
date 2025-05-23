@@ -38,14 +38,14 @@ export default function GraphFooter({ activeTab, switchToTop1000, switchToArtist
             {/*    </button>*/}
             {/*}*/}
 
-            { user &&
+            {user && (
                 <button
                     className={activeTab.mode === "UserTop" ? "active" : ""}
-                    onClick={() => switchToUserTop()}
-                    >
+                    onClick={switchToUserTop}
+                >
                     My Spotify Graph
                 </button>
-            }
+            )}
 
         </div>
     );

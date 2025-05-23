@@ -170,6 +170,8 @@ export async function initializeUserIfNeeded(userId, topSpotifyIds) {
 }
 
 export async function fetchUserTopArtistGraph(userId, topSpotifyIds) {
+    console.log(userId);
+    console.log(topSpotifyIds);
     if (!userId || !Array.isArray(topSpotifyIds) || topSpotifyIds.length === 0) {
         throw new Error("Invalid input for fetchUserTopArtistGraph");
     }
