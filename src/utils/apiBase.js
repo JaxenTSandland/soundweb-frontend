@@ -23,6 +23,6 @@ export function getHomePageLink() {
     if (import.meta.env.DEV) {
         return "http://localhost:5173/";
     } else {
-        return "https://soundweb-frontend-production.up.railway.app/";
+        return "https://soundweb.up.railway.app/";
     }
 }
