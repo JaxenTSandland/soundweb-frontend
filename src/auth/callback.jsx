@@ -38,7 +38,7 @@ export default function Callback({ setUser }) {
                 console.error("Login or sync failed:", err);
 
                 if (err.status === 401 || err.message?.includes("re-login")) {
-                    alert("[CALLBACK.jsx] Session expired or sync failed. Please log in again.");
+                    alert("Session expired or sync failed. Please log in again.");
                 } else {
                     alert("Something went wrong during login. Try again.");
                 }

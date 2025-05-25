@@ -55,10 +55,12 @@ function App({ user, setUser }) {
                     console.warn("Ping failed:", err);
 
                     if (err.status === 401 || err.status === 400) {
-                        alert("[APP.jsx] Your Spotify session has expired. Please log in again.");
+                        alert("Your Spotify session has expired. Please log in again.");
                         localStorage.removeItem("soundweb_user");
                         setUser(null);
                         window.location.href = import.meta.env.VITE_SOUNDWEB_HOMEPAGE;
+                    } else if (err.status === 404) {
+
                     }
                 });
         }, 250);

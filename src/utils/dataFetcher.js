@@ -167,7 +167,9 @@ export async function fetchUserImportProgress(userId) {
 
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to fetch import progress: ${response.status} - ${errorText}`);
+        const error = new Error(`Failed to fetch import progress: ${response.status} - ${errorText}`);
+        error.status = response.status;
+        throw error;
     }
 
     return await response.json(); // { foundCount, totalCount, progress }

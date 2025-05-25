@@ -190,7 +190,13 @@ export default function ArtistGraph({ mode, param, user }) {
                         rawLinks = [];
                     }
                 } catch (err) {
-                    console.warn("Failed to fetch UserTop graph:", err.message);
+                    if (err.status === 404) {
+                        console.warn(`No artist data for ${user.display_name} found`);
+                        setIsLoading(false);
+                        setHasLoadedGraph(true);
+                    } else
+                        console.warn("Failed to fetch UserTop graph:", err.message);
+
                     artistNodesRaw = [];
                     rawLinks = [];
                 }
@@ -334,14 +340,24 @@ export default function ArtistGraph({ mode, param, user }) {
 
         if (mode === "UserTop" && user?.id && progressInfo.progress < 1.0) {
             interval = setInterval(async () => {
-                const { foundCount, totalCount, progress } = await fetchUserImportProgress(user.id);
-                setProgressInfo({ foundCount, totalCount, progress });
+                try {
+                    const { foundCount, totalCount, progress } = await fetchUserImportProgress(user.id);
+                    setProgressInfo({ foundCount, totalCount, progress });
 
-                if (progress >= 1.0) {
-                    clearInterval(interval);
-                    await loadGraph();
-                } else {
-                    //await logMissingArtists(user);
+                    if (progress >= 1.0 || totalCount === 0) {
+                        clearInterval(interval);
+                        await loadGraph();
+                    }
+                } catch (err) {
+                    if (err.status === 404) {
+                        clearInterval(interval);
+                        setProgressInfo({ foundCount: 0, totalCount: 0, progress: 1 });
+                        setHasLoadedGraph(true);
+                        setIsLoading(false);
+                        await loadGraph();
+                    } else {
+                        console.warn("Import polling failed:", err);
+                    }
                 }
             }, 1000);
         }
