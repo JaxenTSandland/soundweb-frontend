@@ -1,9 +1,8 @@
-import { getBackendUrl, getIngestorUrl } from "./apiBase.js";
 import {refreshTop1000Cache} from "../cache/top1000.js";
 
 export async function fetchTopArtistData() {
     try {
-        const res = await fetch(`${getBackendUrl()}/api/artists/top?max=1000`);
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/artists/top?max=1000`);
         const artistData = await res.json();
         return {
             artistNodesRaw: artistData.nodes || [],
@@ -18,9 +17,10 @@ export async function fetchTopArtistData() {
 
 export async function fetchCustomArtistAndLinkData(max = 1000, user_id = null) {
     try {
+        const backendUrl = import.meta.env.VITE_BACKEND_URL;
         const res = await fetch(user_id
-            ? `${getBackendUrl()}/api/artists/by-usertag/${user_id}`
-            : `${getBackendUrl()}/api/artists/custom?max=${max}`
+            ? `${backendUrl}/api/artists/by-usertag/${user_id}`
+            : `${backendUrl}/api/artists/custom?max=${max}`
         );
         const artistData = await res.json();
         return {
@@ -36,7 +36,7 @@ export async function fetchCustomArtistAndLinkData(max = 1000, user_id = null) {
 
 export async function fetchLastSync() {
     try {
-        const res = await fetch(`${getBackendUrl()}/api/metadata/last-sync`);
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/metadata/last-sync`);
         const json = await res.json();
         return json.lastSync || null;
     } catch (error) {
@@ -46,13 +46,13 @@ export async function fetchLastSync() {
 }
 
 export async function fetchAllGenres() {
-    const res = await fetch(`${getBackendUrl()}/api/genres/all`);
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/genres/all`);
     return res.json();
 }
 
 export async function refreshCustomArtistData(user_tag) {
     try {
-        const res = await fetch(`${getIngestorUrl()}/api/refresh-custom-artists`, {
+        const res = await fetch(`${import.meta.env.VITE_INGESTOR_API_URL}/api/refresh-custom-artists`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ user_tag })
@@ -71,7 +71,7 @@ export async function addArtistToCustomGraph(selectedNode, userId) {
             user_tag: userId,
             spotify_id: selectedNode.spotifyId
         };
-        const addArtistRes = await fetch(`${getIngestorUrl()}/api/custom-artist`, {
+        const addArtistRes = await fetch(`${import.meta.env.VITE_INGESTOR_API_URL}/api/custom-artist`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -81,7 +81,7 @@ export async function addArtistToCustomGraph(selectedNode, userId) {
 
         const addArtistJson = await addArtistRes.json();
 
-        const deleteCacheTopArtistRes = await fetch(`${getBackendUrl()}/api/cache?key=artistGraph:top:1000`, {
+        const deleteCacheTopArtistRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/cache?key=artistGraph:top:1000`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" }
         });
@@ -89,7 +89,7 @@ export async function addArtistToCustomGraph(selectedNode, userId) {
             alert(`Something went wrong deleting the cache data of the top 1000 artists`)
         }
 
-        const cacheUserClearRes = await fetch(`${getBackendUrl()}/api/cache?key=artists:by-usertag:${userId}`, {
+        const cacheUserClearRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/cache?key=artists:by-usertag:${userId}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" }
         });
@@ -115,7 +115,7 @@ export async function removeArtistFromCustomGraph(selectedNode, userId) {
             spotify_id: selectedNode.spotifyId
         };
 
-        const removeArtistRes = await fetch(`${getIngestorUrl()}/api/remove-custom-artist-usertag`, {
+        const removeArtistRes = await fetch(`${import.meta.env.VITE_INGESTOR_API_URL}/api/remove-custom-artist-usertag`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -128,7 +128,7 @@ export async function removeArtistFromCustomGraph(selectedNode, userId) {
 
         const removeArtistJson = await removeArtistRes.json();
 
-        const cacheClearRes = await fetch(`${getBackendUrl()}/api/cache?key=artists:by-usertag:${userId}`, {
+        const cacheClearRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/cache?key=artists:by-usertag:${userId}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" }
         });
@@ -152,7 +152,7 @@ export async function removeArtistFromCustomGraph(selectedNode, userId) {
 export async function fetchUserTopArtistGraph(userId) {
     if (!userId) throw new Error("Missing user ID");
 
-    const response = await fetch(`${getBackendUrl()}/api/graph/user/${userId}`);
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/graph/user/${userId}`);
 
     if (!response.ok) {
         const errorText = await response.text();
@@ -163,7 +163,7 @@ export async function fetchUserTopArtistGraph(userId) {
 }
 
 export async function fetchUserImportProgress(userId) {
-    const response = await fetch(`${getBackendUrl()}/api/progress/user/${userId}`);
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/progress/user/${userId}`);
 
     if (!response.ok) {
         const errorText = await response.text();
@@ -178,7 +178,7 @@ export async function fetchUserMissingArtistIds(userTag, spotifyIds) {
         throw new Error("Invalid input for fetchUserMissingArtistIds");
     }
 
-    const response = await fetch(`${getBackendUrl()}/api/debug/user/${userTag}`, {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/debug/user/${userTag}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ spotify_ids: spotifyIds })
@@ -193,7 +193,7 @@ export async function fetchUserMissingArtistIds(userTag, spotifyIds) {
 }
 
 export async function pingUser(userId) {
-    const res = await fetch(`${getBackendUrl()}/api/users/ping`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/ping`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_tag: userId })
@@ -210,7 +210,7 @@ export async function pingUser(userId) {
 }
 
 export async function handleSpotifyAuthCallback(code, codeVerifier) {
-    const res = await fetch(`${getBackendUrl()}/api/spotify/callback`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/spotify/callback`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, code_verifier: codeVerifier })

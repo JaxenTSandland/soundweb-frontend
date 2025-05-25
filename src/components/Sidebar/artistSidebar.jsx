@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { getBackendUrl } from "../../utils/apiBase.js";
 import GenreTags from "./Components/genreTags.jsx";
 import TopTracks from "./Components/topTracks.jsx";
 import RecentReleases from "./Components/recentReleases.jsx";
@@ -8,27 +7,26 @@ import {addArtistToCustomGraph, removeArtistFromCustomGraph} from "../../utils/d
 import {
     addUserTagToTop1000Node, removeUserTagFromNodeInCache
 } from "../../cache/top1000.js";
-import ArtistAddOrRemoveButton from "./Components/addOrRemoveButton.jsx";
 
 
 export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, user, mode, removeNodeFromGraph, reloadGraph, userTopRanks, globalRanks }) {
     const [expandedData, setExpandedData] = useState(null);
-    const baseUrl = getBackendUrl();
+    const baseUrl = import.meta.env.VITE_BACKEND_URL;
     const userId = user?.id;
-    const [isAddingArtist, setIsAddingArtist] = useState(false);
-    const [isRemovingArtist, setIsRemovingArtist] = useState(false);
-    const addArtistToCustomGraphVar = async () => {
-        setIsAddingArtist(true);
-        const addArtistJson = await addArtistToCustomGraph(selectedNode, userId);
-        setIsAddingArtist(false);
-
-        const updatedNode = addArtistJson?.data?.artistNode || selectedNode.appendUserTag(user.id);
-
-        if (updatedNode) {
-            addUserTagToTop1000Node(selectedNode.spotifyId, user.id)
-            setSelectedNode(updatedNode);
-        }
-    };
+    // const [isAddingArtist, setIsAddingArtist] = useState(false);
+    // const [isRemovingArtist, setIsRemovingArtist] = useState(false);
+    // const addArtistToCustomGraphVar = async () => {
+    //     setIsAddingArtist(true);
+    //     const addArtistJson = await addArtistToCustomGraph(selectedNode, userId);
+    //     setIsAddingArtist(false);
+    //
+    //     const updatedNode = addArtistJson?.data?.artistNode || selectedNode.appendUserTag(user.id);
+    //
+    //     if (updatedNode) {
+    //         addUserTagToTop1000Node(selectedNode.spotifyId, user.id)
+    //         setSelectedNode(updatedNode);
+    //     }
+    // };
 
     const removeArtistFromCustomGraphVar = async () => {
         setIsRemovingArtist(true);
@@ -38,7 +36,7 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
         removeUserTagFromNodeInCache(selectedNode.spotifyId, userId);
         selectedNode.userTags = selectedNode.userTags.filter(tag => tag !== userId);
 
-        await fetch(`${getBackendUrl()}/api/cache?key=artists:by-usertag:${userId}`, {
+        await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/cache?key=artists:by-usertag:${userId}`, {
             method: "DELETE"
         });
 

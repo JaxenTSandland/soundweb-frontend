@@ -4,9 +4,6 @@ export default function drawLinks(canvas, nodes, links, graph, selectedNode) {
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Optional: skip drawing when zoomed way out
-    // if (graph.zoom() < 0.08) return;
-
     const zoom = graph.zoom?.() || 1;
 
     // Build node lookup map

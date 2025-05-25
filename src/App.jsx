@@ -4,8 +4,6 @@ import ArtistGraph from "./components/Graph/artistGraph.jsx";
 import GraphFooter from "./components/Footer/graphFooter.jsx";
 import TopBar from "./components/TopBar/topBar.jsx";
 import { generateCodeChallenge, generateRandomString } from "./utils/pkceUtils.js";
-import {getHomePageLink, getSpotifyRedirectUrl} from "./utils/apiBase.js";
-import AddArtistModal from "./components/addArtistModal.jsx";
 import {User} from "./models/user.js";
 import {pingUser} from "./utils/dataFetcher.js";
 
@@ -60,7 +58,7 @@ function App({ user, setUser }) {
                         alert("[APP.jsx] Your Spotify session has expired. Please log in again.");
                         localStorage.removeItem("soundweb_user");
                         setUser(null);
-                        window.location.href = getHomePageLink();
+                        window.location.href = import.meta.env.VITE_SOUNDWEB_HOMEPAGE;
                     }
                 });
         }, 250);
@@ -86,7 +84,7 @@ function App({ user, setUser }) {
     // Auth
     async function handleLogin() {
         const spotifyClientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-        const redirectUri = getSpotifyRedirectUrl();
+        const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
         const spotifyScope = "user-read-email user-read-private user-top-read";
 
         const codeVerifier = generateRandomString(128);
@@ -111,7 +109,7 @@ function App({ user, setUser }) {
         localStorage.removeItem("spotify_access_token");
         setUser(null);
         localStorage.removeItem("soundweb_user");
-        window.location.href = getHomePageLink();
+        window.location.href = import.meta.env.VITE_SOUNDWEB_HOMEPAGE;
     }
 
     return (
