@@ -149,26 +149,6 @@ export async function removeArtistFromCustomGraph(selectedNode, userId) {
     }
 }
 
-export async function initializeUserIfNeeded(userId, topSpotifyIds) {
-    if (!userId || !Array.isArray(topSpotifyIds) || topSpotifyIds.length === 0) {
-        console.warn("Skipping user initialization: invalid input");
-        return;
-    }
-
-    try {
-        await fetch(`${getBackendUrl()}/api/users`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                user_tag: userId,
-                spotify_ids: topSpotifyIds
-            })
-        });
-    } catch (err) {
-        console.warn(`User init request failed for ${userId}:`, err.message);
-    }
-}
-
 export async function fetchUserTopArtistGraph(userId) {
     if (!userId) throw new Error("Missing user ID");
 
@@ -210,4 +190,38 @@ export async function fetchUserMissingArtistIds(userTag, spotifyIds) {
     }
 
     return await response.json(); // { summary, ingestedIds, missingIds }
+}
+
+export async function pingUser(userId) {
+    const res = await fetch(`${getBackendUrl()}/api/users/ping`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_tag: userId })
+    });
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        const error = new Error(errorText);
+        error.status = res.status;
+        throw error;
+    }
+
+    return await res.json();
+}
+
+export async function handleSpotifyAuthCallback(code, codeVerifier) {
+    const res = await fetch(`${getBackendUrl()}/api/spotify/callback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, code_verifier: codeVerifier })
+    });
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        const error = new Error(errorText);
+        error.status = res.status;
+        throw error;
+    }
+
+    return await res.json();
 }

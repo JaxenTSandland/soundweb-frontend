@@ -1,8 +1,7 @@
 import {useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
-import {getBackendUrl} from "../utils/apiBase.js";
 import {User} from "../models/user.js";
-import {initializeUserIfNeeded} from "../utils/dataFetcher.js";
+import {handleSpotifyAuthCallback, pingUser} from "../utils/dataFetcher.js";
 
 export default function Callback({ setUser }) {
     const hasFetchedRef = useRef(false);
@@ -14,40 +13,40 @@ export default function Callback({ setUser }) {
 
         const fetchSpotifyUser = async () => {
             const params = new URLSearchParams(window.location.search);
-
             const code = params.get("code");
-            if (!code) {
-                console.error("Missing authorization code from URL.");
-                navigate("/");
-                return;
-            }
             const codeVerifier = localStorage.getItem("spotify_code_verifier");
 
-            if (!codeVerifier) {
-                console.error("Missing code_verifier");
-                return;
-            }
-
-            const backendUrl = getBackendUrl();
-
-            const backendResponse = await fetch(`${backendUrl}/api/spotify/callback`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code, code_verifier: codeVerifier })
-            });
-
-            if (!backendResponse.ok) {
-                console.error("Spotify login failed:", await backendResponse.text());
+            if (!code || !codeVerifier) {
+                console.error("Missing auth info");
                 navigate("/");
                 return;
             }
 
-            const rawData = await backendResponse.json();
-            const user = new User(rawData);
-            setUser(user);
-            navigate("/");
+            try {
+                const baseData = await handleSpotifyAuthCallback(code, codeVerifier);
+                const user = new User(baseData);
 
-            initializeUserIfNeeded(user.id, user.topSpotifyIds);
+                const pingResult = await pingUser(user.id);
+                if (pingResult?.spotify_ids) {
+                    user.topSpotifyIds = pingResult.spotify_ids;
+                }
+
+                setUser(user);
+                localStorage.setItem("soundweb_user", JSON.stringify(user));
+                navigate("/");
+            } catch (err) {
+                console.error("Login or sync failed:", err);
+
+                if (err.status === 401 || err.message?.includes("re-login")) {
+                    alert("[CALLBACK.jsx] Session expired or sync failed. Please log in again.");
+                } else {
+                    alert("Something went wrong during login. Try again.");
+                }
+
+                localStorage.removeItem("soundweb_user");
+                setUser(null);
+                navigate("/");
+            }
         };
 
         fetchSpotifyUser();

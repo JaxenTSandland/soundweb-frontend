@@ -6,12 +6,15 @@ import TopBar from "./components/TopBar/topBar.jsx";
 import { generateCodeChallenge, generateRandomString } from "./utils/pkceUtils.js";
 import {getHomePageLink, getSpotifyRedirectUrl} from "./utils/apiBase.js";
 import AddArtistModal from "./components/addArtistModal.jsx";
+import {User} from "./models/user.js";
+import {pingUser} from "./utils/dataFetcher.js";
 
 function App({ user, setUser }) {
     const [activeTab, setActiveTab] = useState({ mode: "Top1000", param: null });
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [showAddArtistModal, setShowAddArtistModal] = useState(false);
-    const [addArtistSearch, setAddArtistSearch] = useState("");
+    const hasPingedRef = useRef(false);
+    // const [showAddArtistModal, setShowAddArtistModal] = useState(false);
+    // const [addArtistSearch, setAddArtistSearch] = useState("");
     const dropdownRef = useRef();
     const menuButtonRef = useRef(null);
 
@@ -30,6 +33,39 @@ function App({ user, setUser }) {
         return () => document.removeEventListener("mousedown", handleClickOutside, true);
     }, [dropdownOpen]);
 
+    useEffect(() => {
+        const savedUser = localStorage.getItem("soundweb_user");
+        if (!savedUser || hasPingedRef.current) {
+            return;
+        }
+
+        const parsed = JSON.parse(savedUser);
+        const userObj = new User(parsed);
+        setUser(userObj);
+        hasPingedRef.current = true;
+
+        setTimeout(() => {
+            pingUser(userObj.id)
+                .then(result => {
+                    if (result?.spotify_ids) {
+                        userObj.topSpotifyIds = result.spotify_ids;
+                        setUser(userObj);
+                        localStorage.setItem("soundweb_user", JSON.stringify(userObj));
+                    }
+                })
+                .catch(err => {
+                    console.warn("Ping failed:", err);
+
+                    if (err.status === 401 || err.status === 400) {
+                        alert("[APP.jsx] Your Spotify session has expired. Please log in again.");
+                        localStorage.removeItem("soundweb_user");
+                        setUser(null);
+                        window.location.href = getHomePageLink();
+                    }
+                });
+        }, 250);
+
+    }, []);
 
     // Navigation
     function switchToTop1000() {
@@ -63,7 +99,8 @@ function App({ user, setUser }) {
             redirect_uri: redirectUri,
             code_challenge_method: "S256",
             code_challenge: codeChallenge,
-            scope: spotifyScope
+            scope: spotifyScope,
+            prompt: "consent"
         });
 
         window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
@@ -73,6 +110,7 @@ function App({ user, setUser }) {
         setDropdownOpen(false);
         localStorage.removeItem("spotify_access_token");
         setUser(null);
+        localStorage.removeItem("soundweb_user");
         window.location.href = getHomePageLink();
     }
 
