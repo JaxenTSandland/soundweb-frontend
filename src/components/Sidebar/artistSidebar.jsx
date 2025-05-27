@@ -96,20 +96,19 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
             <button onClick={() => setSelectedNode(null)} style={styles.closeButton}>
                 ×
             </button>
-            { mode === "Top1000" && (
-                <div style={styles.rankBadge}>
-                    {typeof globalRanks?.get(selectedNode.id) === "number" && (
-                        <div style={(user && typeof userTopRanks?.get(selectedNode.id) === "number" ? styles.rankLine : styles.rankLineLast)}>
-                            Global: #{globalRanks.get(selectedNode.id) + 1}
-                        </div>
-                    )}
-                    {user && typeof userTopRanks?.get(selectedNode.id) === "number" && (
-                        <div style={styles.rankLineLast}>
-                            Personal: #{userTopRanks.get(selectedNode.id) + 1}
-                        </div>
-                    )}
-                </div>
-            )}
+            <div style={styles.rankBadge}>
+                {globalRanks?.has(selectedNode.id) && (
+                    <div style={(user && userTopRanks?.has(selectedNode.id) ? styles.rankLine : styles.rankLineLast)}>
+                        Global: #{globalRanks.get(selectedNode.id) + 1}
+                    </div>
+                )}
+                {user && userTopRanks?.has(selectedNode.id) && (
+                    <div style={(globalRanks?.has(selectedNode.id) ? styles.rankLineLast : styles.rankLine)}>
+                        Personal: #{userTopRanks.get(selectedNode.id) + 1}
+                    </div>
+                )}
+            </div>
+
 
             {selectedNode.imageUrl && (
                 <div style={styles.imageWrapper}>

@@ -16,8 +16,7 @@ export default function GraphFooter({ activeTab, switchToTop1000, switchToArtist
                     style={{
                         width: "14px",
                         height: "14px",
-                        filter: "invert(1)", // inverts black to white
-                        marginBottom: "1px"
+                        filter: "invert(1)"
                     }}
                 />
                 Top 1000

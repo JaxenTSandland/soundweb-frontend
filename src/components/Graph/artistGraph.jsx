@@ -16,6 +16,7 @@ import {generateGenreLabelNodes} from "../../utils/generateGenreLabelNodes.js";
 import {renderLabelNode} from "./labelNodeRenderer.js";
 import {toTitleCase} from "../../utils/textUtils.js";
 import {getTop1000Cache, refreshTop1000Cache} from "../../cache/top1000.js";
+import {globalRanks} from "../../cache/globalRankings.js";
 
 export default function ArtistGraph({ mode, param, user }) {
     const userId = user?.id;
@@ -87,18 +88,6 @@ export default function ArtistGraph({ mode, param, user }) {
     const [artistNodesRaw, setArtistNodesRaw] = useState([]);
     const [allGenresRaw, setAllGenresRaw] = useState([]);
     const [rawLinks, setRawLinks] = useState([]);
-    const globalArtistRanks = useMemo(() => {
-        const sorted = [...artistNodesRaw]
-            .filter(n => !n.labelNode)
-            .sort((a, b) => b.popularity - a.popularity);
-
-        const map = new Map();
-        sorted.forEach((artist, index) => {
-            map.set(artist.id, index);
-        });
-
-        return map;
-    }, [artistNodesRaw]);
 
     const visibleLabelNameSet = useMemo(() => {
         if (!Array.isArray(allTopGenres) || allTopGenres.length === 0 || (artistNodesRaw && artistNodesRaw.length <= 100)) return new Set();
@@ -329,12 +318,29 @@ export default function ArtistGraph({ mode, param, user }) {
                 nodes: [...artistNodes, ...labelNodes],
                 links: []
             });
+
+            if (mode === "Top1000" && globalRanks.size === 0) {
+                reloadGlobalRankings()
+            }
         }
 
         buildGraph();
     }, [artistNodesRaw, allGenresRaw, rawLinks]);
 
     // endregion
+
+    function reloadGlobalRankings() {
+        if (mode === "Top1000") {
+            const sorted = artistNodes
+                .filter(n => !n.labelNode)
+                .sort((a, b) => b.popularity - a.popularity);
+
+            globalRanks.clear();
+            sorted.forEach((artist, index) => {
+                globalRanks.set(artist.id, index);
+            });
+        }
+    }
 
     useEffect(() => {
         let interval;
@@ -380,7 +386,7 @@ export default function ArtistGraph({ mode, param, user }) {
     // region Search bar functions
     function getNodeLabel(node) {
         const personalRank = userAllRanks.get(node.id);
-        const globalRank = globalArtistRanks.get(node.id);
+        const globalRank = globalRanks.get(node.id);
 
         let rankText = "";
 
@@ -742,7 +748,7 @@ export default function ArtistGraph({ mode, param, user }) {
                         reloadGraph={loadGraph}
                         artistNodes={artistNodes}
                         userTopRanks={userAllRanks}
-                        globalRanks={globalArtistRanks}
+                        globalRanks={globalRanks}
                         shouldFadeNode={shouldFadeNode}
                     />
                 </>
