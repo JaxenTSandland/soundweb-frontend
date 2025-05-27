@@ -1,5 +1,6 @@
 import React from "react";
-import lockedIcon from "../../../assets/locked-symbol.png";
+import globalIcon from "../../../assets/global-symbol.png";
+import userIcon from "../../../assets/user-symbol.png";
 
 export default function GraphFooter({ activeTab, switchToTop1000, switchToArtistBased, switchToUserCustom, switchToUserTop, user }) {
     return (
@@ -10,7 +11,7 @@ export default function GraphFooter({ activeTab, switchToTop1000, switchToArtist
                 style={{ display: "flex", alignItems: "center", gap: "6px" }}
             >
                 <img
-                    src={lockedIcon}
+                    src={globalIcon}
                     alt="locked"
                     style={{
                         width: "14px",
@@ -39,10 +40,21 @@ export default function GraphFooter({ activeTab, switchToTop1000, switchToArtist
             {/*}*/}
 
             {user && (
+
                 <button
                     className={activeTab.mode === "UserTop" ? "active" : ""}
                     onClick={switchToUserTop}
                 >
+                    <img
+                        src={userIcon}
+                        alt="locked"
+                        style={{
+                            width: "14px",
+                            height: "14px",
+                            filter: "invert(1)", // inverts black to white
+                            marginRight: "6px"
+                        }}
+                    />
                     My Spotify Graph
                 </button>
             )}
