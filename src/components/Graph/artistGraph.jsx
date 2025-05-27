@@ -9,7 +9,7 @@ import {
     fetchUserImportProgress, fetchUserMissingArtistIds,
     fetchUserTopArtistGraph
 } from "../../utils/dataFetcher.js";
-import {useGraphInit} from "../../utils/graphInit.jsx";
+import {useGraphInit, applyGraphCentering} from "../../utils/graphInit.jsx";
 import Sidebar from "../Sidebar/sidebar.jsx";
 import {ArtistNode} from "../../models/artistNode.js";
 import {generateGenreLabelNodes} from "../../utils/generateGenreLabelNodes.js";
@@ -25,7 +25,8 @@ export default function ArtistGraph({ mode, param, user }) {
     const [progressInfo, setProgressInfo] = useState({
         foundCount: 0,
         totalCount: 0,
-        progress: 0
+        progress: 0,
+        importingNow: null
     });
 
     const { showTooltip, hideTooltip } = useTooltip(getNodeLabel);
@@ -341,8 +342,8 @@ export default function ArtistGraph({ mode, param, user }) {
         if (mode === "UserTop" && user?.id && progressInfo.progress < 1.0) {
             interval = setInterval(async () => {
                 try {
-                    const { foundCount, totalCount, progress } = await fetchUserImportProgress(user.id);
-                    setProgressInfo({ foundCount, totalCount, progress });
+                    const { foundCount, totalCount, progress, importingNow } = await fetchUserImportProgress(user.id);
+                    setProgressInfo({ foundCount, totalCount, progress, importingNow });
 
                     if (progress >= 1.0 || totalCount === 0) {
                         clearInterval(interval);
@@ -351,7 +352,7 @@ export default function ArtistGraph({ mode, param, user }) {
                 } catch (err) {
                     if (err.status === 404) {
                         clearInterval(interval);
-                        setProgressInfo({ foundCount: 0, totalCount: 0, progress: 1 });
+                        setProgressInfo({ foundCount: 0, totalCount: 0, progress: 1, importingNow: null });
                         setHasLoadedGraph(true);
                         setIsLoading(false);
                         await loadGraph();
@@ -582,7 +583,11 @@ export default function ArtistGraph({ mode, param, user }) {
         setSelectedNode(node);
     }
 
-    useGraphInit(graphRef, artistNodes, graphScale);
+    function resetZoom() {
+        applyGraphCentering(graphRef, graphData.nodes, graphScale);
+    }
+
+    useGraphInit(graphRef, graphData.nodes, graphScale);
 
     useEffect(() => {
         if (graphRef.current && canvasRef.current) {
@@ -629,6 +634,7 @@ export default function ArtistGraph({ mode, param, user }) {
                         {/* Zoom in/out buttons */}
                         <div style={graphStyles.zoomControls}>
                             <button onClick={() => handleZoom(1.65)} style={graphStyles.zoomButtonTop}>＋</button>
+                            <button onClick={resetZoom} style={graphStyles.zoomButtonReset}>⟳</button>
                             <button onClick={() => handleZoom(0.45)} style={graphStyles.zoomButtonBottom}>−</button>
                         </div>
 
@@ -744,22 +750,30 @@ export default function ArtistGraph({ mode, param, user }) {
                     <div style={graphStyles.emptyStateWrapper}>
                         <div style={graphStyles.emptyStateBox}>
                             <div style={graphStyles.emptyStateText}>
-                                {progressInfo !== null && progressInfo.progress < 1.0
+                                {progressInfo.progress < 1.0
                                     ? `Importing ${user?.display_name}'s top artists...`
                                     : "No artist data"}
                             </div>
-                            {progressInfo !== null && progressInfo.progress < 1.0 && (
-                                <div style={graphStyles.progressBarWrapper}>
-                                    <div
-                                        style={{
-                                            ...graphStyles.progressBarFill,
-                                            width: `${progressInfo.progress * 100}%`
-                                        }}
-                                    />
-                                    <span style={graphStyles.progressTextCentered}>
+                            {progressInfo.progress < 1.0 && (
+                                <>
+                                    <div style={graphStyles.progressBarWrapper}>
+                                        <div
+                                            style={{
+                                                ...graphStyles.progressBarFill,
+                                                width: `${progressInfo.progress * 100}%`
+                                            }}
+                                        />
+                                        <span style={graphStyles.progressTextCentered}>
                                         {progressInfo.foundCount} / {progressInfo.totalCount}
-                                      </span>
-                                </div>
+                                    </span>
+                                    </div>
+
+                                    {progressInfo.importingNow?.name && (
+                                        <div style={{ ...graphStyles.emptyStateText, fontSize: "15px", paddingTop: "15px" }}>
+                                            Currently importing: <b>{progressInfo.importingNow.name}</b>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
@@ -955,5 +969,10 @@ const graphStyles = {
         color: "#fff",
         pointerEvents: "none",
         textShadow: "0 0 2px rgba(0,0,0,0.8)"
+    },
+    zoomButtonReset: {
+        ...zoomBase,
+        borderRadius: 0,
+        borderTop: "none"
     }
 };
