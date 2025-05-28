@@ -15,6 +15,20 @@ export async function fetchTopArtistData() {
     }
 }
 
+export async function fetchAllArtistsData() {
+    try {
+        const backendUrl = import.meta.env.VITE_BACKEND_URL;
+        const res = await fetch(`${backendUrl}/api/artists/all`);
+        const artistData = await res.json();
+        return {
+            artistNodesRaw: artistData.nodes || []
+        };
+    } catch (error) {
+        console.error("Failed to load all artist data:", error);
+        return { artistNodesRaw: [] };
+    }
+}
+
 export async function fetchCustomArtistAndLinkData(max = 1000, user_id = null) {
     try {
         const backendUrl = import.meta.env.VITE_BACKEND_URL;

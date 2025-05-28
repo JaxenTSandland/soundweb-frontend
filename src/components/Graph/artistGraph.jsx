@@ -4,6 +4,7 @@ import useTooltip from "./useTooltip.jsx";
 import {renderArtistNode} from "./artistNodeRenderer.js";
 import drawLinks from "../../utils/drawLinks.jsx";
 import {
+    fetchAllArtistsData,
     fetchAllGenres,
     fetchCustomArtistAndLinkData,
     fetchUserImportProgress, fetchUserMissingArtistIds,
@@ -104,6 +105,9 @@ export default function ArtistGraph({ mode, param, user }) {
         return Math.max(artistCount * perArtist, baseScale) / 20000;
     }, [artistNodesRaw.length]);
 
+    const maxZoom = useMemo(() => {
+        return Math.max(2.5 * graphScale, 2);
+    }, [graphScale]);
 
     function removeNodeFromGraph(nodeId) {
         // Remove from artistNodes
@@ -190,6 +194,11 @@ export default function ArtistGraph({ mode, param, user }) {
                     artistNodesRaw = [];
                     rawLinks = [];
                 }
+            } else if (mode === "AllArtists") {
+                setIsLoading(true);
+                const data = await fetchAllArtistsData();
+                artistNodesRaw = data.artistNodesRaw;
+                setIsLoading(false);
             }
 
             setLastSyncTime(parseLastSync(lastSync));
@@ -605,7 +614,7 @@ export default function ArtistGraph({ mode, param, user }) {
             <div id="graph-container" style={graphStyles.container}>
                 {/* Tooltip */}
                 <div id="tooltip" style={{ ...graphStyles.tooltip }} />
-                {(artistNodesRaw.length > 0 || isLoading) ? (
+                {(artistNodesRaw.length > 0 || !isLoading) ? (
                     <>
                     <div style={{ position: "relative", flex: 1 }}>
                         <div style={graphStyles.toggleButtonGroup}>
@@ -657,7 +666,7 @@ export default function ArtistGraph({ mode, param, user }) {
                             <ForceGraph2D
                                 d3Force="none"
                                 ref={graphRef}
-                                minZoom={0.04}
+                                minZoom={(mode === "AllArtists" ? 40 / artistNodesRaw.length : 0.04)}
                                 maxZoom={2.5}
                                 graphData={graphData}
                                 nodeLabel={() => ""}

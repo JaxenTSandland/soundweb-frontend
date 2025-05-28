@@ -74,9 +74,8 @@ function App({ user, setUser }) {
     function switchToArtistBased(spotifyId) {
         setActiveTab({ mode: "ArtistBased", param: spotifyId });
     }
-    function switchToUserCustom() {
-        if (!user) return;
-        setActiveTab({ mode: "UserCustom", param: user.id });
+    function switchToAllArtists() {
+        setActiveTab({ mode: "AllArtists", param: null });
     }
     function switchToUserTop() {
         if (!user) return;
@@ -155,7 +154,7 @@ function App({ user, setUser }) {
                 activeTab={activeTab}
                 switchToTop1000={switchToTop1000}
                 switchToArtistBased={switchToArtistBased}
-                switchToUserCustom={switchToUserCustom}
+                switchToAllArtists={switchToAllArtists}
                 switchToUserTop={switchToUserTop}
                 user={user}
             />
