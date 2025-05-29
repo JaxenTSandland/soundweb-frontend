@@ -109,6 +109,23 @@ export default function ArtistGraph({ mode, param, user }) {
         return Math.max(2.5 * graphScale, 2);
     }, [graphScale]);
 
+    const loadingText = useMemo(() => {
+        switch (mode) {
+            case "UserTop":
+                return `Importing ${user?.display_name}'s top artists...`;
+            case "UserCustom":
+                return "Loading your custom artist graph...";
+            case "Top1000":
+                return "Loading the top 1000 artists...";
+            case "AllArtists":
+                return "Loading all artist data...";
+            case "ArtistBased":
+                return "Loading similar artists...";
+            default:
+                return "Loading artist data...";
+        }
+    }, [mode, user]);
+
     function removeNodeFromGraph(nodeId) {
         // Remove from artistNodes
         setArtistNodes(prev => prev.filter(node => node.id !== nodeId));
@@ -472,18 +489,6 @@ export default function ArtistGraph({ mode, param, user }) {
         const topGenre = node.genres[0];
         return !activeGenreNameSet.has(topGenre);
     }
-
-    function getEffectiveNodeRadius(node, mode, fadeNonTopArtists, userRank) {
-        const shouldSizeByRank =
-            (mode === "UserTop" && typeof userRank === "number")
-            || (fadeNonTopArtists && typeof userRank === "number");
-
-        if (shouldSizeByRank) {
-            return node.userRankRadius ?? 15;
-        }
-
-        return node.popularityRadius ?? node.radius ?? 15;
-    }
     // endregion
 
     function drawLinksIfNeeded() {
@@ -765,11 +770,9 @@ export default function ArtistGraph({ mode, param, user }) {
                     <div style={graphStyles.emptyStateWrapper}>
                         <div style={graphStyles.emptyStateBox}>
                             <div style={graphStyles.emptyStateText}>
-                                {progressInfo.progress < 1.0
-                                    ? `Importing ${user?.display_name}'s top artists...`
-                                    : "No artist data"}
+                                {progressInfo.progress < 1.0 ? loadingText : "No artist data"}
                             </div>
-                            {progressInfo.progress < 1.0 && (
+                            {mode === "UserTop" && progressInfo.progress < 1.0 && (
                                 <>
                                     <div style={graphStyles.progressBarWrapper}>
                                         <div
@@ -783,7 +786,7 @@ export default function ArtistGraph({ mode, param, user }) {
                                     </span>
                                     </div>
 
-                                    {progressInfo.importingNow?.name && (
+                                    {mode === "UserTop" && progressInfo.importingNow?.name && (
                                         <div style={{ ...graphStyles.emptyStateText, fontSize: "15px", paddingTop: "15px" }}>
                                             Currently importing: <b>{progressInfo.importingNow.name}</b>
                                         </div>
