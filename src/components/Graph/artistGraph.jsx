@@ -619,7 +619,7 @@ export default function ArtistGraph({ mode, param, user }) {
             <div id="graph-container" style={graphStyles.container}>
                 {/* Tooltip */}
                 <div id="tooltip" style={{ ...graphStyles.tooltip }} />
-                {(artistNodesRaw.length > 0 || !isLoading) ? (
+                {(artistNodesRaw.length > 0 && !isLoading) ? (
                     <>
                     <div style={{ position: "relative", flex: 1 }}>
                         <div style={graphStyles.toggleButtonGroup}>
