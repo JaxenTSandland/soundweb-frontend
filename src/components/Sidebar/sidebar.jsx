@@ -17,8 +17,6 @@ export default function Sidebar({
                                         isSearchFocused,
                                         setIsSearchFocused,
                                         handleResultClick,
-                                        user,
-                                        removeNodeFromGraph,
                                         mode,
                                         reloadGraph,
                                         artistNodes,

@@ -7,7 +7,7 @@ import {
     fetchAllArtistsData,
     fetchAllGenres,
     fetchCustomArtistAndLinkData,
-    fetchUserImportProgress, fetchUserMissingArtistIds,
+    fetchUserImportProgress,
     fetchUserTopArtistGraph
 } from "../../utils/dataFetcher.js";
 import {useGraphInit, applyGraphCentering} from "../../utils/graphInit.jsx";
@@ -105,10 +105,6 @@ export default function ArtistGraph({ mode, param, user }) {
         return Math.max(artistCount * perArtist, baseScale) / 20000;
     }, [artistNodesRaw.length]);
 
-    const maxZoom = useMemo(() => {
-        return Math.max(2.5 * graphScale, 2);
-    }, [graphScale]);
-
     const loadingText = useMemo(() => {
         switch (mode) {
             case "UserTop":
@@ -125,17 +121,6 @@ export default function ArtistGraph({ mode, param, user }) {
                 return "Loading artist data...";
         }
     }, [mode, user]);
-
-    function removeNodeFromGraph(nodeId) {
-        // Remove from artistNodes
-        setArtistNodes(prev => prev.filter(node => node.id !== nodeId));
-
-        // Remove from raw artist data
-        setArtistNodesRaw(prev => prev.filter(node => node.id !== nodeId));
-
-        // Remove any links that included this node
-        setAllLinks(prev => prev.filter(link => link.source !== nodeId && link.target !== nodeId));
-    }
 
     function handleZoom(factor) {
         if (!graphRef.current) return;
@@ -397,17 +382,6 @@ export default function ArtistGraph({ mode, param, user }) {
 
         return () => clearInterval(interval);
     }, [mode, user, progressInfo.progress]);
-
-    async function logMissingArtists(user) {
-        try {
-            const debugData = await fetchUserMissingArtistIds(user.id, user.topSpotifyIds);
-
-            console.log("Ingestion Summary:", debugData.summary);
-            console.log("Missing artist IDs:", debugData.missingIds);
-        } catch (err) {
-            console.error("Error checking missing artists:", err);
-        }
-    }
 
     // region Search bar functions
     function getNodeLabel(node) {
@@ -756,8 +730,6 @@ export default function ArtistGraph({ mode, param, user }) {
                         isSearchFocused={isSearchFocused}
                         setIsSearchFocused={setIsSearchFocused}
                         handleResultClick={handleResultClick}
-                        user={user}
-                        removeNodeFromGraph={removeNodeFromGraph}
                         mode={mode}
                         reloadGraph={loadGraph}
                         artistNodes={artistNodes}
@@ -770,7 +742,7 @@ export default function ArtistGraph({ mode, param, user }) {
                     <div style={graphStyles.emptyStateWrapper}>
                         <div style={graphStyles.emptyStateBox}>
                             <div style={graphStyles.emptyStateText}>
-                                {progressInfo.progress < 1.0 ? loadingText : "No artist data"}
+                                {progressInfo.progress < 1.0 || mode === "AllArtists" ? loadingText : "No artist data"}
                             </div>
                             {mode === "UserTop" && progressInfo.progress < 1.0 && (
                                 <>

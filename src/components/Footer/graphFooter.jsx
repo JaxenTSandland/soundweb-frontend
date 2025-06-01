@@ -3,7 +3,7 @@ import globalIcon from "../../../assets/global-symbol.png";
 import trophyIcon from "../../../assets/trophy-symbol.png";
 import userIcon from "../../../assets/user-symbol.png";
 
-export default function GraphFooter({ activeTab, switchToTop1000, switchToArtistBased, switchToAllArtists, switchToUserTop, user }) {
+export default function GraphFooter({ activeTab, switchToTop1000, switchToAllArtists, switchToUserTop, user }) {
     return (
         <div className="graph-footer">
             <button

@@ -56,12 +56,12 @@ function App({ user, setUser }) {
 
                     if (err.status === 401 || err.status === 400) {
                         alert("Your Spotify session has expired. Please log in again.");
-                        localStorage.removeItem("soundweb_user");
-                        setUser(null);
-                        window.location.href = import.meta.env.VITE_SOUNDWEB_HOMEPAGE;
                     } else if (err.status === 404) {
-
+                        alert("Your account data was not found. Please log in again.");
                     }
+                    localStorage.removeItem("soundweb_user");
+                    setUser(null);
+                    window.location.href = import.meta.env.VITE_SOUNDWEB_HOMEPAGE;
                 });
         }, 250);
 
@@ -118,8 +118,6 @@ function App({ user, setUser }) {
             <TopBar
                 user={user}
                 onLoginClick={handleLogin}
-                onLogoutClick={handleLogout}
-                dropdownOpen={dropdownOpen}
                 setDropdownOpen={setDropdownOpen}
                 menuButtonRef={menuButtonRef}
             />
