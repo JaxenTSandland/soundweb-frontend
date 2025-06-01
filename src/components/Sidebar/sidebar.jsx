@@ -59,9 +59,6 @@ export default function Sidebar({
                     selectedNode={selectedNode}
                     setSelectedNode={setSelectedNode}
                     allUsedGenres={allUsedGenres}
-                    user={user}
-                    mode={mode}
-                    removeNodeFromGraph={removeNodeFromGraph}
                     reloadGraph={reloadGraph}
                     userTopRanks={userTopRanks}
                     globalRanks={globalRanks}

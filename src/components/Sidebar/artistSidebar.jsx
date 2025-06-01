@@ -3,49 +3,11 @@ import GenreTags from "./Components/genreTags.jsx";
 import TopTracks from "./Components/topTracks.jsx";
 import RecentReleases from "./Components/recentReleases.jsx";
 import BioSection from "./Components/bioSection.jsx";
-import {addArtistToCustomGraph, removeArtistFromCustomGraph} from "../../utils/dataFetcher.js";
-import {
-    addUserTagToTop1000Node, removeUserTagFromNodeInCache
-} from "../../cache/top1000.js";
 
 
-export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, user, mode, removeNodeFromGraph, reloadGraph, userTopRanks, globalRanks }) {
+export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, user, userTopRanks, globalRanks }) {
     const [expandedData, setExpandedData] = useState(null);
     const baseUrl = import.meta.env.VITE_BACKEND_URL;
-    const userId = user?.id;
-    // const [isAddingArtist, setIsAddingArtist] = useState(false);
-    // const [isRemovingArtist, setIsRemovingArtist] = useState(false);
-    // const addArtistToCustomGraphVar = async () => {
-    //     setIsAddingArtist(true);
-    //     const addArtistJson = await addArtistToCustomGraph(selectedNode, userId);
-    //     setIsAddingArtist(false);
-    //
-    //     const updatedNode = addArtistJson?.data?.artistNode || selectedNode.appendUserTag(user.id);
-    //
-    //     if (updatedNode) {
-    //         addUserTagToTop1000Node(selectedNode.spotifyId, user.id)
-    //         setSelectedNode(updatedNode);
-    //     }
-    // };
-
-    const removeArtistFromCustomGraphVar = async () => {
-        setIsRemovingArtist(true);
-        const removeArtistJson = await removeArtistFromCustomGraph(selectedNode, userId);
-        setIsRemovingArtist(false);
-
-        removeUserTagFromNodeInCache(selectedNode.spotifyId, userId);
-        selectedNode.userTags = selectedNode.userTags.filter(tag => tag !== userId);
-
-        await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/cache?key=artists:by-usertag:${userId}`, {
-            method: "DELETE"
-        });
-
-        if (mode !== "Top1000") {
-            removeNodeFromGraph(selectedNode);
-            reloadGraph();
-        }
-
-    };
 
     const releaseScrollRef = useRef(null);
 
@@ -215,7 +177,7 @@ const styles = {
         msOverflowStyle: "none"
     },
     content: {
-        padding: "0px 16px 16px 16px",
+        padding: "0px 16px 45px 16px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -273,9 +235,9 @@ const styles = {
         marginBottom: "30px"
     },
     closeButton: {
-        position: "absolute",
-        top: "10px",
-        left: "10px",
+        position: "fixed",
+        top: "62px",
+        right: "262px",
         background: "#fff",
         opacity: "0.75",
         color: "#000",
@@ -284,7 +246,7 @@ const styles = {
         padding: "2px 6px",
         fontSize: "14px",
         cursor: "pointer",
-        zIndex: 40
+        zIndex: 999
     },
     rankBadge: {
         position: "absolute",
