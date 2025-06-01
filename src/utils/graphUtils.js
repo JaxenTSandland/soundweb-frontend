@@ -5,3 +5,17 @@ export function evaluateRenderState(node, fadeNonTopArtists, userArtistRanks) {
 
     return { shouldRender, userRank };
 }
+
+export function withRelatedNodes(selectedNode, allArtistNodes, shouldFadeNode) {
+    if (!selectedNode || !Array.isArray(selectedNode.relatedArtists)) return selectedNode;
+
+    const relatedNodes = selectedNode.relatedArtists
+        .map(id => allArtistNodes.find(n => n.id === id))
+        .filter(Boolean)
+        .map(node => ({
+            ...node,
+            faded: shouldFadeNode?.(node)
+        }));
+
+    return { ...selectedNode, relatedNodes };
+}

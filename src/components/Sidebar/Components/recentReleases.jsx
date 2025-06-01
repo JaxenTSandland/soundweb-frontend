@@ -10,17 +10,20 @@ export default function RecentReleases({ releases }) {
     };
 
     return (
-        <div style={{ marginTop: "12px" }}>
-            <div style={{ fontWeight: "bold", fontSize: "15px", marginBottom: "4px" }}>Recent Releases</div>
-            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+        <div style={containerStyle}>
+            <div style={rowStyle}>
                 {canScrollLeft && (
-                    <div style={{ ...fadeArrowStyle("left") }} onClick={() => scroll(-1)}>◀</div>
+                    <div style={fadeArrowStyle("left")} onClick={() => scroll(-1)}>◀</div>
                 )}
                 <div ref={ref} style={scrollAreaStyle}>
-                    {releases && releases.map(rel => (
-                        <div key={rel.id} style={{ minWidth: "100px", maxWidth: "100px", textAlign: "center", flexShrink: 0 }}>
-                            <div style={{ fontSize: "12px", color: "#ccc", marginBottom: "4px", height: "30px", lineHeight: "14px", overflow: "hidden" }}>{rel.name}</div>
-                            <div style={{ position: "relative", width: "100px", height: "100px" }}>
+                    {releases?.map(rel => (
+                        <div key={rel.id} style={cardStyle}>
+                            <div style={titleWrapperStyle}>
+                                <div style={titleTextStyle}>
+                                    {rel.name.length > 28 ? rel.name.slice(0, 25).trim() + "..." : rel.name}
+                                </div>
+                            </div>
+                            <div style={imageWrapperStyle}>
                                 <a href={rel.spotifyUrl} target="_blank" rel="noreferrer">
                                     <img src={rel.imageUrl} alt={rel.name} style={imageStyle} />
                                 </a>
@@ -39,12 +42,22 @@ export default function RecentReleases({ releases }) {
                     ))}
                 </div>
                 {canScrollRight && (
-                    <div style={{ ...fadeArrowStyle("right") }} onClick={() => scroll(1)}>▶</div>
+                    <div style={fadeArrowStyle("right")} onClick={() => scroll(1)}>▶</div>
                 )}
             </div>
         </div>
     );
 }
+
+const containerStyle = {
+    marginTop: "12px"
+};
+
+const rowStyle = {
+    position: "relative",
+    display: "flex",
+    alignItems: "center"
+};
 
 const scrollAreaStyle = {
     display: "flex",
@@ -56,6 +69,40 @@ const scrollAreaStyle = {
     scrollbarWidth: "none",
     msOverflowStyle: "none",
     overflowY: "hidden"
+};
+
+const cardStyle = {
+    minWidth: "100px",
+    maxWidth: "100px",
+    textAlign: "center",
+    flexShrink: 0,
+    backgroundColor: "#292929",
+    borderRadius: "10px",
+    paddingTop: "6px",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.5)"
+};
+
+const titleWrapperStyle = {
+    height: "30px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "4px"
+};
+
+const titleTextStyle = {
+    fontSize: "12px",
+    color: "#ccc",
+    lineHeight: "14px",
+    overflow: "hidden",
+    textAlign: "center",
+    padding: "0 4px"
+};
+
+const imageWrapperStyle = {
+    position: "relative",
+    width: "100px",
+    height: "100px"
 };
 
 const imageStyle = {

@@ -56,6 +56,7 @@ export default function Sidebar({
                 <ArtistSidebar
                     selectedNode={selectedNode}
                     setSelectedNode={setSelectedNode}
+                    handleResultClick={handleResultClick}
                     allUsedGenres={allUsedGenres}
                     reloadGraph={reloadGraph}
                     userTopRanks={userTopRanks}
@@ -110,7 +111,7 @@ export default function Sidebar({
                                                 onClick={faded ? undefined : () => handleResultClick(node)}
                                                 style={{
                                                     ...styles.popularArtistItem,
-                                                    color: faded ? "#666" : "#ccc",
+                                                    color: faded ? "#666" : "#EEE",
                                                     cursor: faded ? "default" : "pointer",
                                                     transition: "background 0.2s"
                                                 }}

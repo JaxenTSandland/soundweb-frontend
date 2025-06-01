@@ -241,3 +241,18 @@ export async function handleSpotifyAuthCallback(code, codeVerifier) {
 
     return await res.json();
 }
+
+export async function fetchExpandedArtistData(spotifyId, name, mbid) {
+    const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
+    try {
+        const res = await fetch(
+            `${baseUrl}/api/artists/${spotifyId}/expanded?name=${encodeURIComponent(name)}&mbid=${mbid}&market=us`
+        );
+        const data = await res.json();
+        return data;
+    } catch (err) {
+        console.error("Failed to fetch expanded artist info:", err);
+        return null;
+    }
+}

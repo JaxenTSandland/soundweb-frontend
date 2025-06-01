@@ -5,7 +5,6 @@ export default function BioSection({ html }) {
 
     return (
         <div style={styles.container}>
-            <div style={styles.sectionTitle}>About</div>
 
             <div
                 style={{
@@ -32,11 +31,6 @@ const styles = {
     container: {
         marginTop: "12px",
         width: "100%"
-    },
-    sectionTitle: {
-        fontWeight: "bold",
-        fontSize: "15px",
-        marginBottom: "4px"
     },
     bio: {
         fontSize: "13px",

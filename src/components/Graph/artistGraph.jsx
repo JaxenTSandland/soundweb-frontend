@@ -18,6 +18,7 @@ import {renderLabelNode} from "./labelNodeRenderer.js";
 import {toTitleCase} from "../../utils/textUtils.js";
 import {getTop1000Cache, refreshTop1000Cache} from "../../cache/top1000.js";
 import {globalRanks} from "../../cache/globalRankings.js";
+import {withRelatedNodes} from "../../utils/graphUtils.js";
 
 export default function ArtistGraph({ mode, param, user }) {
     const userId = user?.id;
@@ -412,7 +413,7 @@ export default function ArtistGraph({ mode, param, user }) {
         setSelectedNode(null);
 
         setTimeout(() => {
-            setSelectedNode(node);
+            setSelectedNode(withRelatedNodes(node, artistNodes, shouldFadeNode));
             zoomingRef.current = false;
         }, 1050);
     }
@@ -574,7 +575,7 @@ export default function ArtistGraph({ mode, param, user }) {
 
     function openSidebarForArtist(node) {
         if (!node || node.labelNode || shouldFadeNode(node)) return;
-        setSelectedNode(node);
+        setSelectedNode(withRelatedNodes(node, artistNodes, shouldFadeNode));
     }
 
     function resetZoom() {

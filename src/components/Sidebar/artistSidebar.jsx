@@ -3,11 +3,12 @@ import GenreTags from "./Components/genreTags.jsx";
 import TopTracks from "./Components/topTracks.jsx";
 import RecentReleases from "./Components/recentReleases.jsx";
 import BioSection from "./Components/bioSection.jsx";
+import {fetchExpandedArtistData} from "../../utils/dataFetcher.js";
+import RelatedArtists from "./Components/relatedArtists.jsx";
 
 
-export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, user, userTopRanks, globalRanks }) {
+export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, handleResultClick, user, userTopRanks, globalRanks }) {
     const [expandedData, setExpandedData] = useState(null);
-    const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
     const releaseScrollRef = useRef(null);
 
@@ -19,19 +20,17 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
 
         if (!selectedNode || selectedNode.labelNode) return;
 
-        const fetchExpanded = async () => {
-            try {
-                const res = await fetch(
-                    `${baseUrl}/api/artists/${selectedNode.spotifyId}/expanded?name=${encodeURIComponent(selectedNode.name)}&mbid=${selectedNode.lastfmMBID}&market=us`
-                );
-                const data = await res.json();
-                setExpandedData(data);
-            } catch (err) {
-                console.error("Failed to fetch expanded artist info:", err);
-            }
+        const loadExpanded = async () => {
+            const data = await fetchExpandedArtistData(
+                selectedNode.spotifyId,
+                selectedNode.name,
+                selectedNode.lastfmMBID
+            );
+            console.log(selectedNode);
+            if (data) setExpandedData(data);
         };
 
-        fetchExpanded();
+        loadExpanded();
     }, [selectedNode]);
 
     if (!selectedNode || selectedNode.labelNode) {
@@ -119,25 +118,33 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
 
                 <GenreTags genres={selectedNode.genres} getGenreColor={getGenreColor} />
 
-                {/*<ArtistAddOrRemoveButton*/}
-                {/*    userId={userId}*/}
-                {/*    selectedNode={selectedNode}*/}
-                {/*    isAdding={isAddingArtist}*/}
-                {/*    isRemoving={isRemovingArtist}*/}
-                {/*    onAdd={addArtistToCustomGraphVar}*/}
-                {/*    onRemove={removeArtistFromCustomGraphVar}*/}
-                {/*/>*/}
-
                 {expandedData ? (
                     <div style={styles.expanded}>
+
+                        {/* Top Tracks Section */}
                         <div style={styles.sectionBlock}>
+                            <div style={styles.sectionTitle}>Top Tracks</div>
                             <TopTracks tracks={expandedData.topTracks} />
                         </div>
+
+                        {/* Recent Releases Section */}
                         <div style={styles.sectionBlock}>
+                            <div style={styles.sectionTitle}>Recent Releases</div>
                             <RecentReleases releases={expandedData.recentReleases} scrollRef={releaseScrollRef} />
                         </div>
+
+                        {/* Related Artists Section */}
+                        {selectedNode.relatedNodes?.length > 0 && (
+                            <div style={styles.sectionBlock}>
+                                <div style={styles.sectionTitle}>Related Artists</div>
+                                <RelatedArtists related={selectedNode.relatedNodes} handleResultClick={handleResultClick} />
+                            </div>
+                        )}
+
+                        {/* About Section */}
                         {cleanedContent && cleanedContent.length > 0 && (
                             <div style={styles.sectionBlock}>
+                                <div style={styles.sectionTitle}>About</div>
                                 <BioSection html={cleanedContent} />
                             </div>
                         )}
@@ -170,11 +177,15 @@ const styles = {
         color: "#fff",
         borderLeft: "1px solid #333",
         zIndex: 30,
-
-        // Hide the scrollbar
         overflowY: "scroll",
         scrollbarWidth: "none",
         msOverflowStyle: "none"
+    },
+    sectionTitle: {
+        fontWeight: "bold",
+        textAlign: "center",
+        fontSize: "15px",
+        marginBottom: "6px"
     },
     content: {
         padding: "0px 16px 45px 16px",
@@ -232,7 +243,13 @@ const styles = {
         background: "linear-gradient(to top, #1a1a1a, transparent)"
     },
     sectionBlock: {
-        marginBottom: "30px"
+        marginBottom: "30px",
+        paddingTop: "14px",
+        borderTop: "1px solid #777",
+        marginLeft: "-16px",
+        marginRight: "-16px",
+        paddingLeft: "16px",
+        paddingRight: "16px"
     },
     closeButton: {
         position: "fixed",
