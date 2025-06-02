@@ -52,7 +52,7 @@ export default function RelatedArtists({ related, handleResultClick }) {
                                         color: artist.faded ? "#777" : "#ccc"
                                     }}
                                 >
-                                    {artist.name}
+                                    {artist.name.length > 20 ? artist.name.slice(0, 17) + "..." : artist.name}
                                 </div>
                             </a>
                         </div>
@@ -95,7 +95,7 @@ const cardStyle = {
 };
 
 const nameStyle = {
-    marginTop: "6px",
+    marginTop: "3px",
     fontSize: "13px",
     color: "#DDD",
     height: "32px",
@@ -125,8 +125,8 @@ const fadeArrowStyle = side => ({
 });
 
 const circleImageStyle = {
-    width: "100px",
-    height: "100px",
+    width: "88px",
+    height: "88px",
     borderRadius: "50%",
     objectFit: "cover",
     border: "3px solid",
@@ -135,7 +135,7 @@ const circleImageStyle = {
 
 const genreTagStyle = {
     position: "absolute",
-    bottom: "0px",
+    bottom: "3px",
     left: "50%",
     transform: "translateX(-50%)",
     padding: "3px 10px",
