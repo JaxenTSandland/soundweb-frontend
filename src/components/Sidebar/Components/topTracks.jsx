@@ -95,7 +95,7 @@ const titleWrapperStyle = {
 
 const titleTextStyle = {
     fontSize: "12px",
-    color: "#ccc",
+    color: "#DDD",
     lineHeight: "14px",
     overflow: "hidden",
     textAlign: "center",

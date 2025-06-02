@@ -91,20 +91,20 @@ export default function ArtistGraph({ mode, param, user }) {
     const [allGenresRaw, setAllGenresRaw] = useState([]);
     const [rawLinks, setRawLinks] = useState([]);
 
-    const visibleLabelNameSet = useMemo(() => {
-        if (!Array.isArray(allTopGenres) || allTopGenres.length === 0 || (artistNodesRaw && artistNodesRaw.length <= 100)) return new Set();
-
-        const toggledGenres = allTopGenres.filter(g => g.toggled);
-        const topLabels = generateGenreLabelNodes(toggledGenres, 10);
-        return new Set(topLabels.map(g => toTitleCase(g.name)));
-    }, [allTopGenres]);
-
     const graphScale = useMemo(() => {
         const artistCount = artistNodesRaw.length;
         const baseScale = 4500;
         const perArtist = 18;
         return Math.max(artistCount * perArtist, baseScale) / 20000;
     }, [artistNodesRaw.length]);
+
+    const visibleLabelNameSet = useMemo(() => {
+        if (!Array.isArray(allTopGenres) || allTopGenres.length === 0 || (artistNodesRaw && artistNodesRaw.length <= 100)) return new Set();
+
+        const toggledGenres = allTopGenres.filter(g => g.toggled);
+        const topLabels = generateGenreLabelNodes(toggledGenres, 10, graphScale);
+        return new Set(topLabels.map(g => toTitleCase(g.name)));
+    }, [allTopGenres]);
 
     const loadingText = useMemo(() => {
         switch (mode) {
@@ -320,7 +320,7 @@ export default function ArtistGraph({ mode, param, user }) {
                     count: usedGenreUsageMap[g.name]
                 }));
 
-            const labelNodes = generateGenreLabelNodes(sortedUsedGenres, sortedUsedGenres.length);
+            const labelNodes = generateGenreLabelNodes(sortedUsedGenres, sortedUsedGenres.length, graphScale);
 
             setAllTopGenres(sortedTopGenres);
             setAllUsedGenres(sortedUsedGenres);
@@ -606,7 +606,6 @@ export default function ArtistGraph({ mode, param, user }) {
                                     {mode === "top1000" ? (fadeNonTopArtists ? "Show All Artists" : "Show Your Top Artists") : (fadeNonTopArtists ? "Displaying top 100" : "Displaying all")}
                                 </button>
                             }
-
 
                             <button
                                 onClick={() => setShowTopGenres(prev => !prev)}

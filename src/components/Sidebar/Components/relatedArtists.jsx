@@ -97,7 +97,7 @@ const cardStyle = {
 const nameStyle = {
     marginTop: "6px",
     fontSize: "13px",
-    color: "#ccc",
+    color: "#DDD",
     height: "32px",
     lineHeight: "16px",
     overflow: "hidden",
