@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import GenreTags from "./Components/genreTags.jsx";
 import TopTracks from "./Components/topTracks.jsx";
 import RecentReleases from "./Components/recentReleases.jsx";
@@ -8,6 +8,17 @@ import RelatedArtists from "./Components/relatedArtists.jsx";
 
 
 export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, handleResultClick, user, userTopRanks, globalRanks }) {
+    const userRank = useMemo(() => (
+        selectedNode && userTopRanks?.has(selectedNode.spotifyId)
+            ? userTopRanks.get(selectedNode.spotifyId)
+            : null
+    ), [selectedNode, userTopRanks]);
+
+    const globalRank = useMemo(() => (
+        selectedNode && globalRanks?.has(selectedNode.spotifyId)
+            ? globalRanks.get(selectedNode.spotifyId)
+            : null
+    ), [selectedNode, globalRanks]);
     const [expandedData, setExpandedData] = useState(null);
 
     const releaseScrollRef = useRef(null);
@@ -26,7 +37,7 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
                 selectedNode.name,
                 selectedNode.lastfmMBID
             );
-            console.log(selectedNode);
+            //console.log(selectedNode);
             if (data) setExpandedData(data);
         };
 
@@ -57,18 +68,20 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
             <button onClick={() => setSelectedNode(null)} style={styles.closeButton}>
                 ×
             </button>
-            <div style={styles.rankBadge}>
-                {globalRanks?.has(selectedNode.id) && (
-                    <div style={(user && userTopRanks?.has(selectedNode.id) ? styles.rankLine : styles.rankLineLast)}>
-                        Global: #{globalRanks.get(selectedNode.id) + 1}
-                    </div>
-                )}
-                {user && userTopRanks?.has(selectedNode.id) && (
-                    <div style={(globalRanks?.has(selectedNode.id) ? styles.rankLineLast : styles.rankLine)}>
-                        Personal: #{userTopRanks.get(selectedNode.id) + 1}
-                    </div>
-                )}
-            </div>
+            {(userRank !== null || globalRank !== null) && (
+                <div style={styles.rankBadge}>
+                    {globalRank !== null && (
+                        <div style={userRank !== null ? styles.rankLine : styles.rankLineLast}>
+                            Global: #{globalRank + 1}
+                        </div>
+                    )}
+                    {userRank !== null && (
+                        <div style={globalRank !== null ? styles.rankLineLast : styles.rankLine}>
+                            Personal: #{userRank + 1}
+                        </div>
+                    )}
+                </div>
+            )}
 
 
             {selectedNode.imageUrl && (
@@ -123,7 +136,7 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
 
                         {/* Top Tracks Section */}
                         <div style={styles.sectionBlock}>
-                            <div style={styles.sectionTitle}>Top Tracks</div>
+                            <div style={styles.sectionTitle}>Popular Tracks</div>
                             <TopTracks tracks={expandedData.topTracks} />
                         </div>
 
