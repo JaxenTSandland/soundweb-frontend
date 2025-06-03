@@ -17,14 +17,13 @@ import {generateGenreLabelNodes} from "../../utils/generateGenreLabelNodes.js";
 import {renderLabelNode} from "./labelNodeRenderer.js";
 import {toTitleCase} from "../../utils/textUtils.js";
 import {getTop1000Cache, refreshTop1000Cache} from "../../cache/top1000.js";
-import {globalRanks} from "../../cache/globalRankings.js";
+import {top1000ArtistRanks} from "../../cache/top1000ArtistRanks.js";
 import {withRelatedNodes} from "../../utils/graphUtils.js";
 
 export default function ArtistGraph({ mode, param, user }) {
     const userId = user?.id;
 
     const [isLoading, setIsLoading] = useState(true);
-    const [hasLoadedGraph, setHasLoadedGraph] = useState(false);
     const [progressInfo, setProgressInfo] = useState({
         foundCount: 0,
         totalCount: 0,
@@ -40,6 +39,8 @@ export default function ArtistGraph({ mode, param, user }) {
     const [showLinks, setShowLinks] = useState(true);
     const [showTopGenres, setShowTopGenres] = useState(true);
     const [fadeNonTopArtists, setFadeNonTopArtists] = useState(false);
+    const [hasTriedToFetchGraph, setHasTriedToFetchGraph] = useState(false);
+
 
     const [lastSyncTime, setLastSyncTime] = useState("Loading...");
 
@@ -135,6 +136,7 @@ export default function ArtistGraph({ mode, param, user }) {
         try {
             console.log("Loading graph data");
             setIsLoading(true);
+            setHasTriedToFetchGraph(false);
 
             setArtistNodes([]);
             setGraphData({ nodes: [], links: [] });
@@ -170,7 +172,6 @@ export default function ArtistGraph({ mode, param, user }) {
             } else if (mode === "ArtistBased" && param) {
                 console.warn("[ArtistGraph] ArtistBased mode not implemented yet.");
             } else if (mode === "UserTop" && userId) {
-                setIsLoading(true);
 
                 try {
                     const progressData = await fetchUserImportProgress(userId);
@@ -180,28 +181,22 @@ export default function ArtistGraph({ mode, param, user }) {
                         const { nodes: rawNodesFromApi, links: rawLinksFromApi } = await fetchUserTopArtistGraph(userId);
                         artistNodesRaw = rawNodesFromApi;
                         rawLinks = rawLinksFromApi;
-                        setIsLoading(false);
-                        setHasLoadedGraph(true);
                     } else {
                         artistNodesRaw = [];
                         rawLinks = [];
                     }
                 } catch (err) {
-                    if (err.status === 404) {
+                    if (err.status === 404)
                         console.warn(`No artist data for ${user.display_name} found`);
-                        setIsLoading(false);
-                        setHasLoadedGraph(true);
-                    } else
+                    else
                         console.warn("Failed to fetch UserTop graph:", err.message);
 
                     artistNodesRaw = [];
                     rawLinks = [];
                 }
             } else if (mode === "AllArtists") {
-                setIsLoading(true);
                 const data = await fetchAllArtistsData();
                 artistNodesRaw = data.artistNodesRaw;
-                setIsLoading(false);
             }
 
             setLastSyncTime(parseLastSync(lastSync));
@@ -211,7 +206,7 @@ export default function ArtistGraph({ mode, param, user }) {
         } catch (err) {
             console.error("[ArtistGraph] Failed to load graph data:", err);
         } finally {
-            setIsLoading(false);
+            setHasTriedToFetchGraph(true);
         }
     }
 
@@ -239,7 +234,7 @@ export default function ArtistGraph({ mode, param, user }) {
 
     useEffect(() => {
         function buildGraph() {
-            if (allGenresRaw.length === 0 || (artistNodesRaw.length === 0 && !hasLoadedGraph)) {
+            if (allGenresRaw.length === 0 || artistNodesRaw.length === 0) {
                 setArtistNodes([]);
                 setGraphData({ nodes: [], links: [] });
                 setAllTopGenres([]);
@@ -331,9 +326,11 @@ export default function ArtistGraph({ mode, param, user }) {
                 links: []
             });
 
-            if (mode === "Top1000" && globalRanks.size === 0) {
+            if (mode === "Top1000" && top1000ArtistRanks.size === 0) {
                 reloadGlobalRankings()
             }
+
+            setIsLoading(false);
         }
 
         buildGraph();
@@ -347,9 +344,9 @@ export default function ArtistGraph({ mode, param, user }) {
                 .filter(n => !n.labelNode)
                 .sort((a, b) => b.popularity - a.popularity);
 
-            globalRanks.clear();
+            top1000ArtistRanks.clear();
             sorted.forEach((artist, index) => {
-                globalRanks.set(artist.id, index);
+                top1000ArtistRanks.set(artist.id, index);
             });
         }
     }
@@ -371,8 +368,6 @@ export default function ArtistGraph({ mode, param, user }) {
                     if (err.status === 404) {
                         clearInterval(interval);
                         setProgressInfo({ foundCount: 0, totalCount: 0, progress: 1, importingNow: null });
-                        setHasLoadedGraph(true);
-                        setIsLoading(false);
                         await loadGraph();
                     } else {
                         console.warn("Import polling failed:", err);
@@ -387,7 +382,7 @@ export default function ArtistGraph({ mode, param, user }) {
     // region Search bar functions
     function getNodeLabel(node) {
         const personalRank = userAllRanks.get(node.id);
-        const globalRank = globalRanks.get(node.id);
+        const globalRank = top1000ArtistRanks.get(node.id);
 
         let rankText = "";
 
@@ -590,185 +585,190 @@ export default function ArtistGraph({ mode, param, user }) {
         }
     }, [selectedNode, filteredLinks, showLinks, artistNodes]);
 
-    return (
-            <div id="graph-container" style={graphStyles.container}>
-                {/* Tooltip */}
-                <div id="tooltip" style={{ ...graphStyles.tooltip }} />
-                {(artistNodesRaw.length > 0 && !isLoading) ? (
-                    <>
-                    <div style={{ position: "relative", flex: 1 }}>
-                        <div style={graphStyles.toggleButtonGroup}>
-                            { user &&
-                                <button
-                                    onClick={() => setFadeNonTopArtists(prev => !prev)}
-                                    style={{ ...graphStyles.toggleButton, ...graphStyles.buttonTop }}
-                                >
-                                    {mode === "top1000" ? (fadeNonTopArtists ? "Show All Artists" : "Show Your Top Artists") : (fadeNonTopArtists ? "Displaying top 100" : "Displaying all")}
-                                </button>
-                            }
+    // region Renderers
+    function renderLoadingState() {
+        const isEmpty = hasTriedToFetchGraph && artistNodesRaw.length === 0;
+        const progress = progressInfo.progress;
 
-                            <button
-                                onClick={() => setShowTopGenres(prev => !prev)}
-                                style={{
-                                    ...graphStyles.toggleButton,
-                                    ...(user ? graphStyles.buttonMiddle : graphStyles.buttonTop)
-                                }}
-                            >
-                                {showTopGenres ? "Hide Genre Labels" : "Show Genre Labels"}
-                            </button>
-
-                            <button
-                                onClick={() => setShowLinks(prev => !prev)}
-                                style={{ ...graphStyles.toggleButton, ...graphStyles.buttonBottom }}
-                            >
-                                {showLinks ? "Hide Links" : "Show Links"}
-                            </button>
-                        </div>
-
-                        {/* Zoom in/out buttons */}
-                        <div style={graphStyles.zoomControls}>
-                            <button onClick={() => handleZoom(1.65)} style={graphStyles.zoomButtonTop}>＋</button>
-                            <button onClick={resetZoom} style={graphStyles.zoomButtonReset}>⟳</button>
-                            <button onClick={() => handleZoom(0.45)} style={graphStyles.zoomButtonBottom}>−</button>
-                        </div>
-
-
-
-
-                        <div style={graphStyles.canvasWrapper}>
-                            <canvas
-                                ref={canvasRef}
-                                width={window.innerWidth}
-                                height={window.innerHeight}
-                                style={graphStyles.canvas}
-                            />
-                            <ForceGraph2D
-                                d3Force="none"
-                                ref={graphRef}
-                                minZoom={(mode === "AllArtists" ? 40 / artistNodesRaw.length : 0.04)}
-                                maxZoom={2.5}
-                                graphData={graphData}
-                                nodeLabel={() => ""}
-                                enableNodeDrag={false}
-                                onNodeHover={(node) => {
-                                    if (
-                                        node &&
-                                        !node.labelNode &&
-                                        !shouldFadeNode(node) &&
-                                        artistNodes.length > 0 &&
-                                        graphData.nodes.length > 0
-                                    ) {
-                                        setHoverNode(node);
-                                        showTooltip(node);
-                                    } else {
-                                        setHoverNode(null);
-                                        hideTooltip();
-                                    }
-                                }}
-                                nodePointerAreaPaint={(node, color, ctx) => {
-                                    let radius = node.popularityRadius;
-                                    if (mode === "UserTop") radius = node.userRankRadius;
-                                    ctx.fillStyle = color;
-                                    ctx.beginPath();
-                                    ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
-                                    ctx.fill();
-                                }}
-                                nodeCanvasObject={(node, ctx, globalScale) => {
-                                    if (node.labelNode) {
-                                        if (!showTopGenres || !visibleLabelNameSet.has(toTitleCase(node.name))) return;
-                                        renderLabelNode(node, ctx, globalScale, minCount, maxCount, graphScale);
-                                    } else {
-                                        const shouldFade = shouldFadeNode(node); // Always genre-based
-
-                                        if (activeGenreNameSet.has(node.genres[0])) {
-                                            renderArtistNode(
-                                                node,
-                                                ctx,
-                                                globalScale,
-                                                hoverNode,
-                                                selectedNode,
-                                                shouldFade,
-                                                fadeNonTopArtists,
-                                                mode
-                                            );
-                                        }
-                                    }
-                                }}
-                                onNodeClick={openSidebarForArtist}
-                                onBackgroundClick={() => {
-                                    setSelectedNode(null);
-                                }}
-                                onZoom={() =>
-                                    drawLinksIfNeeded()
-                                }
-                                onPan={() =>
-                                    drawLinksIfNeeded()
-                                }
-                            />
-                        </div>
-
-                        {/* Last updated timestamp */}
-                        {mode === "Top1000" && lastSyncTime && (
-                            <div style={graphStyles.lastSync}>
-                                Last updated: {lastSyncTime}
-                            </div>
-                        )}
-                    </div>
-
-                    <Sidebar
-                        selectedNode={selectedNode}
-                        setSelectedNode={setSelectedNode}
-                        allTopGenres={allTopGenres}
-                        allUsedGenres={allUsedGenres}
-                        toggleGenre={toggleGenre}
-                        setAllGenres={setAllTopGenres}
-                        sortMethod={sortMethod}
-                        cycleSortMethod={cycleSortMethod}
-                        searchTerm={searchTerm}
-                        setSearchTerm={setSearchTerm}
-                        filteredResults={filteredResults}
-                        isSearchFocused={isSearchFocused}
-                        setIsSearchFocused={setIsSearchFocused}
-                        handleResultClick={handleResultClick}
-                        mode={mode}
-                        reloadGraph={loadGraph}
-                        artistNodes={artistNodes}
-                        userTopRanks={userAllRanks}
-                        globalRanks={globalRanks}
-                        shouldFadeNode={shouldFadeNode}
-                    />
-                </>
-                ) : (
-                    <div style={graphStyles.emptyStateWrapper}>
-                        <div style={graphStyles.emptyStateBox}>
-                            <div style={graphStyles.emptyStateText}>
-                                {progressInfo.progress < 1.0 || mode === "AllArtists" ? loadingText : "No artist data"}
-                            </div>
-                            {mode === "UserTop" && progressInfo.progress < 1.0 && (
+        return (
+            <div style={graphStyles.emptyStateWrapper}>
+                <div style={graphStyles.emptyStateBox}>
+                    {isEmpty ? (
+                        <div style={graphStyles.emptyStateText}>No artist data</div>
+                    ) : (
+                        <>
+                            <div style={graphStyles.emptyStateText}>{loadingText}</div>
+                            {mode === "UserTop" && progressInfo && progress < 1.0 && progressInfo.total > 0 && (
                                 <>
                                     <div style={graphStyles.progressBarWrapper}>
-                                        <div
-                                            style={{
-                                                ...graphStyles.progressBarFill,
-                                                width: `${progressInfo.progress * 100}%`
-                                            }}
-                                        />
+                                        <div style={{
+                                            ...graphStyles.progressBarFill,
+                                            width: `${progress * 100}%`
+                                        }} />
                                         <span style={graphStyles.progressTextCentered}>
                                         {progressInfo.foundCount} / {progressInfo.totalCount}
                                     </span>
                                     </div>
-
-                                    {mode === "UserTop" && progressInfo.importingNow?.name && (
+                                    {progressInfo.importingNow?.name && (
                                         <div style={{ ...graphStyles.emptyStateText, fontSize: "15px", paddingTop: "15px" }}>
                                             Currently importing: <b>{progressInfo.importingNow.name}</b>
                                         </div>
                                     )}
                                 </>
                             )}
-                        </div>
-                    </div>
-                )}
+                        </>
+                    )}
+                </div>
             </div>
+        );
+    }
+
+    function renderToggleButtons() {
+        return (
+            <div style={graphStyles.toggleButtonGroup}>
+                {user && (
+                    <button
+                        onClick={() => setFadeNonTopArtists(prev => !prev)}
+                        style={{ ...graphStyles.toggleButton, ...graphStyles.buttonTop }}
+                    >
+                        {mode === "top1000"
+                            ? fadeNonTopArtists ? "Show All Artists" : "Show Your Top Artists"
+                            : fadeNonTopArtists ? "Displaying top 100" : "Displaying all"}
+                    </button>
+                )}
+
+                <button
+                    onClick={() => setShowTopGenres(prev => !prev)}
+                    style={{
+                        ...graphStyles.toggleButton,
+                        ...(user ? graphStyles.buttonMiddle : graphStyles.buttonTop)
+                    }}
+                >
+                    {showTopGenres ? "Hide Genre Labels" : "Show Genre Labels"}
+                </button>
+
+                <button
+                    onClick={() => setShowLinks(prev => !prev)}
+                    style={{ ...graphStyles.toggleButton, ...graphStyles.buttonBottom }}
+                >
+                    {showLinks ? "Hide Links" : "Show Links"}
+                </button>
+            </div>
+        );
+    }
+
+    function renderZoomControls() {
+        return (
+            <div style={graphStyles.zoomControls}>
+                <button onClick={() => handleZoom(1.65)} style={graphStyles.zoomButtonTop}>＋</button>
+                <button onClick={resetZoom} style={graphStyles.zoomButtonReset}>⟳</button>
+                <button onClick={() => handleZoom(0.45)} style={graphStyles.zoomButtonBottom}>−</button>
+            </div>
+        );
+    }
+
+    function renderGraphCanvas() {
+        return (
+            <div style={graphStyles.canvasWrapper}>
+                <canvas
+                    ref={canvasRef}
+                    width={window.innerWidth}
+                    height={window.innerHeight}
+                    style={graphStyles.canvas}
+                />
+                <ForceGraph2D
+                    d3Force="none"
+                    ref={graphRef}
+                    minZoom={mode === "AllArtists" ? 40 / artistNodesRaw.length : 0.04}
+                    maxZoom={2.5}
+                    graphData={graphData}
+                    nodeLabel={() => ""}
+                    enableNodeDrag={false}
+                    onNodeHover={(node) => {
+                        const valid = node && !node.labelNode && !shouldFadeNode(node);
+                        valid ? (setHoverNode(node), showTooltip(node)) : (setHoverNode(null), hideTooltip());
+                    }}
+                    nodePointerAreaPaint={(node, color, ctx) => {
+                        const radius = mode === "UserTop" ? node.userRankRadius : node.popularityRadius;
+                        ctx.fillStyle = color;
+                        ctx.beginPath();
+                        ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }}
+                    nodeCanvasObject={(node, ctx, globalScale) => {
+                        if (node.labelNode) {
+                            if (!showTopGenres || !visibleLabelNameSet.has(toTitleCase(node.name))) return;
+                            renderLabelNode(node, ctx, globalScale, minCount, maxCount, graphScale);
+                        } else if (activeGenreNameSet.has(node.genres[0])) {
+                            renderArtistNode(
+                                node,
+                                ctx,
+                                globalScale,
+                                hoverNode,
+                                selectedNode,
+                                shouldFadeNode(node),
+                                fadeNonTopArtists,
+                                mode
+                            );
+                        }
+                    }}
+                    onNodeClick={openSidebarForArtist}
+                    onBackgroundClick={() => setSelectedNode(null)}
+                    onZoom={drawLinksIfNeeded}
+                    onPan={drawLinksIfNeeded}
+                />
+            </div>
+        );
+    }
+
+    function renderSidebar() {
+        return (
+            <Sidebar
+                selectedNode={selectedNode}
+                setSelectedNode={setSelectedNode}
+                allTopGenres={allTopGenres}
+                allUsedGenres={allUsedGenres}
+                toggleGenre={toggleGenre}
+                setAllGenres={setAllTopGenres}
+                sortMethod={sortMethod}
+                cycleSortMethod={cycleSortMethod}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                filteredResults={filteredResults}
+                isSearchFocused={isSearchFocused}
+                setIsSearchFocused={setIsSearchFocused}
+                handleResultClick={handleResultClick}
+                mode={mode}
+                reloadGraph={loadGraph}
+                artistNodes={artistNodes}
+                userTopRanks={userAllRanks}
+                globalRanks={top1000ArtistRanks}
+                shouldFadeNode={shouldFadeNode}
+            />
+        );
+    }
+    // endregion
+
+    return (
+        <div id="graph-container" style={graphStyles.container}>
+            <div id="tooltip" style={graphStyles.tooltip} />
+
+            {isLoading ? renderLoadingState() : (
+                <>
+                    <div style={{ position: "relative", flex: 1 }}>
+                        {renderToggleButtons()}
+                        {renderZoomControls()}
+                        {renderGraphCanvas()}
+                        {mode === "Top1000" && lastSyncTime && (
+                            <div style={graphStyles.lastSync}>
+                                Last updated: {lastSyncTime}
+                            </div>
+                        )}
+                    </div>
+                    {renderSidebar()}
+                </>
+            )}
+        </div>
     );
 
 }

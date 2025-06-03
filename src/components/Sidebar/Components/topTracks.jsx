@@ -10,7 +10,6 @@ export default function TopTracks({ tracks }) {
     };
 
     const slicedTracks = tracks?.slice(0, 5) ?? [];
-    console.log(tracks);
     if (slicedTracks.length === 0) return null;
 
     return (

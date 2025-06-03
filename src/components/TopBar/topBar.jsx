@@ -73,7 +73,7 @@ const styles = {
         position: "absolute",
         right: "15px",
         color: "white",
-        fontSize: "18px",
+        fontSize: "24px",
         fontWeight: "bold",
         letterSpacing: "1px"
     },

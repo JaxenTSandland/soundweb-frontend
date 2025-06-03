@@ -1,0 +1,1 @@
+export const top1000ArtistRanks = new Map();
