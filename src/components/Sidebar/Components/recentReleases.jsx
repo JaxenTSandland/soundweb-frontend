@@ -5,8 +5,18 @@ export default function RecentReleases({ releases }) {
     const ref = useRef();
     const [canScrollLeft, canScrollRight] = useScrollArrows(ref, [releases]);
 
+
     const scroll = dir => {
         ref.current?.scrollBy({ left: dir * 150, behavior: "smooth" });
+    };
+
+    const MAX_NAME_CASE = 23;
+    const MAX_UPPERCASE_NAME_CASE = 16;
+    const formatTitle = (name) => {
+        const isAllCaps = name.slice(0, MAX_UPPERCASE_NAME_CASE).toUpperCase() === name.slice(0, MAX_UPPERCASE_NAME_CASE);
+        const limit = isAllCaps ? MAX_UPPERCASE_NAME_CASE : MAX_NAME_CASE;
+        const trimLimit = limit - 3;
+        return name.length > limit ? name.slice(0, trimLimit).trim() + "..." : name;
     };
 
     return (
@@ -19,9 +29,7 @@ export default function RecentReleases({ releases }) {
                     {releases?.map(rel => (
                         <div key={rel.id} style={cardStyle}>
                             <div style={titleWrapperStyle}>
-                                <div style={titleTextStyle}>
-                                    {rel.name.length > 28 ? rel.name.slice(0, 25).trim() + "..." : rel.name}
-                                </div>
+                                <div style={titleTextStyle}>{formatTitle(rel.name)}</div>
                             </div>
                             <div style={imageWrapperStyle}>
                                 <a href={rel.spotifyUrl} target="_blank" rel="noreferrer">
@@ -96,7 +104,7 @@ const titleTextStyle = {
     lineHeight: "14px",
     overflow: "hidden",
     textAlign: "center",
-    padding: "0 4px"
+    padding: "0 6px"
 };
 
 const imageWrapperStyle = {

@@ -7,7 +7,6 @@ export function renderArtistNode(
     hoverNode,
     selectedNode,
     shouldFadeExplicitly,
-    fadeNonTopArtists,
     mode
 ) {
     const isSelected = selectedNode && node.id === selectedNode.id;

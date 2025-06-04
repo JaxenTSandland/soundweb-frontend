@@ -12,6 +12,15 @@ export default function TopTracks({ tracks }) {
     const slicedTracks = tracks?.slice(0, 5) ?? [];
     if (slicedTracks.length === 0) return null;
 
+    const MAX_NAME_CASE = 23;
+    const MAX_UPPERCASE_NAME_CASE = 16;
+    const formatTitle = (name) => {
+        const isAllCaps = name.slice(0, MAX_UPPERCASE_NAME_CASE).toUpperCase() === name.slice(0, MAX_UPPERCASE_NAME_CASE);
+        const limit = isAllCaps ? MAX_UPPERCASE_NAME_CASE : MAX_NAME_CASE;
+        const trimLimit = limit - 3;
+        return name.length > limit ? name.slice(0, trimLimit).trim() + "..." : name;
+    };
+
     return (
         <div style={containerStyle}>
             <div style={rowStyle}>
@@ -22,9 +31,7 @@ export default function TopTracks({ tracks }) {
                     {tracks.map((track, index) => (
                         <div key={track.id || index} style={cardStyle}>
                             <div style={titleWrapperStyle}>
-                                <div style={titleTextStyle}>
-                                    {track.name.length > 28 ? track.name.slice(0, 25) + "..." : track.name}
-                                </div>
+                                <div style={titleTextStyle}>{formatTitle(track.name)}</div>
                             </div>
                             <div style={imageWrapperStyle}>
                                 <a href={track.spotifyUrl} target="_blank" rel="noreferrer">
@@ -98,7 +105,7 @@ const titleTextStyle = {
     lineHeight: "14px",
     overflow: "hidden",
     textAlign: "center",
-    padding: "0 4px",
+    padding: "0 6px",
 };
 
 const imageWrapperStyle = {

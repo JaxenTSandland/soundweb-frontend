@@ -19,6 +19,7 @@ import {toTitleCase} from "../../utils/textUtils.js";
 import {getTop1000Cache, refreshTop1000Cache} from "../../cache/top1000.js";
 import {top1000ArtistRanks} from "../../cache/top1000ArtistRanks.js";
 import {withRelatedNodes} from "../../utils/graphUtils.js";
+import drawLegend from "../../utils/drawLegend.jsx";
 
 export default function ArtistGraph({ mode, param, user }) {
     const userId = user?.id;
@@ -38,7 +39,7 @@ export default function ArtistGraph({ mode, param, user }) {
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
     const [showLinks, setShowLinks] = useState(true);
     const [showTopGenres, setShowTopGenres] = useState(true);
-    const [fadeNonTopArtists, setFadeNonTopArtists] = useState(false);
+    const [showLegend, setShowLegend] = useState(false);
     const [hasTriedToFetchGraph, setHasTriedToFetchGraph] = useState(false);
 
 
@@ -74,18 +75,16 @@ export default function ArtistGraph({ mode, param, user }) {
         };
     }, [activeGenreNameSet]);
 
-    const [userTop100Ranks, userAllRanks] = useMemo(() => {
-        if (!Array.isArray(user?.topSpotifyIds)) return [new Map(), new Map()];
+    const userAllRanks = useMemo(() => {
+        if (!Array.isArray(user?.topSpotifyIds)) return new Map();
 
         const allMap = new Map();
-        const top100Map = new Map();
 
         user.topSpotifyIds.forEach((id, index) => {
             allMap.set(id, index);
-            if (index < 100) top100Map.set(id, index);
         });
 
-        return [top100Map, allMap];
+        return allMap;
     }, [user]);
 
     const [artistNodesRaw, setArtistNodesRaw] = useState([]);
@@ -230,7 +229,6 @@ export default function ArtistGraph({ mode, param, user }) {
 
         loadGenres();
     }, []);
-
 
     useEffect(() => {
         function buildGraph() {
@@ -386,7 +384,7 @@ export default function ArtistGraph({ mode, param, user }) {
 
         let rankText = "";
 
-        if ((fadeNonTopArtists || mode === "UserTop") && typeof personalRank === "number") {
+        if (mode === "UserTop" && typeof personalRank === "number") {
             rankText = `\n(Personal rank #${personalRank + 1})`;
         } else if (typeof globalRank === "number") {
             rankText = `\n(Global rank #${globalRank + 1})`;
@@ -448,12 +446,6 @@ export default function ArtistGraph({ mode, param, user }) {
     function shouldFadeNode(node) {
         if (node.labelNode) return false;
 
-        const isUserTopArtist = userTop100Ranks.has(node.id);
-
-        if (fadeNonTopArtists) {
-            return !isUserTopArtist; // Only show top artists
-        }
-
         if (!node.genres || node.genres.length === 0) return true;
 
         const topGenre = node.genres[0];
@@ -461,24 +453,25 @@ export default function ArtistGraph({ mode, param, user }) {
     }
     // endregion
 
-    function drawLinksIfNeeded() {
+    function drawLinksAndLegend() {
+        const canvas = canvasRef.current;
+
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
         if (
             showLinks &&
             artistNodes.length > 0 &&
             filteredLinks.length > 0 &&
-            graphRef.current &&
-            canvasRef.current
+            graphRef.current
         ) {
-            drawLinks(
-                canvasRef.current,
-                artistNodes,
-                filteredLinks,
-                graphRef.current,
-                selectedNode
-            );
-        } else if (canvasRef.current) {
-            const ctx = canvasRef.current.getContext("2d");
-            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+            drawLinks(canvas, artistNodes, filteredLinks, graphRef.current, selectedNode);
+        }
+
+        if (showLegend) {
+            drawLegend(canvas, graphRef.current, graphScale);
         }
     }
 
@@ -533,7 +526,7 @@ export default function ArtistGraph({ mode, param, user }) {
         });
 
         setFilteredLinks(newFilteredLinks);
-    }, [activeGenreNameSet, fadeNonTopArtists, selectedNode, allLinks, artistNodes, mode, user]);
+    }, [activeGenreNameSet, selectedNode, allLinks, artistNodes, mode, user]);
 
 
     function parseLastSync(lastSync) {
@@ -581,9 +574,9 @@ export default function ArtistGraph({ mode, param, user }) {
 
     useEffect(() => {
         if (graphRef.current && canvasRef.current) {
-            drawLinksIfNeeded();
+            drawLinksAndLegend();
         }
-    }, [selectedNode, filteredLinks, showLinks, artistNodes]);
+    }, [selectedNode, filteredLinks, showLinks, artistNodes, showLegend]);
 
     // region Renderers
     function renderLoadingState() {
@@ -661,31 +654,25 @@ export default function ArtistGraph({ mode, param, user }) {
 
         return (
             <div style={graphStyles.toggleButtonGroup}>
-                {user && (
-                    <button
-                        onClick={() => setFadeNonTopArtists(prev => !prev)}
-                        style={{ ...graphStyles.toggleButton, ...graphStyles.buttonTop }}
-                    >
-                        <span style={labelStyle(!fadeNonTopArtists)}>
-                            {renderIcon(!fadeNonTopArtists)}
-                            {mode === "top1000"
-                                ? fadeNonTopArtists ? "Show All Artists" : "Show Your Top Artists"
-                                : fadeNonTopArtists ? "Displaying Top 100" : "Displaying All"}
-                        </span>
-                    </button>
-                )}
+                {/*{user && (*/}
+                {/*    <button*/}
+                {/*        onClick={() => setFadeNonTopArtists(prev => !prev)}*/}
+                {/*        style={{ ...graphStyles.toggleButton, ...graphStyles.buttonTop }}*/}
+                {/*    >*/}
+                {/*        <span style={labelStyle(!fadeNonTopArtists)}>*/}
+                {/*            {renderIcon(!fadeNonTopArtists)}*/}
+                {/*            {mode === "top1000"*/}
+                {/*                ? fadeNonTopArtists ? "Show All Artists" : "Show Your Top Artists"*/}
+                {/*                : fadeNonTopArtists ? "Displaying Top 100" : "Displaying All"}*/}
+                {/*        </span>*/}
+                {/*    </button>*/}
+                {/*)}*/}
 
                 <button
                     onClick={() => setShowTopGenres(prev => !prev)}
                     style={{
                         ...graphStyles.toggleButton,
-                        ...(mode === "AllArtists" && !user ?
-                            graphStyles.onlyButton :
-                            (!user ?
-                                graphStyles.buttonTop
-                                : (mode === "AllArtists" ? graphStyles.buttonBottom : graphStyles.buttonMiddle)
-                            )
-                        )
+                        ...graphStyles.buttonTop
                     }}
                 >
                     <span style={labelStyle(showTopGenres)}>
@@ -699,15 +686,28 @@ export default function ArtistGraph({ mode, param, user }) {
                         onClick={() => setShowLinks(prev => !prev)}
                         style={{
                             ...graphStyles.toggleButton,
-                            ...graphStyles.buttonBottom
+                            ...graphStyles.buttonMiddle
                     }}
                     >
                         <span style={labelStyle(showLinks)}>
                             {renderIcon(showLinks)}
-                            Links
+                            Relationships
                         </span>
                     </button>
                 )}
+
+                <button
+                    onClick={() => setShowLegend(prev => !prev)}
+                    style={{
+                        ...graphStyles.toggleButton,
+                        ...graphStyles.buttonBottom
+                    }}
+                    >
+                    <span style={labelStyle(showLegend)}>
+                        {renderIcon(showLegend)}
+                        Legend
+                    </span>
+                </button>
 
             </div>
         );
@@ -763,15 +763,14 @@ export default function ArtistGraph({ mode, param, user }) {
                                 hoverNode,
                                 selectedNode,
                                 shouldFadeNode(node),
-                                fadeNonTopArtists,
                                 mode
                             );
                         }
                     }}
                     onNodeClick={openSidebarForArtist}
                     onBackgroundClick={() => setSelectedNode(null)}
-                    onZoom={drawLinksIfNeeded}
-                    onPan={drawLinksIfNeeded}
+                    onZoom={drawLinksAndLegend}
+                    onPan={drawLinksAndLegend}
                 />
             </div>
         );
@@ -959,7 +958,6 @@ const graphStyles = {
         backgroundColor: "#2a2a2a",
         opacity: isVisible ? 1 : 0.6
     }),
-
     iconImage: {
         width: 16,
         height: 16,
