@@ -9,8 +9,8 @@ export default function drawLegend(canvas, graph, graphScale) {
     const leftPos = graph.graph2ScreenCoords(-graphScale * 9200, graphScale * 3000);
     const fontSize = 800 * zoom * graphScale;
 
-    const topText = '\u2039\u2013\u2013\u2013\u2013\u2013\u2013 Ambient \u2013\u2013\u2013\u2013\u2013\u2013\u2013 Aggressive \u2013\u2013\u2013\u2013\u2013\u2013\u203A'
-    const leftText = '\u2039\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013 Organic \u2013\u2013\u2013\u2013\u2013\u2013\u2013 Techno \u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u203A'
+    const topText = '\u2039\u2013\u2013\u2013\u2013\u2013\u2013 Atmospheric \u2013\u2013\u2013\u2013\u2013\u2013\u2013 Bouncy \u2013\u2013\u2013\u2013\u2013\u2013\u203A'
+    const leftText = '\u2039\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013 Organic \u2013\u2013\u2013\u2013\u2013\u2013\u2013 Synthetic \u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u203A'
 
     ctx.save();
     ctx.font = `${fontSize}px Sans-Serif`;
