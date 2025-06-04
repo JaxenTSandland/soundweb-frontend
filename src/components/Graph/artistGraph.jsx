@@ -606,8 +606,8 @@ export default function ArtistGraph({ mode, param, user }) {
                                             width: `${progress * 100}%`
                                         }} />
                                         <span style={graphStyles.progressTextCentered}>
-                                        {progressInfo.foundCount} / {progressInfo.totalCount}
-                                    </span>
+                                            {progressInfo.foundCount} / {progressInfo.totalCount}
+                                        </span>
                                     </div>
                                     {progressInfo.importingNow?.name && (
                                         <div style={{ ...graphStyles.emptyStateText, fontSize: "15px", paddingTop: "15px" }}>
@@ -624,6 +624,41 @@ export default function ArtistGraph({ mode, param, user }) {
     }
 
     function renderToggleButtons() {
+        const hiddenSymbol = "/assets/hidden-symbol.png";
+        const showingSymbol = "/assets/shown-symbol.png";
+
+        const renderIcon = (isVisible) => (
+            <div style={{
+                display: "flex",
+                alignItems: "center",
+                marginRight: "8px"
+            }}>
+                <img
+                    src={isVisible ? showingSymbol : hiddenSymbol}
+                    alt={isVisible ? "Shown" : "Hidden"}
+                    style={{
+                        width: 16,
+                        height: 16,
+                        filter: "invert(1)",
+                        opacity: isVisible ? 1 : 0.6
+                    }}
+                />
+                <div style={{
+                    width: "1px",
+                    height: "16px",
+                    backgroundColor: "#DDD",
+                    marginLeft: "8px"
+                }} />
+            </div>
+        );
+
+        const labelStyle = (isVisible) => ({
+            display: "flex",
+            alignItems: "center",
+            color: isVisible ? "#fff" : "#aaa",
+            opacity: isVisible ? 1 : 0.6
+        });
+
         return (
             <div style={graphStyles.toggleButtonGroup}>
                 {user && (
@@ -631,9 +666,12 @@ export default function ArtistGraph({ mode, param, user }) {
                         onClick={() => setFadeNonTopArtists(prev => !prev)}
                         style={{ ...graphStyles.toggleButton, ...graphStyles.buttonTop }}
                     >
-                        {mode === "top1000"
-                            ? fadeNonTopArtists ? "Show All Artists" : "Show Your Top Artists"
-                            : fadeNonTopArtists ? "Displaying top 100" : "Displaying all"}
+                        <span style={labelStyle(!fadeNonTopArtists)}>
+                            {renderIcon(!fadeNonTopArtists)}
+                            {mode === "top1000"
+                                ? fadeNonTopArtists ? "Show All Artists" : "Show Your Top Artists"
+                                : fadeNonTopArtists ? "Displaying Top 100" : "Displaying All"}
+                        </span>
                     </button>
                 )}
 
@@ -641,18 +679,36 @@ export default function ArtistGraph({ mode, param, user }) {
                     onClick={() => setShowTopGenres(prev => !prev)}
                     style={{
                         ...graphStyles.toggleButton,
-                        ...(user ? graphStyles.buttonMiddle : graphStyles.buttonTop)
+                        ...(mode === "AllArtists" && !user ?
+                            graphStyles.onlyButton :
+                            (!user ?
+                                graphStyles.buttonTop
+                                : (mode === "AllArtists" ? graphStyles.buttonBottom : graphStyles.buttonMiddle)
+                            )
+                        )
                     }}
                 >
-                    {showTopGenres ? "Hide Genre Labels" : "Show Genre Labels"}
+                    <span style={labelStyle(showTopGenres)}>
+                        {renderIcon(showTopGenres)}
+                        Genre Labels
+                    </span>
                 </button>
 
-                <button
-                    onClick={() => setShowLinks(prev => !prev)}
-                    style={{ ...graphStyles.toggleButton, ...graphStyles.buttonBottom }}
-                >
-                    {showLinks ? "Hide Links" : "Show Links"}
-                </button>
+                { mode !== "AllArtists" && (
+                    <button
+                        onClick={() => setShowLinks(prev => !prev)}
+                        style={{
+                            ...graphStyles.toggleButton,
+                            ...graphStyles.buttonBottom
+                    }}
+                    >
+                        <span style={labelStyle(showLinks)}>
+                            {renderIcon(showLinks)}
+                            Links
+                        </span>
+                    </button>
+                )}
+
             </div>
         );
     }
@@ -815,22 +871,6 @@ const graphStyles = {
         display: "none",
         zIndex: 10
     },
-    toggleButton: {
-        padding: "6px 12px",
-        backgroundColor: "#1a1a1a",
-        color: "white",
-        border: "1px solid #444",
-        borderRadius: "6px",
-        fontSize: "13px",
-        cursor: "pointer",
-        zIndex: 25,
-        width: "100%",
-        textAlign: "left",
-        boxSizing: "border-box",
-        lineHeight: "1.4",
-        userSelect: "none",
-        transform: "none"
-    },
     lastSync: {
         position: "absolute",
         top: 10,
@@ -840,7 +880,7 @@ const graphStyles = {
         padding: "6px 12px",
         fontSize: "13px",
         borderRadius: "6px",
-        border: "1px solid #444",
+        border: "1px solid #444, none",
         zIndex: 25
     },
     zoomButtonTop: {
@@ -870,9 +910,27 @@ const graphStyles = {
         width: "180px",
         zIndex: 25
     },
+    toggleButton: {
+        padding: "6px 12px",
+        backgroundColor: "#1a1a1a",
+        color: "white",
+        border: "1px solid #444",
+        borderRadius: "0",
+        fontSize: "13px",
+        cursor: "pointer",
+        zIndex: 25,
+        width: "100%",
+        textAlign: "left",
+        boxSizing: "border-box",
+        lineHeight: "1.4",
+        userSelect: "none",
+        transform: "none"
+    },
     buttonTop: {
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0
+        borderTopLeftRadius: "6px",
+        borderTopRightRadius: "6px",
+        borderTop: "1px solid #444",
+        borderBottom: "1px solid #444"
     },
     buttonMiddle: {
         borderRadius: 0,
@@ -880,9 +938,32 @@ const graphStyles = {
         borderBottom: "1px solid #444"
     },
     buttonBottom: {
-        borderTopLeftRadius: 0,
-        borderTopRightRadius: 0,
-        borderTop: "none"
+        borderBottomLeftRadius: "6px",
+        borderBottomRightRadius: "6px",
+        borderTop: "None",
+        borderBottom: "1px solid #444"
+    },
+    onlyButton: {
+        borderRadius: "6px",
+        border: "1px solid #444"
+    },
+    iconWrapper: (isVisible) => ({
+        width: 22,
+        height: 22,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: "8px",
+        border: "1px solid #555",
+        borderRadius: "4px",
+        backgroundColor: "#2a2a2a",
+        opacity: isVisible ? 1 : 0.6
+    }),
+
+    iconImage: {
+        width: 16,
+        height: 16,
+        filter: "invert(1)"
     },
     emptyStateWrapper: {
         display: "flex",

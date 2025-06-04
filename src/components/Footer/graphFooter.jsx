@@ -1,9 +1,10 @@
 import React from "react";
-import globalIcon from "../../../assets/global-symbol.png";
-import trophyIcon from "../../../assets/trophy-symbol.png";
-import userIcon from "../../../assets/user-symbol.png";
 
 export default function GraphFooter({ activeTab, switchToTop1000, switchToAllArtists, switchToUserTop, user }) {
+    const globalIcon = "/assets/global-symbol.png";
+    const trophyIcon = "/assets/trophy-symbol.png";
+    const userIcon = "/assets/user-symbol.png";
+
     return (
         <div className="graph-footer">
             <button
@@ -39,22 +40,6 @@ export default function GraphFooter({ activeTab, switchToTop1000, switchToAllArt
                 />
                 Top 1000
             </button>
-
-            {/*<button*/}
-            {/*    className={activeTab.mode === "ArtistBased" ? "active" : ""}*/}
-            {/*    onClick={() => switchToArtistBased("06HL4z0CvFAxyc27GXpf02")}*/}
-            {/*>*/}
-            {/*    Taylor Swift Graph*/}
-            {/*</button>*/}
-
-            {/*{ user &&*/}
-            {/*    <button*/}
-            {/*        className={activeTab.mode === "UserCustom" ? "active" : ""}*/}
-            {/*        onClick={() => switchToUserCustom()}*/}
-            {/*        >*/}
-            {/*        Custom Graph*/}
-            {/*    </button>*/}
-            {/*}*/}
 
             {user && (
 
