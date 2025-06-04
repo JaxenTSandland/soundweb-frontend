@@ -2,7 +2,7 @@
 import React from "react";
 
 export default function TopBar({ user, onLoginClick, setDropdownOpen, menuButtonRef }) {
-    const defaultAvatar = "/assets/default-avatar.png";
+    const defaultAvatar = "/assets/default-avatar.jpg";
     return (
         <div style={styles.bar}>
             {user === null ? (

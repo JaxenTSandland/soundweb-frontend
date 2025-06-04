@@ -37,10 +37,13 @@ export default function Callback({ setUser }) {
             } catch (err) {
                 console.error("Login or sync failed:", err);
 
-                if (err.status === 401 || err.message?.includes("re-login")) {
-                    alert("Session expired or sync failed. Please log in again.");
-                } else {
-                    alert("Something went wrong during login. Try again.");
+                switch (err.status) {
+                    case 403:
+                    case 401:
+                        alert("Email is not verified.\nPlease contact jsandland@student.neumont.edu for verification");
+                        break;
+                    default:
+                        alert("Something went wrong during login. Try again.");
                 }
 
                 localStorage.removeItem("soundweb_user");
