@@ -1,9 +1,10 @@
 import React from "react";
 
-export default function GraphFooter({ activeTab, switchToTop1000, switchToAllArtists, switchToUserTop, user }) {
+export default function GraphFooter({ activeTab, switchToTop1000, switchToAllArtists, switchToUserTop, switchToAboutSoundweb, user }) {
     const globalIcon = "/assets/global-symbol.png";
     const trophyIcon = "/assets/trophy-symbol.png";
     const userIcon = "/assets/user-symbol.png";
+    const infoIcon = "/assets/info-symbol.png";
 
     return (
         <div className="graph-footer">
@@ -60,6 +61,23 @@ export default function GraphFooter({ activeTab, switchToTop1000, switchToAllArt
                     My Spotify Graph
                 </button>
             )}
+
+            <button
+                className={activeTab.mode === "AboutSoundweb" ? "active" : ""}
+                onClick={switchToAboutSoundweb}
+                style={{ display: "flex", alignItems: "center", gap: "6px" }}
+            >
+                <img
+                    src={infoIcon}
+                    alt="Info icon"
+                    style={{
+                        width: "14px",
+                        height: "14px",
+                        filter: "invert(1)"
+                    }}
+                />
+                About Soundweb
+            </button>
 
         </div>
     );

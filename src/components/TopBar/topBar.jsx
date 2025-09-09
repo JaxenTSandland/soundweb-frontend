@@ -26,6 +26,7 @@ export default function TopBar({ user, onLoginClick, setDropdownOpen, menuButton
             )}
 
             <div style={styles.title}>Soundweb</div>
+            <div style={styles.versionText}>v0.1.1</div>
         </div>
     );
 }
@@ -72,10 +73,18 @@ const styles = {
     },
     title: {
         position: "absolute",
-        right: "15px",
+        right: "55px",
         color: "white",
         fontSize: "24px",
         fontWeight: "bold",
+        letterSpacing: "1px"
+    },
+    versionText: {
+        position: "absolute",
+        right: "10px",
+        top: "22px",
+        color: "white",
+        fontSize: "12px",
         letterSpacing: "1px"
     },
     userWrapper: {

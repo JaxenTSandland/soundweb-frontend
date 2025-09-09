@@ -81,6 +81,10 @@ function App({ user, setUser }) {
         if (!user) return;
         setActiveTab({ mode: "UserTop", param: user.id });
     }
+    function switchToAboutSoundweb() {
+        if (!user) return;
+        setActiveTab({ mode: "AboutSoundweb", param: user.id });
+    }
 
     // Auth
     async function handleLogin() {
@@ -154,6 +158,7 @@ function App({ user, setUser }) {
                 switchToArtistBased={switchToArtistBased}
                 switchToAllArtists={switchToAllArtists}
                 switchToUserTop={switchToUserTop}
+                switchToAboutSoundweb={switchToAboutSoundweb}
                 user={user}
             />
         </div>
