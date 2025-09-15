@@ -145,8 +145,8 @@
 /* Mobile override */
 @media (max-width: 768px) {
     .artist-sidebar {
-        width: 100%;
-        left: 0;
+        width: 101%;
+        left: -1px;
         border-left: none;
     }
     .artist-sidebar .close-button {

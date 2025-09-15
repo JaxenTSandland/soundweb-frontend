@@ -162,6 +162,7 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, setIsOpen
                                 <RelatedArtists related={selectedNode.relatedNodes} handleResultClick={handleResultClick} />
                             </div>
                         )}
+                        {/* TODO: Add loading screen to sidebar between clicking related artists on mobile (So it doesn't show the orignal sidebar while switching */}
 
                         {/* About Section */}
                         {cleanedContent && cleanedContent.length > 0 && (
