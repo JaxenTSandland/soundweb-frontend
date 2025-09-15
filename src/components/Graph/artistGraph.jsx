@@ -36,6 +36,7 @@ export default function ArtistGraph({ mode, param, user }) {
     const [artistNodes, setArtistNodes] = useState([]);
     const [hoverNode, setHoverNode] = useState(null);
     const [selectedNode, setSelectedNode] = useState(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
     const [showLinks, setShowLinks] = useState(true);
     const [showTopGenres, setShowTopGenres] = useState(true);
@@ -128,6 +129,13 @@ export default function ArtistGraph({ mode, param, user }) {
         const currentZoom = graphRef.current.zoom();
         graphRef.current.zoom(currentZoom * factor, 500);
     }
+
+    // auto-open sidebar on mobile when a node is selected
+    useEffect(() => {
+        if (selectedNode && window.innerWidth < 768) {
+            setIsSidebarOpen(true);
+        }
+    }, [selectedNode]);
 
 
     async function loadGraph() {
@@ -799,6 +807,8 @@ export default function ArtistGraph({ mode, param, user }) {
                 userTopRanks={userAllRanks}
                 globalRanks={top1000ArtistRanks}
                 shouldFadeNode={shouldFadeNode}
+                isSidebarOpen={isSidebarOpen}
+                setIsSidebarOpen={setIsSidebarOpen}
             />
         );
     }

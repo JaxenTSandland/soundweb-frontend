@@ -1,0 +1,157 @@
+.artist-sidebar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 100%;
+    background-color: #1a1a1a;
+    color: #fff;
+    border-left: 1px solid #333;
+    z-index: 30;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.artist-sidebar .content {
+    padding: 0 16px 45px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.artist-sidebar .name-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.artist-sidebar .name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+}
+
+.artist-sidebar .name-link {
+    text-decoration: none;
+}
+
+.artist-sidebar .spotify-link {
+    display: inline-flex;
+    align-items: center;
+}
+
+.artist-sidebar .spotify-icon {
+    height: 18px;
+    width: 18px;
+    margin-top: 1px;
+}
+
+.artist-sidebar .expanded {
+    width: 100%;
+    font-size: 14px;
+    margin-top: 6px;
+}
+
+.artist-sidebar .image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.artist-sidebar .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.artist-sidebar .image-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(to top, #1a1a1a, transparent);
+}
+
+.artist-sidebar .section-block {
+    margin-bottom: 30px;
+    padding-top: 14px;
+    border-top: 1px solid #777;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.artist-sidebar .section-title {
+    font-weight: bold;
+    text-align: center;
+    font-size: 15px;
+    margin-bottom: 6px;
+}
+
+.artist-sidebar .close-button {
+    position: fixed;
+    top: 62px;
+    right: 262px;
+    background: #fff;
+    opacity: 0.75;
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 999;
+}
+
+.artist-sidebar .rank-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    background-color: #1a1a1a;
+    opacity: 0.6;
+    border: 1px solid #444;
+    border-radius: 6px;
+    overflow: hidden;
+    font-size: 13px;
+    z-index: 40;
+}
+
+.artist-sidebar .rank-line {
+    padding: 4px 6px;
+    color: white;
+    text-align: center;
+    border-bottom: 1px solid #444;
+}
+
+.artist-sidebar .rank-line-last {
+    padding: 4px 6px;
+    color: white;
+    text-align: left;
+}
+
+/* Mobile override */
+@media (max-width: 768px) {
+    .artist-sidebar {
+        width: 100%;
+        left: 0;
+        border-left: none;
+    }
+    .artist-sidebar .close-button {
+        left: 10px;
+        right: auto;
+        top: 10px;
+    }
+}
