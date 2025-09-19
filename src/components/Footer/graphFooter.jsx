@@ -1,4 +1,5 @@
 import React from "react";
+import "./graphFooter.css";
 
 export default function GraphFooter({ activeTab, switchToTop1000, switchToAllArtists, switchToUserTop, switchToAboutSoundweb, user }) {
     const globalIcon = "/assets/global-symbol.png";
