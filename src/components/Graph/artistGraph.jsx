@@ -20,6 +20,9 @@ import {getTop1000Cache, refreshTop1000Cache} from "../../cache/top1000.js";
 import {top1000ArtistRanks} from "../../cache/top1000ArtistRanks.js";
 import {withRelatedNodes} from "../../utils/graphUtils.js";
 import drawLegend from "../../utils/drawLegend.jsx";
+import ToggleButtons from "./Components/ToggleButtons.jsx";
+import ZoomControls from "./Components/ZoomControls.jsx";
+import "./Components/hamburger.css"
 
 export default function ArtistGraph({ mode, param, user }) {
     const userId = user?.id;
@@ -36,6 +39,7 @@ export default function ArtistGraph({ mode, param, user }) {
     const [artistNodes, setArtistNodes] = useState([]);
     const [hoverNode, setHoverNode] = useState(null);
     const [selectedNode, setSelectedNode] = useState(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
     const [showLinks, setShowLinks] = useState(true);
     const [showTopGenres, setShowTopGenres] = useState(true);
@@ -128,6 +132,13 @@ export default function ArtistGraph({ mode, param, user }) {
         const currentZoom = graphRef.current.zoom();
         graphRef.current.zoom(currentZoom * factor, 500);
     }
+
+    // auto-open sidebar on mobile when a node is selected
+    useEffect(() => {
+        if (selectedNode && window.innerWidth < 768) {
+            setIsSidebarOpen(true);
+        }
+    }, [selectedNode]);
 
 
     async function loadGraph() {
@@ -397,6 +408,16 @@ export default function ArtistGraph({ mode, param, user }) {
     function handleResultClick(node) {
         if (!node || !graphRef.current || zoomingRef.current) return;
 
+        // Mobile
+        if (window.innerWidth < 768) {
+            setSelectedNode(withRelatedNodes(node, artistNodes, shouldFadeNode));
+            setIsSidebarOpen(true);
+            setSearchTerm("");
+            setFilteredResults([]);
+            return;
+        }
+
+        // Desktop
         zoomingRef.current = true;
 
         graphRef.current.centerAt(node.x, node.y, 1000);
@@ -616,113 +637,6 @@ export default function ArtistGraph({ mode, param, user }) {
         );
     }
 
-    function renderToggleButtons() {
-        const hiddenSymbol = "/assets/hidden-symbol.png";
-        const showingSymbol = "/assets/shown-symbol.png";
-
-        const renderIcon = (isVisible) => (
-            <div style={{
-                display: "flex",
-                alignItems: "center",
-                marginRight: "8px"
-            }}>
-                <img
-                    src={isVisible ? showingSymbol : hiddenSymbol}
-                    alt={isVisible ? "Shown" : "Hidden"}
-                    style={{
-                        width: 16,
-                        height: 16,
-                        filter: "invert(1)",
-                        opacity: isVisible ? 1 : 0.6
-                    }}
-                />
-                <div style={{
-                    width: "1px",
-                    height: "16px",
-                    backgroundColor: "#DDD",
-                    marginLeft: "8px"
-                }} />
-            </div>
-        );
-
-        const labelStyle = (isVisible) => ({
-            display: "flex",
-            alignItems: "center",
-            color: isVisible ? "#fff" : "#aaa",
-            opacity: isVisible ? 1 : 0.6
-        });
-
-        return (
-            <div style={graphStyles.toggleButtonGroup}>
-                {/*{user && (*/}
-                {/*    <button*/}
-                {/*        onClick={() => setFadeNonTopArtists(prev => !prev)}*/}
-                {/*        style={{ ...graphStyles.toggleButton, ...graphStyles.buttonTop }}*/}
-                {/*    >*/}
-                {/*        <span style={labelStyle(!fadeNonTopArtists)}>*/}
-                {/*            {renderIcon(!fadeNonTopArtists)}*/}
-                {/*            {mode === "top1000"*/}
-                {/*                ? fadeNonTopArtists ? "Show All Artists" : "Show Your Top Artists"*/}
-                {/*                : fadeNonTopArtists ? "Displaying Top 100" : "Displaying All"}*/}
-                {/*        </span>*/}
-                {/*    </button>*/}
-                {/*)}*/}
-
-                <button
-                    onClick={() => setShowTopGenres(prev => !prev)}
-                    style={{
-                        ...graphStyles.toggleButton,
-                        ...graphStyles.buttonTop
-                    }}
-                >
-                    <span style={labelStyle(showTopGenres)}>
-                        {renderIcon(showTopGenres)}
-                        Genre Labels
-                    </span>
-                </button>
-
-                { mode !== "AllArtists" && (
-                    <button
-                        onClick={() => setShowLinks(prev => !prev)}
-                        style={{
-                            ...graphStyles.toggleButton,
-                            ...graphStyles.buttonMiddle
-                    }}
-                    >
-                        <span style={labelStyle(showLinks)}>
-                            {renderIcon(showLinks)}
-                            Relationships
-                        </span>
-                    </button>
-                )}
-
-                <button
-                    onClick={() => setShowLegend(prev => !prev)}
-                    style={{
-                        ...graphStyles.toggleButton,
-                        ...graphStyles.buttonBottom
-                    }}
-                    >
-                    <span style={labelStyle(showLegend)}>
-                        {renderIcon(showLegend)}
-                        Legend
-                    </span>
-                </button>
-
-            </div>
-        );
-    }
-
-    function renderZoomControls() {
-        return (
-            <div style={graphStyles.zoomControls}>
-                <button onClick={() => handleZoom(1.65)} style={graphStyles.zoomButtonTop}>＋</button>
-                <button onClick={resetZoom} style={graphStyles.zoomButtonReset}>⟳</button>
-                <button onClick={() => handleZoom(0.45)} style={graphStyles.zoomButtonBottom}>−</button>
-            </div>
-        );
-    }
-
     function renderGraphCanvas() {
         return (
             <div style={graphStyles.canvasWrapper}>
@@ -799,6 +713,8 @@ export default function ArtistGraph({ mode, param, user }) {
                 userTopRanks={userAllRanks}
                 globalRanks={top1000ArtistRanks}
                 shouldFadeNode={shouldFadeNode}
+                isSidebarOpen={isSidebarOpen}
+                setIsSidebarOpen={setIsSidebarOpen}
             />
         );
     }
@@ -811,8 +727,23 @@ export default function ArtistGraph({ mode, param, user }) {
             {isLoading ? renderLoadingState() : (
                 <>
                     <div style={{ position: "relative", flex: 1 }}>
-                        {renderToggleButtons()}
-                        {renderZoomControls()}
+                        <ToggleButtons
+                            showTopGenres={showTopGenres}
+                            setShowTopGenres={setShowTopGenres}
+                            showLinks={showLinks}
+                            setShowLinks={setShowLinks}
+                            showLegend={showLegend}
+                            setShowLegend={setShowLegend}
+                            mode={mode}
+                            graphStyles={graphStyles}
+                        />
+                        {window.innerWidth >= 768 && (
+                            <ZoomControls
+                                handleZoom={handleZoom}
+                                resetZoom={resetZoom}
+                                graphStyles={graphStyles}
+                            />
+                        )}
                         {renderGraphCanvas()}
                         {mode === "Top1000" && lastSyncTime && (
                             <div style={graphStyles.lastSync}>
@@ -820,6 +751,14 @@ export default function ArtistGraph({ mode, param, user }) {
                             </div>
                         )}
                     </div>
+                    {!isSidebarOpen && window.innerWidth < 768 && (
+                        <button
+                            className="hamburger-button"
+                            onClick={() => setIsSidebarOpen(true)}
+                        >
+                            ☰
+                        </button>
+                    )}
                     {renderSidebar()}
                 </>
             )}

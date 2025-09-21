@@ -1,7 +1,11 @@
-import { useEffect } from "react";
+import {useEffect} from "react";
 
 export default function useTooltip(getNodeLabel) {
+    const isMobile = typeof window !== "undefined" && "ontouchstart" in window;
+
     useEffect(() => {
+        if (isMobile) return; // don't even bind mousemove if mobile
+
         const tooltip = document.getElementById("tooltip");
 
         const handleMouseMove = (e) => {
@@ -16,6 +20,7 @@ export default function useTooltip(getNodeLabel) {
     }, []);
 
     const showTooltip = (node) => {
+        if (isMobile) return;
         const tooltip = document.getElementById("tooltip");
         if (!node || !tooltip) return;
 
@@ -27,6 +32,7 @@ export default function useTooltip(getNodeLabel) {
     };
 
     const hideTooltip = () => {
+        if (isMobile) return;
         const tooltip = document.getElementById("tooltip");
         if (!tooltip) return;
         tooltip.style.display = "none";

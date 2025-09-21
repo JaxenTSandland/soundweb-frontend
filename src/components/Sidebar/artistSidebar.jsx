@@ -5,9 +5,10 @@ import RecentReleases from "./Components/recentReleases.jsx";
 import BioSection from "./Components/bioSection.jsx";
 import {fetchExpandedArtistData} from "../../utils/dataFetcher.js";
 import RelatedArtists from "./Components/relatedArtists.jsx";
+import "./artistSidebar.css";
 
 
-export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGenres, handleResultClick, user, userTopRanks, globalRanks }) {
+export default function ArtistSidebar({ selectedNode, setSelectedNode, setIsOpen, allUsedGenres, handleResultClick, user, userTopRanks, globalRanks }) {
     const userRank = useMemo(() => (
         selectedNode && userTopRanks?.has(selectedNode.spotifyId)
             ? userTopRanks.get(selectedNode.spotifyId)
@@ -64,19 +65,27 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
     const lastUpdatedDate = date.toLocaleDateString();
 
     return (
-        <div style={styles.container}>
-            <button onClick={() => setSelectedNode(null)} style={styles.closeButton}>
+        <div className="artist-sidebar">
+            <button
+                onClick={() => {
+                    setSelectedNode(null);
+                    if (window.innerWidth < 768 && setIsOpen) {
+                        setIsOpen(false); // also collapse the sidebar overlay
+                    }
+                }}
+                className="close-button"
+            >
                 ×
             </button>
             {(userRank !== null || globalRank !== null) && (
-                <div style={styles.rankBadge}>
+                <div className="rank-badge">
                     {globalRank !== null && (
-                        <div style={userRank !== null ? styles.rankLine : styles.rankLineLast}>
+                        <div className={userRank !== null ? "rank-line" : "rank-line-last"}>
                             Global: #{globalRank + 1}
                         </div>
                     )}
                     {userRank !== null && (
-                        <div style={globalRank !== null ? styles.rankLineLast : styles.rankLine}>
+                        <div style={globalRank !== null ? "rank-line-last" : "rank-line"}>
                             Personal: #{userRank + 1}
                         </div>
                     )}
@@ -85,31 +94,31 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
 
 
             {selectedNode.imageUrl && (
-                <div style={styles.imageWrapper}>
+                <div className="image-wrapper">
                     <img
                         src={selectedNode.imageUrl}
                         alt={selectedNode.name}
-                        style={styles.image}
+                        className="image"
                     />
-                    <div style={styles.imageFade} />
+                    <div className="image-fade" />
                 </div>
             )}
 
-            <div style={styles.content}>
+            <div className="content">
 
-                <div style={styles.nameRow}>
+                <div className="name-row">
                     {selectedNode.spotifyUrl ? (
                         <a
                             href={selectedNode.spotifyUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            style={{ ...styles.name, textDecoration: "none" }}
+                            className="name name-link"
                             title="Open on Spotify"
                         >
                             {selectedNode.name}
                         </a>
                     ) : (
-                        <span style={styles.name}>{selectedNode.name}</span>
+                        <span className="name">{selectedNode.name}</span>
                     )}
 
                     {selectedNode.spotifyUrl && (
@@ -117,13 +126,13 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
                             href={selectedNode.spotifyUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            style={styles.spotifyLink}
+                            className="spotify-link"
                             title="Open on Spotify"
                         >
                             <img
                                 src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
                                 alt="Spotify"
-                                style={styles.spotifyIcon}
+                                className="spotify-icon"
                             />
                         </a>
                     )}
@@ -132,32 +141,33 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
                 <GenreTags genres={selectedNode.genres} getGenreColor={getGenreColor} />
 
                 {expandedData ? (
-                    <div style={styles.expanded}>
+                    <div className="expanded">
 
                         {/* Top Tracks Section */}
-                        <div style={styles.sectionBlock}>
-                            <div style={styles.sectionTitle}>Popular Tracks</div>
+                        <div className="section-block">
+                            <div className="section-title">Popular Tracks</div>
                             <TopTracks tracks={expandedData.topTracks} />
                         </div>
 
                         {/* Recent Releases Section */}
-                        <div style={styles.sectionBlock}>
-                            <div style={styles.sectionTitle}>Recent Releases</div>
+                        <div className="section-block">
+                            <div className="section-title">Recent Releases</div>
                             <RecentReleases releases={expandedData.recentReleases} scrollRef={releaseScrollRef} />
                         </div>
 
                         {/* Related Artists Section */}
                         {selectedNode.relatedNodes?.length > 0 && (
-                            <div style={styles.sectionBlock}>
-                                <div style={styles.sectionTitle}>Related Artists</div>
+                            <div className="section-block">
+                                <div className="section-title">Related Artists</div>
                                 <RelatedArtists related={selectedNode.relatedNodes} handleResultClick={handleResultClick} />
                             </div>
                         )}
+                        {/* TODO: Add loading screen to sidebar between clicking related artists on mobile (So it doesn't show the orignal sidebar while switching */}
 
                         {/* About Section */}
                         {cleanedContent && cleanedContent.length > 0 && (
-                            <div style={styles.sectionBlock}>
-                                <div style={styles.sectionTitle}>About</div>
+                            <div className="section-block">
+                                <div className="section-title">About</div>
                                 <BioSection html={cleanedContent} />
                             </div>
                         )}
@@ -178,130 +188,3 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, allUsedGe
         </div>
     );
 }
-
-const styles = {
-    container: {
-        position: "absolute",
-        top: 0,
-        right: 0,
-        width: "300px",
-        height: "100%",
-        backgroundColor: "#1a1a1a",
-        color: "#fff",
-        borderLeft: "1px solid #333",
-        zIndex: 30,
-        overflowY: "scroll",
-        scrollbarWidth: "none",
-        msOverflowStyle: "none"
-    },
-    sectionTitle: {
-        fontWeight: "bold",
-        textAlign: "center",
-        fontSize: "15px",
-        marginBottom: "6px"
-    },
-    content: {
-        padding: "0px 16px 45px 16px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-start",
-    },
-    nameRow: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "6px",
-        marginBottom: "6px"
-    },
-    name: {
-        fontSize: "20px",
-        fontWeight: "bold",
-        color: "#fff",
-        textAlign: "center",
-    },
-    spotifyLink: {
-        display: "inline-flex",
-        alignItems: "center",
-    },
-    spotifyIcon: {
-        height: "18px",
-        width: "18px",
-        marginTop: "1px"
-    },
-    expanded: {
-        width: "100%",
-        fontSize: "14px",
-        marginTop: "6px"
-    },
-    imageWrapper: {
-        position: "relative",
-        width: "100%",
-        height: "300px",
-        marginBottom: "12px",
-        overflow: "hidden"
-    },
-    image: {
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-        display: "block"
-    },
-    imageFade: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: "80px",
-        background: "linear-gradient(to top, #1a1a1a, transparent)"
-    },
-    sectionBlock: {
-        marginBottom: "30px",
-        paddingTop: "14px",
-        borderTop: "1px solid #777",
-        marginLeft: "-16px",
-        marginRight: "-16px",
-        paddingLeft: "16px",
-        paddingRight: "16px"
-    },
-    closeButton: {
-        position: "fixed",
-        top: "62px",
-        right: "262px",
-        background: "#fff",
-        opacity: "0.75",
-        color: "#000",
-        border: "none",
-        borderRadius: "4px",
-        padding: "2px 6px",
-        fontSize: "14px",
-        cursor: "pointer",
-        zIndex: 999
-    },
-    rankBadge: {
-        position: "absolute",
-        top: "10px",
-        right: "10px",
-        display: "flex",
-        flexDirection: "column",
-        width: "fit-content",
-        backgroundColor: "#1a1a1a",
-        opacity: "0.6",
-        border: "1px solid #444",
-        borderRadius: "6px",
-        overflow: "hidden",
-        fontSize: "13px",
-        zIndex: 40
-    },
-    rankLine: {
-        padding: "4px 6px",
-        color: "white",
-        textAlign: "center",
-        borderBottom: "1px solid #444"
-    },
-    rankLineLast: {
-        padding: "4px 6px",
-        color: "white",
-        textAlign: "left"
-    }
-};
