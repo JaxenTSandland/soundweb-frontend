@@ -8,16 +8,16 @@
     color: #fff;
     border-left: 1px solid #333;
     z-index: 30;
-    overflow-y: scroll;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
     padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
     box-sizing: border-box;
 }
 
 .artist-sidebar .content {
-    padding: 0 16px 45px 16px;
+    padding: 0 16px calc(45px + env(safe-area-inset-bottom)) 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -151,6 +151,7 @@
         width: 100vw;
         left: 0;
         border-left: none;
+        padding-bottom: env(safe-area-inset-bottom);
     }
     .artist-sidebar .close-button {
         left: 10px;
