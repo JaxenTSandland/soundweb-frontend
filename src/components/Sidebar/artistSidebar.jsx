@@ -85,7 +85,7 @@ export default function ArtistSidebar({ selectedNode, setSelectedNode, setIsOpen
                         </div>
                     )}
                     {userRank !== null && (
-                        <div style={globalRank !== null ? "rank-line-last" : "rank-line"}>
+                        <div className={globalRank !== null ? "rank-line-last" : "rank-line"}>
                             Personal: #{userRank + 1}
                         </div>
                     )}
