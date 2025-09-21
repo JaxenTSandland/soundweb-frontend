@@ -3,7 +3,7 @@
     top: 0;
     right: 0;
     width: 300px;
-    height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     margin-top: env(safe-area-inset-top);
     margin-bottom: env(safe-area-inset-bottom);
 
@@ -18,7 +18,6 @@
 
     box-sizing: border-box;
 }
-
 
 .artist-sidebar .content {
     padding: 0 16px calc(45px + env(safe-area-inset-bottom)) 16px;
