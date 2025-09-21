@@ -14,7 +14,9 @@ export default function RelatedArtists({ related, handleResultClick }) {
         <div style={{ marginTop: "12px" }}>
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
                 {canScrollLeft && (
-                    <div style={fadeArrowStyle("left")} onClick={() => scroll(-1)}>◀</div>
+                    <div style={fadeArrowStyle("left")} onClick={() => scroll(-1)}>
+                        &lt;
+                    </div>
                 )}
                 <div ref={ref} style={scrollAreaStyle}>
                     {related.map(artist => (
@@ -59,7 +61,9 @@ export default function RelatedArtists({ related, handleResultClick }) {
                     ))}
                 </div>
                 {canScrollRight && (
-                    <div style={fadeArrowStyle("right")} onClick={() => scroll(1)}>▶</div>
+                    <div style={fadeArrowStyle("right")} onClick={() => scroll(1)}>
+                        &gt;
+                    </div>
                 )}
             </div>
         </div>
@@ -112,6 +116,7 @@ const fadeArrowStyle = side => ({
     position: "absolute",
     [side]: 0,
     top: 0,
+    fontFamily: "sans-serif",
     bottom: 0,
     width: "30px",
     background: side === "left"

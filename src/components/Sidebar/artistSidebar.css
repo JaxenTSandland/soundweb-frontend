@@ -145,6 +145,15 @@
     text-align: left;
 }
 
+.artist-sidebar .last-updated {
+    font-size: 11px;
+    color: #888;
+    text-align: center;
+    margin-top: auto;
+    padding: 15px 16px;
+    box-sizing: border-box;
+}
+
 /* Mobile override */
 @media (max-width: 768px) {
     .artist-sidebar {

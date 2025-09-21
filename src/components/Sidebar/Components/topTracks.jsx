@@ -25,7 +25,9 @@ export default function TopTracks({ tracks }) {
         <div style={containerStyle}>
             <div style={rowStyle}>
                 {canScrollLeft && (
-                    <div style={fadeArrowStyle("left")} onClick={() => scroll(-1)}>◀</div>
+                    <div style={fadeArrowStyle("left")} onClick={() => scroll(-1)}>
+                        &lt;
+                    </div>
                 )}
                 <div ref={ref} style={scrollAreaStyle}>
                     {tracks.map((track, index) => (
@@ -51,7 +53,9 @@ export default function TopTracks({ tracks }) {
                     ))}
                 </div>
                 {canScrollRight && (
-                    <div style={fadeArrowStyle("right")} onClick={() => scroll(1)}>▶</div>
+                    <div style={fadeArrowStyle("right")} onClick={() => scroll(1)}>
+                        &gt;
+                    </div>
                 )}
             </div>
         </div>
@@ -142,6 +146,8 @@ const fadeArrowStyle = side => ({
     top: 0,
     bottom: 0,
     width: "30px",
+    fontFamily: "sans-serif",
+    fontSize: "20px",
     background: side === "left"
         ? "linear-gradient(to right, #1a1a1a, transparent)"
         : "linear-gradient(to left, #1a1a1a, transparent)",
