@@ -20,8 +20,8 @@ import {getTop1000Cache, refreshTop1000Cache} from "../../cache/top1000.js";
 import {top1000ArtistRanks} from "../../cache/top1000ArtistRanks.js";
 import {withRelatedNodes} from "../../utils/graphUtils.js";
 import drawLegend from "../../utils/drawLegend.jsx";
-import ToggleButtons from "./Components/ToggleButtons.jsx";
-import ZoomControls from "./Components/ZoomControls.jsx";
+import ToggleButtons from "./Components/toggleButtons.jsx";
+import ZoomControls from "./Components/zoomControls.jsx";
 import "./Components/hamburger.css"
 
 export default function ArtistGraph({ mode, param, user }) {
