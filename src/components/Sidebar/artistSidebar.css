@@ -3,7 +3,10 @@
     top: 0;
     right: 0;
     width: 300px;
-    height: 100%;
+    height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    margin-top: env(safe-area-inset-top);
+    margin-bottom: env(safe-area-inset-bottom);
+
     background-color: #1a1a1a;
     color: #fff;
     border-left: 1px solid #333;
@@ -12,9 +15,10 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding-top: env(safe-area-inset-top);
+
     box-sizing: border-box;
 }
+
 
 .artist-sidebar .content {
     padding: 0 16px calc(45px + env(safe-area-inset-bottom)) 16px;
@@ -150,7 +154,7 @@
     color: #888;
     text-align: center;
     margin-top: auto;
-    padding: 15px 16px;
+    padding: 0 16px 15px;
     box-sizing: border-box;
 }
 
