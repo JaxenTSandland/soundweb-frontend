@@ -1,6 +1,6 @@
 .toggle-button-group {
     position: absolute;
-    bottom: 100px;
+    bottom: calc(100px + env(safe-area-inset-bottom));
     left: 12px;
     display: flex;
     flex-direction: column;
