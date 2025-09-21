@@ -63,22 +63,22 @@ export default function GraphFooter({ activeTab, switchToTop1000, switchToAllArt
                 </button>
             )}
 
-            <button
-                className={activeTab.mode === "AboutSoundweb" ? "active" : ""}
-                onClick={switchToAboutSoundweb}
-                style={{ display: "flex", alignItems: "center", gap: "6px" }}
-            >
-                <img
-                    src={infoIcon}
-                    alt="Info icon"
-                    style={{
-                        width: "14px",
-                        height: "14px",
-                        filter: "invert(1)"
-                    }}
-                />
-                About Soundweb
-            </button>
+            {/*<button*/}
+            {/*    className={activeTab.mode === "AboutSoundweb" ? "active" : ""}*/}
+            {/*    onClick={switchToAboutSoundweb}*/}
+            {/*    style={{ display: "flex", alignItems: "center", gap: "6px" }}*/}
+            {/*>*/}
+            {/*    <img*/}
+            {/*        src={infoIcon}*/}
+            {/*        alt="Info icon"*/}
+            {/*        style={{*/}
+            {/*            width: "14px",*/}
+            {/*            height: "14px",*/}
+            {/*            filter: "invert(1)"*/}
+            {/*        }}*/}
+            {/*    />*/}
+            {/*    About Soundweb*/}
+            {/*</button>*/}
 
         </div>
     );

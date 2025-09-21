@@ -99,8 +99,8 @@
 }
 
 .artist-sidebar .close-button {
-    position: fixed;
-    top: 62px;
+    position: absolute;
+    top: 12px;
     right: 262px;
     background: #fff;
     opacity: 0.75;
