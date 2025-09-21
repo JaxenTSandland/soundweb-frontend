@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import useScrollArrows from "./useScrollArrows.js";
-import "./sharedStyles.css";
+import "./sharedSidebarComponentStyles.css";
 
 export default function RecentReleases({ releases }) {
     const ref = useRef();
@@ -87,7 +87,7 @@ const titleWrapperStyle = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: "4px",
+    marginBottom: "4px"
 };
 
 const titleTextStyle = {
@@ -96,13 +96,13 @@ const titleTextStyle = {
     lineHeight: "14px",
     overflow: "hidden",
     textAlign: "center",
-    padding: "0 6px",
+    padding: "0 6px"
 };
 
 const imageWrapperStyle = {
     position: "relative",
     width: "100px",
-    height: "100px",
+    height: "100px"
 };
 
 const imageStyle = {
@@ -110,7 +110,7 @@ const imageStyle = {
     height: "100px",
     borderRadius: "6px",
     objectFit: "cover",
-    border: "1px solid #444",
+    border: "1px solid #444"
 };
 
 const dateOverlayStyle = {
@@ -124,5 +124,5 @@ const dateOverlayStyle = {
     padding: "4px 6px",
     borderRadius: "0px 6px 0px 6px",
     textAlign: "left",
-    whiteSpace: "nowrap",
+    whiteSpace: "nowrap"
 };

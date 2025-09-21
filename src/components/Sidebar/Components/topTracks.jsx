@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import useScrollArrows from "./useScrollArrows.js";
-import "./sharedStyles.css";
+import "./sharedSidebarComponentStyles.css";
 
 export default function TopTracks({ tracks }) {
     const ref = useRef();

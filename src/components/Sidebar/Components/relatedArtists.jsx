@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import useScrollArrows from "./useScrollArrows.js";
 import { toTitleCase } from "../../../utils/textUtils.js";
-import "./sharedStyles.css";
+import "./sharedSidebarComponentStyles.css";
 
 export default function RelatedArtists({ related, handleResultClick }) {
     const ref = useRef();
@@ -86,7 +86,7 @@ const nameStyle = {
     alignItems: "center",
     justifyContent: "center",
     textAlign: "center",
-    padding: "0 4px",
+    padding: "0 4px"
 };
 
 const circleImageStyle = {
@@ -95,7 +95,7 @@ const circleImageStyle = {
     borderRadius: "50%",
     objectFit: "cover",
     border: "3px solid",
-    boxSizing: "border-box",
+    boxSizing: "border-box"
 };
 
 const genreTagStyle = {
@@ -110,5 +110,5 @@ const genreTagStyle = {
     color: "#000",
     backgroundColor: "#aaa",
     whiteSpace: "nowrap",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.4)"
 };
