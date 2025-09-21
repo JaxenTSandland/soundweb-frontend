@@ -1,0 +1,71 @@
+.scroll-area {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 4px 12px;
+    flex: 1;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overflow-y: hidden;
+}
+
+.container {
+    margin-top: 12px;
+}
+
+.row {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.card-base {
+    min-width: 100px;
+    max-width: 100px;
+    text-align: center;
+    flex-shrink: 0;
+    background-color: #292929;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+
+/* Variants */
+.card-rounded {
+    border-radius: 10px;
+    padding-top: 6px;
+}
+
+.card-circle {
+    border-radius: 50px 50px 10px 10px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Fade arrows */
+.fade-arrow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    font-family: sans-serif;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.fade-arrow.left {
+    left: 0;
+    justify-content: flex-start;
+    background: linear-gradient(to right, #1a1a1a, transparent);
+}
+
+.fade-arrow.right {
+    right: 0;
+    justify-content: flex-end;
+    background: linear-gradient(to left, #1a1a1a, transparent);
+}

@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import useScrollArrows from "./useScrollArrows.js";
+import "./sharedSidebarComponentStyles.css";
 
 export default function TopTracks({ tracks }) {
     const ref = useRef();
@@ -15,28 +16,42 @@ export default function TopTracks({ tracks }) {
     const MAX_NAME_CASE = 23;
     const MAX_UPPERCASE_NAME_CASE = 16;
     const formatTitle = (name) => {
-        const isAllCaps = name.slice(0, MAX_UPPERCASE_NAME_CASE).toUpperCase() === name.slice(0, MAX_UPPERCASE_NAME_CASE);
+        const isAllCaps =
+            name.slice(0, MAX_UPPERCASE_NAME_CASE).toUpperCase() ===
+            name.slice(0, MAX_UPPERCASE_NAME_CASE);
         const limit = isAllCaps ? MAX_UPPERCASE_NAME_CASE : MAX_NAME_CASE;
         const trimLimit = limit - 3;
-        return name.length > limit ? name.slice(0, trimLimit).trim() + "..." : name;
+        return name.length > limit
+            ? name.slice(0, trimLimit).trim() + "..."
+            : name;
     };
 
     return (
-        <div style={containerStyle}>
-            <div style={rowStyle}>
+        <div className="container">
+            <div className="row">
                 {canScrollLeft && (
-                    <div style={fadeArrowStyle("left")} onClick={() => scroll(-1)}>
+                    <div
+                        className="fade-arrow left"
+                        onClick={() => scroll(-1)}
+                    >
                         &lt;
                     </div>
                 )}
-                <div ref={ref} style={scrollAreaStyle}>
+
+                <div ref={ref} className="scroll-area">
                     {tracks.map((track, index) => (
-                        <div key={track.id || index} style={cardStyle}>
+                        <div key={track.id || index} className="card-base card-rounded">
                             <div style={titleWrapperStyle}>
-                                <div style={titleTextStyle}>{formatTitle(track.name)}</div>
+                                <div style={titleTextStyle}>
+                                    {formatTitle(track.name)}
+                                </div>
                             </div>
                             <div style={imageWrapperStyle}>
-                                <a href={track.spotifyUrl} target="_blank" rel="noreferrer">
+                                <a
+                                    href={track.spotifyUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
                                     <img
                                         src={track.album?.imageUrl}
                                         alt={track.album?.name}
@@ -44,7 +59,9 @@ export default function TopTracks({ tracks }) {
                                     />
                                     <div style={dateOverlayStyle}>
                                         <div style={{ opacity: 0.8 }}>
-                                            #{index + 1} { track.album?.release_date && (`(${track.album?.release_date.split("-")[0]})`)}
+                                            #{index + 1}{" "}
+                                            {track.album?.release_date &&
+                                                `(${track.album?.release_date.split("-")[0]})`}
                                         </div>
                                     </div>
                                 </a>
@@ -52,8 +69,12 @@ export default function TopTracks({ tracks }) {
                         </div>
                     ))}
                 </div>
+
                 {canScrollRight && (
-                    <div style={fadeArrowStyle("right")} onClick={() => scroll(1)}>
+                    <div
+                        className="fade-arrow right"
+                        onClick={() => scroll(1)}
+                    >
                         &gt;
                     </div>
                 )}
@@ -61,39 +82,6 @@ export default function TopTracks({ tracks }) {
         </div>
     );
 }
-
-const containerStyle = {
-    marginTop: "12px"
-};
-
-const rowStyle = {
-    position: "relative",
-    display: "flex",
-    alignItems: "center"
-};
-
-const scrollAreaStyle = {
-    display: "flex",
-    gap: "12px",
-    overflowX: "auto",
-    scrollBehavior: "smooth",
-    padding: "4px 12px",
-    flex: 1,
-    scrollbarWidth: "none",
-    msOverflowStyle: "none",
-    overflowY: "hidden"
-};
-
-const cardStyle = {
-    minWidth: "100px",
-    maxWidth: "100px",
-    textAlign: "center",
-    flexShrink: 0,
-    backgroundColor: "#292929",
-    borderRadius: "10px",
-    paddingTop: "6px",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.5)"
-};
 
 const titleWrapperStyle = {
     height: "30px",
@@ -109,7 +97,7 @@ const titleTextStyle = {
     lineHeight: "14px",
     overflow: "hidden",
     textAlign: "center",
-    padding: "0 6px",
+    padding: "0 6px"
 };
 
 const imageWrapperStyle = {
@@ -139,21 +127,3 @@ const dateOverlayStyle = {
     textAlign: "left",
     whiteSpace: "nowrap"
 };
-
-const fadeArrowStyle = side => ({
-    position: "absolute",
-    [side]: 0,
-    top: 0,
-    bottom: 0,
-    width: "30px",
-    fontFamily: "sans-serif",
-    fontSize: "20px",
-    background: side === "left"
-        ? "linear-gradient(to right, #1a1a1a, transparent)"
-        : "linear-gradient(to left, #1a1a1a, transparent)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: side === "left" ? "flex-start" : "flex-end",
-    cursor: "pointer",
-    zIndex: 1
-});
