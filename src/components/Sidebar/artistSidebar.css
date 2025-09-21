@@ -11,6 +11,9 @@
     overflow-y: scroll;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
 }
 
 .artist-sidebar .content {
@@ -100,7 +103,7 @@
 
 .artist-sidebar .close-button {
     position: absolute;
-    top: 12px;
+    top: calc(12px + env(safe-area-inset-top));
     right: 262px;
     background: #fff;
     opacity: 0.75;
@@ -145,13 +148,13 @@
 /* Mobile override */
 @media (max-width: 768px) {
     .artist-sidebar {
-        width: 101%;
-        left: -1px;
+        width: 100vw;
+        left: 0;
         border-left: none;
     }
     .artist-sidebar .close-button {
         left: 10px;
         right: auto;
-        top: 10px;
+        top: calc(10px + env(safe-area-inset-top));
     }
 }
