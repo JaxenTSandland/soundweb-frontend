@@ -6,7 +6,7 @@
     height: 100vh;
     background: #1a1a1a;
     color: white;
-    padding: 12px;
+    padding: calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
     border-left: 1px solid #333;
     display: flex;
     flex-direction: column;
