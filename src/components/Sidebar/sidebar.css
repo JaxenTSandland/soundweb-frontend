@@ -6,7 +6,7 @@
     height: 100vh;
     background: #1a1a1a;
     color: white;
-    padding: calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
+    padding: 12px;
     border-left: 1px solid #333;
     display: flex;
     flex-direction: column;
@@ -22,6 +22,7 @@
         left: 0;
         width: 100vw;
         height: 100vh;
+        padding: calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
         transform: translateX(100%); /* hidden by default */
     }
     .sidebar-container.open {
