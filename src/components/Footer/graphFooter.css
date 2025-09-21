@@ -34,6 +34,6 @@
 /* mobile */
 @media (max-width: 768px) {
     .graph-footer {
-        height: 60px; !important;
+        height: 40px; !important;
     }
 }

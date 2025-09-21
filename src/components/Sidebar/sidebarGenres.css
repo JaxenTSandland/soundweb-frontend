@@ -22,8 +22,7 @@
 
 .genre-controls {
     display: flex;
-    gap: 8px;
-    margin-bottom: 2px;
+    margin-bottom: 8px;
 }
 
 .genre-controls button {
@@ -34,7 +33,7 @@
     border: 1px solid #555;
     border-radius: 4px;
     cursor: pointer;
-    margin: 0 2px;
+    margin: 0 2px -4px;
     flex: 1;
 }
 
@@ -42,6 +41,7 @@
     overflow-y: auto;
     flex: 1;
     max-height: 76.5%;
+    padding-top: 6px;
     padding-right: 6px;
 }
 

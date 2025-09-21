@@ -22,6 +22,7 @@ import {withRelatedNodes} from "../../utils/graphUtils.js";
 import drawLegend from "../../utils/drawLegend.jsx";
 import ToggleButtons from "./Components/ToggleButtons.jsx";
 import ZoomControls from "./Components/ZoomControls.jsx";
+import "./Components/hamburger.css"
 
 export default function ArtistGraph({ mode, param, user }) {
     const userId = user?.id;
@@ -407,6 +408,16 @@ export default function ArtistGraph({ mode, param, user }) {
     function handleResultClick(node) {
         if (!node || !graphRef.current || zoomingRef.current) return;
 
+        // Mobile
+        if (window.innerWidth < 768) {
+            setSelectedNode(withRelatedNodes(node, artistNodes, shouldFadeNode));
+            setIsSidebarOpen(true);
+            setSearchTerm("");
+            setFilteredResults([]);
+            return;
+        }
+
+        // Desktop
         zoomingRef.current = true;
 
         graphRef.current.centerAt(node.x, node.y, 1000);
@@ -740,6 +751,14 @@ export default function ArtistGraph({ mode, param, user }) {
                             </div>
                         )}
                     </div>
+                    {!isSidebarOpen && window.innerWidth < 768 && (
+                        <button
+                            className="hamburger-button"
+                            onClick={() => setIsSidebarOpen(true)}
+                        >
+                            ☰
+                        </button>
+                    )}
                     {renderSidebar()}
                 </>
             )}
