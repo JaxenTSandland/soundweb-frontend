@@ -22,6 +22,7 @@
         left: 0;
         width: 100vw;
         height: 100vh;
+        padding: calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
         transform: translateX(100%); /* hidden by default */
     }
     .sidebar-container.open {
