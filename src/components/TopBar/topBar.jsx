@@ -26,7 +26,7 @@ export default function TopBar({ user, onLoginClick, setDropdownOpen, menuButton
             )}
 
             <div style={styles.title}>Soundweb</div>
-            <div style={styles.versionText}>v0.1.1</div>
+            {/*<div style={styles.versionText}>v0.1.1</div>*/}
         </div>
     );
 }
@@ -73,7 +73,7 @@ const styles = {
     },
     title: {
         position: "absolute",
-        right: "55px",
+        right: "12px",
         color: "white",
         fontSize: "24px",
         fontWeight: "bold",
