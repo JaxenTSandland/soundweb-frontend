@@ -106,15 +106,15 @@
 
 .artist-sidebar .close-button {
     position: absolute;
-    top: calc(12px + env(safe-area-inset-top));
-    right: 262px;
+    top: calc(10px + env(safe-area-inset-top));
+    right: 260px;
     background: #fff;
     opacity: 0.75;
     color: #000;
     border: none;
     border-radius: 4px;
-    padding: 2px 6px;
-    font-size: 14px;
+    padding: 1px 6px;
+    font-size: 20px;
     cursor: pointer;
     z-index: 999;
 }
