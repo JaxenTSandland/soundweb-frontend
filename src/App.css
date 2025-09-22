@@ -31,19 +31,19 @@ svg, canvas {
 }
 
 /* Base scrollbar width (fix for initial load) */
-.sidebar-container .genreList::-webkit-scrollbar,
+.sidebar-container .genre-list::-webkit-scrollbar,
 .sidebar-container .popularArtistList::-webkit-scrollbar {
     width: 8px;   /* thickness of scrollbar */
 }
 
 /* Default scrollbar track = invisible */
-.sidebar-container .genreList::-webkit-scrollbar-track,
+.sidebar-container .genre-list::-webkit-scrollbar-track,
 .sidebar-container .popularArtistList::-webkit-scrollbar-track {
     background: transparent;
 }
 
 /* Thumb is still visible by default */
-.sidebar-container .genreList::-webkit-scrollbar-thumb,
+.sidebar-container .genre-list::-webkit-scrollbar-thumb,
 .sidebar-container .popularArtistList::-webkit-scrollbar-thumb {
     background-color: #555;
     border-radius: 4px;
@@ -51,25 +51,25 @@ svg, canvas {
 }
 
 /* When hovering over scrollbar area, show the track */
-.sidebar-container .genreList:hover::-webkit-scrollbar-track,
+.sidebar-container .genre-list:hover::-webkit-scrollbar-track,
 .sidebar-container .popularArtistList:hover::-webkit-scrollbar-track {
     background: #111;
 }
 
 /* Also bring back the border on hover */
-.sidebar-container .genreList:hover::-webkit-scrollbar-thumb,
+.sidebar-container .genre-list:hover::-webkit-scrollbar-thumb,
 .sidebar-container .popularArtistList:hover::-webkit-scrollbar-thumb {
     border: 2px solid #111;
 }
 
 /* Firefox */
-.sidebar-container .genreList,
+.sidebar-container .genre-list,
 .sidebar-container .popularArtistList {
     scrollbar-width: thin;
     scrollbar-color: #555 transparent;
 }
 
-.sidebar-container .genreList:hover,
+.sidebar-container .genre-list:hover,
 .sidebar-container .popularArtistList:hover {
     scrollbar-color: #555 #111;
 }

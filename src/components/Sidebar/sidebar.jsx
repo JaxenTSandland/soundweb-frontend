@@ -174,7 +174,7 @@ export default function Sidebar({
                                 </button>
                             </div>
 
-                            <div className="genreList">
+                            <div className="genre-list">
                                 {sortedGenres.map(({ name, count, toggled }) => (
                                     <label key={name} className="genre-item">
                                         <input
