@@ -157,21 +157,19 @@ export default function Sidebar({
                                     <button onClick={cycleSortMethod}>
                                         Sort: {sortMethod === "alphabetical" ? "A–Z" : "Popularity"}
                                     </button>
-                                </div>
-                            </div>
 
-                            <div className="genre-controls">
-                                <button
-                                    onClick={() => {
-                                        const onCount = allTopGenres.filter(g => g.toggled).length;
-                                        const selectAll = onCount / allTopGenres.length <= 0.5;
-                                        setAllGenres(allTopGenres.map(g => ({ ...g, toggled: selectAll })));
-                                    }}
-                                >
-                                    {allTopGenres.filter(g => g.toggled).length / allTopGenres.length > 0.5
-                                        ? "Deselect all"
-                                        : "Select all"}
-                                </button>
+                                    <button
+                                        onClick={() => {
+                                            const onCount = allTopGenres.filter(g => g.toggled).length;
+                                            const selectAll = onCount / allTopGenres.length <= 0.5;
+                                            setAllGenres(allTopGenres.map(g => ({ ...g, toggled: selectAll })));
+                                        }}
+                                    >
+                                        {allTopGenres.filter(g => g.toggled).length / allTopGenres.length > 0.5
+                                            ? "Deselect all"
+                                            : "Select all"}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="genre-list">

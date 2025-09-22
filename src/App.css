@@ -53,7 +53,7 @@ svg, canvas {
 /* When hovering over scrollbar area, show the track */
 .sidebar-container .genre-list:hover::-webkit-scrollbar-track,
 .sidebar-container .popularArtistList:hover::-webkit-scrollbar-track {
-    background: #111;
+    background: transparent;
 }
 
 /* Also bring back the border on hover */
