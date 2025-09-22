@@ -1,12 +1,13 @@
 .genre-section {
     flex: 1 1 auto;
-    padding-top: 10px;
+    padding-top: 20px;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    min-height: 0;
 }
 
 .genre-header {
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -22,10 +23,12 @@
 
 .genre-controls {
     display: flex;
-    margin-bottom: 8px;
+    gap: 8px;
+    margin-bottom: 2px;
 }
 
 .genre-controls button {
+    flex: 1;
     font-size: 12px;
     padding: 4px 8px;
     background: #333;
@@ -33,16 +36,18 @@
     border: 1px solid #555;
     border-radius: 4px;
     cursor: pointer;
-    margin: 0 2px -4px;
-    flex: 1;
 }
 
 .genre-list {
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
-    flex: 1;
-    max-height: 76.5%;
-    padding: 6px 6px calc(12px + env(safe-area-inset-bottom));
     box-sizing: border-box;
+    padding: 6px;
+    background: #111;
+    border-radius: 6px;
+    border: 1px solid #333;
+    margin-bottom: 12px;
 }
 
 .genre-item {
