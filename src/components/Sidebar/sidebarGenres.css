@@ -1,5 +1,5 @@
 .genre-section {
-    flex: 1 1 30%;
+    flex: 1 1 auto;
     padding-top: 10px;
     display: flex;
     flex-direction: column;
@@ -37,12 +37,12 @@
     flex: 1;
 }
 
-.genreList {
+.genre-list {
     overflow-y: auto;
     flex: 1;
     max-height: 76.5%;
-    padding-top: 6px;
-    padding-right: 6px;
+    padding: 6px 6px calc(12px + env(safe-area-inset-bottom));
+    box-sizing: border-box;
 }
 
 .genre-item {
