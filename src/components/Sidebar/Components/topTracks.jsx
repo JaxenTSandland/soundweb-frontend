@@ -116,14 +116,14 @@ const imageStyle = {
 
 const dateOverlayStyle = {
     position: "absolute",
-    bottom: "0px",
-    left: "0px",
+    bottom: "1px",
+    left: "1px",
     backgroundColor: "rgba(0, 0, 0, 0.7)",
     color: "white",
     fontSize: "10px",
     lineHeight: "1.2",
     padding: "4px 6px",
-    borderRadius: "0px 6px 0px 6px",
+    borderRadius: "0px 6px 0px 4px",
     textAlign: "left",
     whiteSpace: "nowrap"
 };
