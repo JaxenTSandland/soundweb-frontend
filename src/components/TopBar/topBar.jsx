@@ -5,6 +5,9 @@ export default function TopBar({ user, onLoginClick, setDropdownOpen, menuButton
     const defaultAvatar = "/assets/default-avatar.jpg";
     return (
         <div style={styles.bar}>
+            <div style={styles.title}>Soundweb</div>
+            {/*<div style={styles.versionText}>v0.1.1</div>*/}
+
             {user === null ? (
                 <button style={styles.loginButton} onClick={onLoginClick}>
                     Log in with Spotify
@@ -24,9 +27,6 @@ export default function TopBar({ user, onLoginClick, setDropdownOpen, menuButton
                     <span style={styles.caret}>▾</span>
                 </div>
             )}
-
-            <div style={styles.title}>Soundweb</div>
-            {/*<div style={styles.versionText}>v0.1.1</div>*/}
         </div>
     );
 }
@@ -40,12 +40,13 @@ const styles = {
         backgroundColor: "#121212",
         display: "flex",
         alignItems: "center",
-        justifyContent: "flex-start",
+        justifyContent: "space-between",
         padding: "0 10px",
         boxSizing: "border-box",
         borderBottom: "1px solid #333"
     },
     loginButton: {
+        marginLeft: "auto",
         backgroundColor: "#1DB954",
         color: "white",
         border: "none",
@@ -55,6 +56,7 @@ const styles = {
         cursor: "pointer"
     },
     userInfo: {
+        marginLeft: "auto",
         display: "flex",
         alignItems: "center",
         gap: "10px",
@@ -72,8 +74,6 @@ const styles = {
         fontWeight: "500"
     },
     title: {
-        position: "absolute",
-        right: "12px",
         color: "white",
         fontSize: "24px",
         fontWeight: "bold",
