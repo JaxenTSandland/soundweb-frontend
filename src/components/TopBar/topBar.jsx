@@ -9,9 +9,9 @@ export default function TopBar({ user, onLoginClick, setDropdownOpen, menuButton
             {/*<div style={styles.versionText}>v0.1.1</div>*/}
 
             {user === null ? (
-                // <button style={styles.loginButton} onClick={onLoginClick}>
-                //     Log in with Spotify
-                // </button>
+                <button style={styles.loginButton} onClick={onLoginClick}>
+                    Log in with Spotify
+                </button>
             ) : (
                 <div
                     ref={menuButtonRef}
