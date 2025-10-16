@@ -8,11 +8,11 @@ export default function TopBar({ user, onLoginClick, setDropdownOpen, menuButton
             <div style={styles.title}>Soundweb</div>
             {/*<div style={styles.versionText}>v0.1.1</div>*/}
 
-            {user === null ? (
-                // <button style={styles.loginButton} onClick={onLoginClick}>
-                //     Log in with Spotify
-                // </button>
-            ) : (
+            {/*{user === null ? (*/}
+            {/*    // <button style={styles.loginButton} onClick={onLoginClick}>*/}
+            {/*    //     Log in with Spotify*/}
+            {/*    // </button>*/}
+            {/*) : (*/}
                 <div
                     ref={menuButtonRef}
                     style={styles.userInfo}
@@ -26,7 +26,7 @@ export default function TopBar({ user, onLoginClick, setDropdownOpen, menuButton
                     <span style={styles.userName}>{user.display_name}</span>
                     <span style={styles.caret}>▾</span>
                 </div>
-            )}
+            {/*)}*/}
         </div>
     );
 }
