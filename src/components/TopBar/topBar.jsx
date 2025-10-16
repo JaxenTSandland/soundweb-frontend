@@ -46,6 +46,7 @@ const styles = {
         borderBottom: "1px solid #333"
     },
     loginButton: {
+        display: "none",
         marginLeft: "auto",
         backgroundColor: "#1DB954",
         color: "white",
