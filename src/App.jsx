@@ -169,7 +169,7 @@ const styles = {
     dropdownMenu: {
         position: "absolute",
         top: 52,
-        left: 10,
+        right: 10,
         backgroundColor: "#1e1e1e",
         border: "1px solid #444",
         borderRadius: "6px",
