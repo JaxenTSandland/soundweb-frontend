@@ -401,7 +401,7 @@ export default function ArtistGraph({ mode, param, user }) {
             rankText = `\n(Global rank #${globalRank + 1})`;
         }
 
-        return `${node.name}${rankText}`;
+        return `<b>${node.name}</b>${rankText}`;
     }
 
 
