@@ -336,7 +336,7 @@ export default function ArtistGraph({ mode, param, user }) {
             });
 
             if (mode === "Top1000" && top1000ArtistRanks.size === 0) {
-                reloadGlobalRankings()
+                reloadGlobalRankings(artistNodes)
             }
 
             setIsLoading(false);
@@ -347,9 +347,9 @@ export default function ArtistGraph({ mode, param, user }) {
 
     // endregion
 
-    function reloadGlobalRankings() {
+    function reloadGlobalRankings(nodes = artistNodes) {
         if (mode === "Top1000") {
-            const sorted = artistNodes
+            const sorted = nodes
                 .filter(n => !n.labelNode)
                 .sort((a, b) => b.popularity - a.popularity);
 
