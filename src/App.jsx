@@ -175,7 +175,7 @@ const styles = {
         borderRadius: "6px",
         padding: "8px 0",
         boxShadow: "0 0 6px rgba(0,0,0,0.3)",
-        zIndex: 1000,
+        zIndex: 1300,
         minWidth: "178px"
     },
     logoutButton: {
